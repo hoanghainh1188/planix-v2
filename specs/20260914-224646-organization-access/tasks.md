@@ -65,7 +65,7 @@ RED tương ứng chưa tồn tại và chưa fail.
 
 ### Thuật ngữ (Nguyên tắc VI — làm trước mọi task đặt tên)
 
-- [ ] T014 Append thuật ngữ mới vào `docs/00-glossary.md` **trước mọi task đặt tên trong code** (Nguyên tắc VI — sửa sau `/speckit-analyze` D1), mỗi dòng đủ cột Tiếng Việt / English / Viết tắt / Định danh code / Ghi chú / Nguồn: Platform Operator `platformOperator`; Organization Membership `organizationMembership`; Membership Role `membershipRole`; Organization Invitation `organizationInvitation`; Session `authSession`; Active Organization `activeOrganization`; Password Reset Token `passwordResetToken`; Audit Entry `auditEntry`; Sensitive Field Policy `sensitiveFieldPolicy`; giá trị role `admin`, `portfolioLead`, `member`, `finance`; chạy `python3 .github/scripts/check-template.py` xanh
+- [X] T014 Append thuật ngữ mới vào `docs/00-glossary.md` **trước mọi task đặt tên trong code** (Nguyên tắc VI — sửa sau `/speckit-analyze` D1), mỗi dòng đủ cột Tiếng Việt / English / Viết tắt / Định danh code / Ghi chú / Nguồn: Platform Operator `platformOperator`; Organization Membership `organizationMembership`; Membership Role `membershipRole`; Organization Invitation `organizationInvitation`; Session `authSession`; Active Organization `activeOrganization`; Password Reset Token `passwordResetToken`; Audit Entry `auditEntry`; Sensitive Field Policy `sensitiveFieldPolicy`; giá trị role `admin`, `portfolioLead`, `member`, `finance`; chạy `python3 .github/scripts/check-template.py` xanh
 
 ### Core (domain thuần)
 

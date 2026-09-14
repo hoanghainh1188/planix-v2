@@ -34,6 +34,24 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Đường cơ sở | Baseline | | `baseline` | Có version; chỉ đổi qua CCB → Accountable | CHG, OI-07 |
 | Phiên bản đường cơ sở | Baseline Version | | `baselineVersion` | | FR-CHG-04 |
 
+## Tổ chức, tài khoản & phân quyền
+
+| Tiếng Việt | English | Viết tắt | Định danh code | Ghi chú | Nguồn |
+|---|---|---|---|---|---|
+| Người vận hành nền tảng | Platform Operator | | `platformOperator` | Vai trò cấp nền tảng, ngoài mọi tổ chức; tạo tổ chức, mời Admin đầu tiên; không đọc dữ liệu nghiệp vụ | FR-004, decision `2026-09-14-005-organization-creation` |
+| Thành viên tổ chức | Organization Membership | | `organizationMembership` | Quan hệ User – Organization; một user có nhiều membership ở các tổ chức khác nhau | FR-017 |
+| Gán vai trò hệ thống | Membership Role | | `membershipRole` | Một membership giữ nhiều vai trò, quyền là hợp | FR-012 |
+| Lời mời tham gia tổ chức | Organization Invitation | | `organizationInvitation` | Hạn 7 ngày, dùng một lần; trạng thái `pending`/`accepted`/`revoked`/`expired` | FR-009 |
+| Phiên đăng nhập | Session | | `authSession` | Phiên phía server; hết sau 8 giờ không hoạt động. Không dùng `session` trần để tránh nhầm framework | FR-007 |
+| Tổ chức đang hoạt động | Active Organization | | `activeOrganization` | Tổ chức mà mọi yêu cầu hiện tại gắn vào | FR-017 |
+| Mã đặt lại mật khẩu | Password Reset Token | | `passwordResetToken` | Dùng một lần, hết hạn sau 1 giờ; chỉ lưu bản băm | FR-031 |
+| Bản ghi kiểm toán | Audit Entry | | `auditEntry` | Append-only | FR-027 |
+| Chính sách trường nhạy cảm | Sensitive Field Policy | | `sensitiveFieldPolicy` | Đánh dấu trường cần quyền để đọc/ghi (VD `billingRate`, `budgetAtCompletion`) | FR-025 |
+| Quản trị viên tổ chức | Organization Admin | | `admin` | Giá trị của `role` | FR-011, OI-03 |
+| Lãnh đạo danh mục | Portfolio Lead | | `portfolioLead` | Giá trị của `role`; khác `portfolio` (thực thể) | FR-011, OI-03 |
+| Thành viên (vai trò hệ thống) | Member | | `member` | Giá trị mặc định của `role` | FR-011, OI-03 |
+| Tài chính (vai trò hệ thống) | Finance | | `finance` | Giá trị của `role`; được xem trường tài chính nhạy cảm | FR-011, OI-03 |
+
 ## TASK — Tác nghiệp
 
 | Tiếng Việt | English | Viết tắt | Định danh code | Ghi chú | Nguồn |
