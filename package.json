@@ -1,0 +1,34 @@
+{
+  "name": "planix",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspace apps/server & npm run dev --workspace apps/web",
+    "db:migrate": "npm run db:migrate --workspace apps/server",
+    "ops:grant-operator": "npm run ops:grant-operator --workspace apps/server --",
+    "perf:org-access": "npm run perf:org-access --workspace apps/server"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.0"
+  }
+}

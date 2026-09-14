@@ -3,6 +3,12 @@ dist/
 build/
 .env
 .env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+*.tsbuildinfo
 *.log
 .claude/settings.local.json
 .claude.template-backup/
