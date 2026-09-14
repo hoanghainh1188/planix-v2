@@ -1,11 +1,18 @@
 # Quy ước dự án cho AI agent
 
 ## Tổng quan
-<Điền: dự án làm gì, khách hàng là ai, ngôn ngữ tài liệu thiết kế gốc>
+**Planix V2** — phần mềm quản trị dự án (project management).
+
+- Khách hàng / người dùng cuối: _chưa chốt — bổ sung khi có basic design_
+- Ngôn ngữ tài liệu thiết kế gốc: _chưa chốt — bổ sung khi nhận 基本設計 / 詳細設計_
 
 ## Tech stack
-<Điền khi bắt đầu code — mặc dù `impl-planner` của Spec Kit sẽ tự phát hiện, khai báo sẵn ở đây
-giúp mọi agent nhất quán ngay từ lượt gọi đầu tiên>
+**CHƯA CHỐT** — sẽ đánh giá và chọn stack khi có specs chi tiết (sau các feature đầu tiên đi qua
+`/speckit-specify` → `/speckit-plan`). Việc chọn stack phải ghi thành 1 quyết định trong
+`docs/04-decisions/` (+ append `INDEX.md`), rồi cập nhật lại mục này.
+
+> Cho đến khi chốt: agent KHÔNG tự chọn framework/ngôn ngữ/DB và KHÔNG sinh code trong `src/`.
+> Nếu `/speckit-plan` cần stack để lập plan, dừng lại và hỏi thay vì tự giả định.
 
 > Khi đã chốt stack: điền lệnh formatter vào `.claude/hooks/format.sh` để bật format-on-save
 > (PostToolUse hook chạy sau mỗi Edit/Write). Thứ tự chuẩn: format → lint → type check → build
@@ -82,9 +89,8 @@ implement → code-reviewer → glossary-steward → security-reviewer → **tes
 Dừng xin xác nhận ở mọi checkpoint.
 
 ## Deploy
-<Điền phương thức deploy cụ thể của dự án — `/design-to-code` bước 15 sẽ đọc mục này.
-Ví dụ: `vercel --prod`, hoặc push lên branch trigger CI/CD, hoặc build container + đẩy registry.
-Nếu để trống, pipeline sẽ dừng và hỏi bạn trước khi deploy.>
+**CHƯA CHỐT** — phụ thuộc tech stack. Cho đến khi điền, `/design-to-code` bước 15 phải dừng và hỏi
+trước khi deploy.
 
 ## Quy tắc bắt buộc
 1. Mọi mâu thuẫn giữa basic design / detail design / Figma phải được nêu vào `/speckit-clarify`,

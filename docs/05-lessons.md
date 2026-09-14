@@ -29,4 +29,3 @@ version Y có bug Z, dùng workaround W". Đây là *tri thức vận hành*, kh
 
 | Ngày | Bài học (gotcha) | Nơi phát hiện (feature / file) | Ghi chú / cách áp dụng |
 |---|---|---|---|
-| _(xoá dòng mẫu khi bắt đầu dự án)_ | 承認 API trả `approved_at` theo giờ JST, không UTC | `000-example-reservation` · `approveReservation.ts` | Convert sang UTC ở boundary; đừng so sánh trực tiếp |

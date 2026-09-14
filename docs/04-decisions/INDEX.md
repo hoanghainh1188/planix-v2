@@ -9,9 +9,8 @@ bảng này trước — nếu câu hỏi đã có ở đây, dùng lại quyế
 
 | Ngày | Quyết định | Feature | Thuật ngữ / chủ đề |
 |---|---|---|---|
-| 2026-01-01 | [承認 = "approval", không phải "confirm"](2026-01-01-approval-vs-confirm.md) *(mẫu — xoá)* | `000-example-reservation` | 承認 / approval |
 
 <!--
-Ví dụ 1 dòng thật (xoá dòng mẫu ở trên khi bắt đầu dự án):
+Ví dụ 1 dòng thật:
 | 2026-07-10 | Kênh gửi thông báo sau approval → file 2026-07-10-notify-channel.md | `042-user-reservation` | 通知 / notification |
 -->

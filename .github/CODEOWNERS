@@ -18,12 +18,12 @@
 #   - KHÔNG gác `src/features/<slug>/` — cô lập theo feature, không cần steward (xem TEAM-WORKFLOW mục 4).
 
 # Thuật ngữ nghiệp vụ dùng chung toàn dự án
-docs/00-glossary.md            @your-lead-handle
+docs/00-glossary.md            @hoanghainh1188
 
 # Hiến pháp dự án — thắng mọi thứ trong workflow Spec Kit
-/.specify/memory/constitution.md   @your-lead-handle
+/.specify/memory/constitution.md   @hoanghainh1188
 
 # Tài liệu thiết kế GỐC từ khách hàng (source of truth, không sửa tay tuỳ tiện)
-docs/01-basic-design/          @your-lead-handle
-docs/02-detail-design/         @your-lead-handle
-docs/03-ui/                    @your-lead-handle
+docs/01-basic-design/          @hoanghainh1188
+docs/02-detail-design/         @hoanghainh1188
+docs/03-ui/                    @hoanghainh1188
