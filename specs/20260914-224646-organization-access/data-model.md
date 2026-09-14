@@ -37,6 +37,7 @@ erDiagram
 | `time_zone` | text | NOT NULL, IANA tz, mặc định `Asia/Ho_Chi_Minh` |
 | `failed_login_count` | int | NOT NULL, mặc định 0 |
 | `locked_until` | timestamptz | NULL |
+| `last_active_organization_id` | uuid | NULL — tổ chức dùng gần nhất, để tự chọn khi đăng nhập |
 | `created_at`, `updated_at` | timestamptz | NOT NULL |
 
 - Không có trạng thái vô hiệu hoá ở cấp user: vô hiệu hoá là theo **membership** (decision đa tổ chức).
@@ -221,7 +222,19 @@ Yêu cầu mới → mọi token chưa dùng của user được đặt `superse
 | `before`, `after` | jsonb | đã lọc field nhạy cảm + khoá cấm (FR-028) |
 | `occurred_at` | timestamptz | NOT NULL |
 
-Append-only: role ứng dụng không có `UPDATE`/`DELETE` (research R8).
+Append-only: role ứng dụng không có `UPDATE`/`DELETE` (research R8). RLS riêng: INSERT
+`WITH CHECK (organization_id IS NULL OR organization_id = app_current_organization_id())`; SELECT chỉ theo tổ chức;
+bản ghi NULL chỉ đọc bằng role owner (research R3 lối 4).
+
+## Lối truy cập DB theo role
+
+| Role / ngữ cảnh | Dùng cho | Được phép |
+|---|---|---|
+| `planix_app` + `app.organization_id` | mọi route tổ chức | Mọi bảng **(T)** của tổ chức đang hoạt động |
+| `planix_app` + `app.user_id` | đăng nhập, `GET /auth/session`, chọn tổ chức | **Chỉ SELECT** membership, role, tên tổ chức của chính user |
+| `planix_app` (không ngữ cảnh) | `GET/POST /invitations/{token}` | Chỉ hàm `app_find_invitation_by_token_hash`; sau đó chuyển sang ngữ cảnh tổ chức |
+| `planix_platform` | `/platform/*` | `organization`, `platform_operator_grant`, INSERT `organization_invitation`, `app_count_active_admins` — **không** `project*`, `raci_assignment`, đọc `audit_entry` |
+| `planix_owner` | migration, vận hành | Toàn quyền |
 
 ## Kiểu domain dùng chung (`packages/core`)
 

@@ -37,6 +37,13 @@
   hết hạn sau 1 giờ; đặt lại xong huỷ mọi phiên đang mở; phản hồi không tiết lộ email có tồn tại hay không.
   Không cần bước xác minh email riêng (email được xác minh khi chấp nhận lời mời).
 
+### Session 2026-09-15 (sửa sau `/speckit-analyze`)
+
+- Q: Dự án do Lãnh đạo danh mục tạo không thêm được thành viên (deadlock) — xử lý thế nào? → A: Lãnh đạo danh mục
+  được quản lý thành viên dự án; RACI vẫn chỉ PM (decision `2026-09-15-005-portfolio-lead-manages-project-members`).
+- Q: Đăng nhập tự chọn tổ chức đang hoạt động nào? → A: đúng 1 membership active → tự chọn; nhiều → tổ chức dùng gần
+  nhất nếu còn active, không thì người dùng chọn; không có membership active → chưa có tổ chức đang hoạt động.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Cô lập dữ liệu giữa các tổ chức (Priority: P1)
@@ -126,8 +133,8 @@ hệ PM được phép và bị từ chối ở phân hệ không được phép
 
 ### User Story 4 - Dự án và thành viên dự án (Priority: P2)
 
-Người có quyền tạo dự án tạo dự án trong tổ chức; PM của dự án thêm/xoá thành viên dự án (project
-member) từ các thành viên tổ chức.
+Người có quyền tạo dự án tạo dự án trong tổ chức; PM hoặc Lãnh đạo danh mục là thành viên dự án thêm/xoá
+thành viên dự án (project member) từ các thành viên tổ chức.
 
 **Why this priority**: Lớp 2 của mô hình phân quyền cần có dự án và thành viên dự án; ở feature này dự án
 chỉ ở mức tối thiểu (tên, mô tả) để làm phạm vi phân quyền.
@@ -249,8 +256,8 @@ còn chuỗi cố định ngôn ngữ; tạo lời mời lúc 23:30 giờ Việt
 
 ### Edge Cases
 
-- Người dùng thuộc nhiều tổ chức: sau đăng nhập phải chọn tổ chức đang làm việc (hoặc vào tổ chức dùng
-  gần nhất); mọi yêu cầu chỉ trong tổ chức đang hoạt động; bị vô hiệu hoá ở A không ảnh hưởng tư cách ở B.
+- Người dùng thuộc nhiều tổ chức: sau đăng nhập tự vào tổ chức dùng gần nhất nếu membership còn active, không
+  thì người dùng chọn; chỉ có 1 membership active thì tự chọn; mọi yêu cầu chỉ trong tổ chức đang hoạt động; bị vô hiệu hoá ở A không ảnh hưởng tư cách ở B.
 - Mời email đã có tài khoản và đang thuộc tổ chức khác → lời mời hợp lệ; chấp nhận thêm tư cách thành
   viên, không tạo tài khoản mới.
 - Tổ chức vừa tạo mà lời mời Admin đầu tiên hết hạn → Operator gửi lại lời mời; tổ chức chưa có Admin
@@ -263,7 +270,7 @@ còn chuỗi cố định ngôn ngữ; tạo lời mời lúc 23:30 giờ Việt
 - Vô hiệu hoá thành viên tổ chức đang là Accountable của bất kỳ dự án nào → bị từ chối cho tới khi các dự
   án đó chuyển Accountable (tương tự quy tắc Admin cuối cùng).
 - Người tạo dự án có vai trò Lãnh đạo danh mục (không có quyền quản lý RACI) → vẫn là Accountable mặc định;
-  PM của dự án có thể chuyển Accountable sau.
+  Lãnh đạo danh mục thêm PM vào dự án, rồi PM chuyển Accountable nếu cần.
 - Vô hiệu hoá tài khoản người dùng đang có phiên đăng nhập → phiên mất hiệu lực ở yêu cầu kế tiếp.
 - Yêu cầu đặt lại mật khẩu cho email không tồn tại → phản hồi giống hệt email có tồn tại; không gửi email.
 - Dùng liên kết đặt lại đã hết hạn, đã dùng, hoặc không phải liên kết mới nhất → bị từ chối.
@@ -326,13 +333,16 @@ còn chuỗi cố định ngôn ngữ; tạo lời mời lúc 23:30 giờ Việt
 
   | Hành động | Admin | Lãnh đạo danh mục | PM | Functional Manager | Thành viên | Tài chính |
   |---|---|---|---|---|---|---|
-  | Mời thành viên, gán/gỡ vai trò, vô hiệu hoá thành viên tổ chức | ✓ | | | | | |
+  | Mời thành viên, gán/gỡ vai trò, vô hiệu hoá/kích hoạt lại thành viên tổ chức | ✓ | | | | | |
+  | Xem danh sách thành viên tổ chức | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
   | Tạo dự án | | ✓ | ✓ | | | |
-  | Quản lý thành viên dự án + RACI | | | ✓ | | | |
+  | Quản lý thành viên dự án (thêm/xoá) | | ✓ | ✓ | | | |
+  | Quản lý RACI (gán R/C/I, chuyển Accountable) | | | ✓ | | | |
   | Xem dự án, thành viên dự án, RACI | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
   | Truy cập phân hệ TASK, WBS, SCH | | ✓ | ✓ | ✓ | ✓ | |
   | Truy cập phân hệ RES (lịch, kỹ năng) | | ✓ | ✓ | ✓ | | |
   | Xem trường tài chính nhạy cảm | | ✓ | ✓ | | | ✓ |
+  | Sửa trường tài chính nhạy cảm | | ✓ | ✓ | | | ✓ |
 
   Các hàng TASK/WBS/SCH/RES chỉ khai báo quyền vào phân hệ; hành động chi tiết bên trong mỗi phân hệ do
   feature tương ứng bổ sung vào ma trận.
@@ -449,6 +459,8 @@ còn chuỗi cố định ngôn ngữ; tạo lời mời lúc 23:30 giờ Việt
   lại theo Clarifications. Xoá cứng dữ liệu cá nhân (nếu có yêu cầu pháp lý) nằm ngoài phạm vi feature.
 - **Admin không có ngoại lệ (FR-016):** áp nguyên văn OI-03 và constitution Nguyên tắc III ("thiếu một lớp =
   không có quyền"); đã chốt cùng ma trận quyền (decision `2026-09-14-005-phase1-permission-matrix`).
+- **Operator kiêm thành viên (FR-004):** một tài khoản có thể vừa có quyền Platform Operator vừa là thành viên
+  tổ chức; hai tư cách tách biệt theo đường truy cập (`/platform/*` không bao giờ dùng tổ chức đang hoạt động).
 - **Tài khoản chỉ qua lời mời (FR-005):** hệ quả của quyết định "chỉ Operator tạo tổ chức" — không có tổ
   chức nào để tự đăng ký vào, nên tài khoản được tạo khi chấp nhận lời mời.
 - **Platform Operator (FR-004):** do đội vận hành Planix nắm giữ; cách cấp/quản lý tài khoản Operator là việc

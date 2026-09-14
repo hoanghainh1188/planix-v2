@@ -36,8 +36,23 @@ registry ngày 2026-09-14.
   thật (Testcontainers) chứng minh cả hai lớp.
 - **Phản hồi "không tồn tại" (FR-003)**: truy vấn đã lọc theo tổ chức → đối tượng của tổ chức khác đơn giản
   là không tìm thấy → cùng mã `404 RESOURCE_NOT_FOUND`.
+- **Lối truy cập ngoài tổ chức đang hoạt động** (bổ sung sau `/speckit-analyze` C1, C4) — mỗi lối là một cơ chế hẹp,
+  có test chứng minh không đọc được gì ngoài phạm vi:
+  1. **Membership của chính user** (đăng nhập, `GET /auth/session`, chọn tổ chức): `withUserTransaction(userId)` chạy
+     `SET LOCAL app.user_id`; policy **chỉ SELECT** `user_id = app_current_user_id()` trên `organization_membership`,
+     `membership_role` (qua membership) và `organization` (chỉ khi có membership của user). Không mở INSERT/UPDATE.
+  2. **Tra lời mời theo token** (chưa có phiên): hàm `SECURITY DEFINER app_find_invitation_by_token_hash(bytea)` chỉ trả
+     `id, organization_id, email, roles, status, expires_at` và tên tổ chức; mọi thao tác tiếp theo chạy trong
+     `withTenantTransaction` của `organization_id` đó.
+  3. **Platform Operator** (`/platform/*`): role DB riêng `planix_platform` (pool `DATABASE_URL_PLATFORM`) có quyền trên
+     `organization`, `platform_operator_grant`, INSERT `organization_invitation`, và hàm `app_count_active_admins(uuid)`;
+     **không** có quyền trên `project`, `project_member`, `raci_assignment`, đọc `audit_entry`.
+  4. **`audit_entry` với `organization_id` NULL** (sự kiện tài khoản/nền tảng): policy INSERT
+     `WITH CHECK (organization_id IS NULL OR organization_id = app_current_organization_id())`; SELECT chỉ theo tổ chức;
+     bản ghi NULL chỉ đọc bằng role owner (vận hành).
 - **Alternatives considered**: schema-per-tenant (vận hành nặng với 500+ tổ chức, migration phức tạp);
-  database-per-tenant (quá nặng cho v1); chỉ lọc ở ứng dụng (một lỗi = lộ dữ liệu).
+  database-per-tenant (quá nặng cho v1); chỉ lọc ở ứng dụng (một lỗi = lộ dữ liệu); cho `planix_app` BYPASSRLS ở các
+  luồng đặc biệt (mất lớp chắn thứ hai đúng ở các luồng rủi ro nhất).
 
 ## R4. Xác thực và phiên (FR-005–008, FR-031; decision password/session)
 
@@ -50,7 +65,11 @@ registry ngày 2026-09-14.
     (offline, không gọi dịch vụ ngoài).
   - Chống đoán: bộ đếm sai theo tài khoản (5 lần → khoá 15 phút) + giới hạn tần suất theo IP cho
     `/auth/*` (`@nestjs/throttler`).
-  - CSRF: `SameSite=Lax` + token double-submit cho mọi request thay đổi trạng thái.
+  - CSRF: `SameSite=Lax` + token double-submit cho mọi request thay đổi trạng thái. Cookie CSRF cấp ở
+    `GET /auth/session` kể cả khi chưa đăng nhập; route chưa đăng nhập kiểm thêm `Origin` khớp `APP_BASE_URL` (chống
+    login CSRF).
+  - Tổ chức đang hoạt động sau đăng nhập: 1 membership active → tự chọn; nhiều → `app_user.last_active_organization_id`
+    nếu còn active, không thì để người dùng chọn.
   - Token lời mời / đặt lại mật khẩu: 256-bit ngẫu nhiên, lưu băm, hạn 7 ngày / 1 giờ, dùng một lần, chỉ bản
     mới nhất còn hiệu lực; không bao giờ ghi log.
 - **Rationale**: phiên server thu hồi được ngay (FR-007, FR-015) — JWT không thu hồi được nếu không thêm
@@ -136,3 +155,12 @@ registry ngày 2026-09-14.
 - **Decision**: `vitest --coverage` với ngưỡng **80%** (lines/branches/functions) cho `packages/core` và
   `apps/server/src/features/**`; CI fail nếu dưới ngưỡng. ESLint rule tuỳ chỉnh `planix/no-number-money`
   (Nguyên tắc I ràng buộc 4) có test RuleTester — feature này chưa có tiền nhưng rule được dựng cùng nền móng.
+
+## R14. Log ứng dụng (constitution Nguyên tắc III — bổ sung sau `/speckit-analyze` C3)
+
+- **Decision**: log có cấu trúc JSON qua một `AppLogger` duy nhất ở `apps/server/src/shared/logging/`; request log
+  **không ghi body** mặc định; danh sách che (`[REDACTED]`) gồm khoá `password`, `newPassword`, `token`, `tokenHash`,
+  `passwordHash`, header `cookie`, `set-cookie`, `x-csrf-token`, path `/invitations/{token}` được che phần token, và mọi
+  field đánh dấu `sensitive`. Lỗi 500 log stack nhưng không log body/params.
+- **Rationale**: audit đã lọc (R8) nhưng log ứng dụng là đường rò rỉ phổ biến nhất của mật khẩu và token.
+- **Alternatives considered**: tắt hẳn request log (mất khả năng điều tra sự cố).

@@ -9,6 +9,7 @@ bảng này trước — nếu câu hỏi đã có ở đây, dùng lại quyế
 
 | Ngày | Quyết định | Feature | Thuật ngữ / chủ đề |
 |---|---|---|---|
+| 2026-09-15 | [Lãnh đạo danh mục quản lý thành viên dự án; bổ sung 2 dòng ma trận quyền](2026-09-15-005-portfolio-lead-manages-project-members.md) | `005-organization-access` | role / ma trận quyền / project member |
 | 2026-09-14 | [Tech stack: TypeScript full-stack monorepo + PostgreSQL](2026-09-14-005-tech-stack.md) | `005-organization-access` (toàn dự án) | tech stack / Decimal / RLS |
 | 2026-09-14 | [Thành viên tổ chức giữ nhiều vai trò hệ thống, quyền là hợp](2026-09-14-005-multiple-system-roles.md) | `005-organization-access` | role / organization membership |
 | 2026-09-14 | [Chính sách mật khẩu và phiên đăng nhập](2026-09-14-005-password-and-session-policy.md) | `005-organization-access` | authentication / session |

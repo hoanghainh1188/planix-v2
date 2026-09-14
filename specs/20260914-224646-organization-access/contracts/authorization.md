@@ -1,6 +1,7 @@
 # Contract — Authorization (dùng chung cho mọi phân hệ)
 
-**Nguồn**: FR-011–016, FR-020–025 · decisions `2026-09-14-005-phase1-permission-matrix`,
+**Nguồn**: FR-011–016, FR-020–025 · decisions `2026-09-14-005-phase1-permission-matrix` (sửa đổi bởi
+`2026-09-15-005-portfolio-lead-manages-project-members`),
 `2026-09-14-005-multiple-system-roles`, `2026-09-14-005-single-accountable-per-project` · research R5–R7.
 
 Đây là **giao diện ổn định** mà các feature sau (TASK, RES, WBS, SCH, CHG…) dùng lại. Thay đổi chữ ký hoặc
@@ -21,7 +22,7 @@ Ma trận là dữ liệu hằng trong `packages/core`. Cột "Cấp" = `org` (c
 | `project.create` | org | | ✓ | ✓ | | | |
 | `project.list` | org | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `project.read` | project | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `project.member.manage` | project | | | ✓ | | | |
+| `project.member.manage` | project | | ✓ | ✓ | | | |
 | `project.raci.manage` | project | | | ✓ | | | |
 | `module.task.access` | project | | ✓ | ✓ | ✓ | ✓ | |
 | `module.wbs.access` | project | | ✓ | ✓ | ✓ | ✓ | |

@@ -4,7 +4,9 @@
 
 Quy ước chung:
 - JSON, prefix `/api/v1`. Cookie phiên `HttpOnly; Secure; SameSite=Lax`; mọi request thay đổi trạng thái gửi
-  header `X-CSRF-Token`.
+  header `X-CSRF-Token` khớp cookie CSRF. Cookie CSRF được cấp ở `GET /auth/session` **kể cả khi chưa đăng nhập**
+  (trả 401 nhưng vẫn đặt cookie); route chưa đăng nhập (`/auth/login`, `/auth/password-reset/*`,
+  `/invitations/*/accept`) kiểm thêm header `Origin` khớp `APP_BASE_URL` (research R4).
 - Thời điểm: chuỗi ISO 8601 UTC (`2026-09-14T16:30:00Z`). Tiền/chỉ số (feature sau): chuỗi thập phân.
 - Lỗi: `{ "error": { "code": "<MÃ>", "params": { ... } } }` — **không có câu chữ hiển thị** (web dịch theo mã).
 - Mọi route tổ chức dùng **tổ chức đang hoạt động** trong phiên; không nhận `organizationId` từ client.
@@ -23,6 +25,9 @@ Quy ước chung:
 | PATCH | `/me` | — | `{ locale?, timeZone? }` | 200 | 400 `VALIDATION_FAILED` |
 
 - `memberships[]`: `{ organizationId, organizationName, status, roles[] }` — chỉ tổ chức của chính user.
+- `activeOrganizationId` sau đăng nhập: đúng 1 membership active → tổ chức đó; nhiều → `app_user.last_active_organization_id`
+  nếu còn active, không thì `null` (web hiển thị bộ chọn); không có membership active → `null`. Chuyển tổ chức cập
+  nhật `last_active_organization_id`.
 - `PASSWORD_POLICY_VIOLATION.rule`: `MIN_LENGTH_12` \| `COMMON_PASSWORD`.
 - Đăng nhập khi `locked_until` còn hiệu lực → vẫn 401 `AUTH_INVALID_CREDENTIALS` (không tiết lộ khoá).
 
@@ -58,7 +63,7 @@ Quy ước chung:
 | GET | `/projects/{projectId}/members` | `project.read` | — | 200 `{ items: [{ projectMemberId, membershipId, email, raciRoles[] }] }` | |
 | POST | `/projects/{projectId}/members` | `project.member.manage` | `{ membershipId }` | 201 | 404 (membership không thuộc tổ chức / không active), 409 `ALREADY_PROJECT_MEMBER` |
 | DELETE | `/projects/{projectId}/members/{projectMemberId}` | `project.member.manage` | — | 204 (removed, gỡ RACI) | 409 `ACCOUNTABLE_REQUIRED` |
-| PUT | `/projects/{projectId}/members/{projectMemberId}/raci` | `project.raci.manage` | `{ raciRoles: RaciRole[] }` không chứa `accountable` | 200 | 409 `ACCOUNTABLE_REQUIRED` (nếu gỡ A của Accountable hiện tại) |
+| PUT | `/projects/{projectId}/members/{projectMemberId}/raci` | `project.raci.manage` | `{ raciRoles: ("responsible"\|"consulted"\|"informed")[] }` | 200 — chỉ thay R/C/I, **giữ nguyên** Accountable nếu người đó đang giữ | 400 `VALIDATION_FAILED` (có `accountable`) |
 | PUT | `/projects/{projectId}/accountable` | `project.raci.manage` | `{ projectMemberId }` | 200 `{ previous, current }`; thay thế 1 bước; audit | 404, 409 `NOT_PROJECT_MEMBER` |
 
 - Accountable chỉ đổi qua `PUT /accountable` (thay thế); endpoint `/raci` không nhận `accountable` để không thể
