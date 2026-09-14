@@ -18,3 +18,24 @@ export async function seedOrganization(db: Database, name = `Org ${randomUUID().
   );
   return rows[0]!.id;
 }
+
+export async function seedMembership(
+  db: Database,
+  organizationId: string,
+  userId: string,
+  roles: readonly string[] = ['member'],
+): Promise<string> {
+  const { rows } = await db.ownerPool.query<{ id: string }>(
+    'INSERT INTO organization_membership (organization_id, user_id) VALUES ($1, $2) RETURNING id',
+    [organizationId, userId],
+  );
+  const membershipId = rows[0]!.id;
+  for (const role of roles) {
+    await db.ownerPool.query('INSERT INTO membership_role (organization_id, membership_id, role) VALUES ($1, $2, $3)', [
+      organizationId,
+      membershipId,
+      role,
+    ]);
+  }
+  return membershipId;
+}
