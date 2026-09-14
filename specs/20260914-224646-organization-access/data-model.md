@@ -233,7 +233,7 @@ bản ghi NULL chỉ đọc bằng role owner (research R3 lối 4).
 | `planix_app` + `app.organization_id` | mọi route tổ chức | Mọi bảng **(T)** của tổ chức đang hoạt động |
 | `planix_app` + `app.user_id` | đăng nhập, `GET /auth/session`, chọn tổ chức | **Chỉ SELECT** membership, role, tên tổ chức của chính user |
 | `planix_app` (không ngữ cảnh) | `GET/POST /invitations/{token}` | Chỉ hàm `app_find_invitation_by_token_hash`; sau đó chuyển sang ngữ cảnh tổ chức |
-| `planix_platform` | `/platform/*` | `organization`, `platform_operator_grant`, INSERT `organization_invitation`, `app_count_active_admins` — **không** `project*`, `raci_assignment`, đọc `audit_entry` |
+| `planix_platform` | `/platform/*` | Qua **policy RLS `TO planix_platform`** (không BYPASSRLS): `organization` SELECT/INSERT/UPDATE `status`; `platform_operator_grant`; INSERT `organization_invitation` chỉ khi `invited_by_kind = 'platformOperator'` và `roles = '{admin}'`; INSERT `audit_entry` chỉ khi `actor_kind = 'platformOperator'`; `app_count_active_admins` — **không** `project*`, `raci_assignment`, đọc `audit_entry` |
 | `planix_owner` | migration, vận hành | Toàn quyền |
 
 ## Kiểu domain dùng chung (`packages/core`)

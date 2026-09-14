@@ -63,6 +63,7 @@ Chạy thủ công qua web hoặc HTTP client để demo.
 | Q4 | Mời + nhiều vai trò | Admin mời `pm@acme.test` → chấp nhận → Admin gán `["projectManager","finance"]` | PM tạo được dự án; có `sensitive.financial.read` ở dự án mình là thành viên | US3, FR-012 |
 | Q5 | Admin cuối cùng | Admin duy nhất tự gỡ vai trò `admin` hoặc tự vô hiệu hoá | 409 `LAST_ADMIN_REQUIRED` | FR-014 |
 | Q6 | Tạo dự án → Accountable | PM `POST /projects { name: "Website" }` | 201; `accountable` = PM; `GET /projects/{id}` trả cùng Accountable | US4, US5, FR-018/020 |
+| Q18 | Lãnh đạo danh mục tạo dự án | Gán `portfolioLead` cho `u4` → `u4` `POST /projects { name: "Roadmap" }` → `u4` `POST /projects/{id}/members { membershipId: PM }` → PM `PUT /projects/{id}/accountable` chuyển cho PM | 201 → 201 (không kẹt); `u4` gọi `PUT …/accountable` → 403 `FORBIDDEN`; PM chuyển được | US4, FR-013, decision `2026-09-15-005-portfolio-lead-manages-project-members` |
 | Q7 | Quyền 2 lớp | Gán `projectManager` cho `u2` nhưng không thêm vào dự án → `u2` gọi `POST /projects/{id}/members` | 403 `FORBIDDEN` (`NOT_PROJECT_MEMBER`); thêm `u2` với vai trò `member` → vẫn 403 (`ROLE_NOT_PERMITTED`) | US6, FR-022, SC-002 |
 | Q8 | Admin không ngoại lệ | Admin (không là thành viên dự án) gọi `GET /projects/{id}` | 403 `FORBIDDEN`; `GET /projects` không liệt kê dự án đó | FR-016 |
 | Q9 | Thay Accountable | PM thêm `u3` vào dự án → `PUT /projects/{id}/accountable { projectMemberId: u3 }` → thử `DELETE` thành viên `u3` | Thay thành công, audit có before/after; xoá `u3` → 409 `ACCOUNTABLE_REQUIRED` | US5, FR-020 |

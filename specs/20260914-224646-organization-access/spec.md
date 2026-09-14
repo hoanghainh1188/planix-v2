@@ -147,8 +147,8 @@ Z → Z mất quyền truy cập cấp dự án của P ngay yêu cầu kế ti�
 1. **Given** người dùng có quyền tạo dự án theo ma trận quyền, **When** tạo dự án P, **Then** P thuộc
    tổ chức của người đó, người tạo là thành viên của P và là Accountable của P.
 2. **Given** người dùng không có quyền tạo dự án, **When** tạo dự án, **Then** bị từ chối.
-3. **Given** Z là thành viên tổ chức A, **When** PM của P (thuộc A) thêm Z vào P, **Then** Z là thành viên
-   của P.
+3. **Given** Z là thành viên tổ chức A, **When** người quản lý thành viên dự án (PM hoặc Lãnh đạo danh mục là thành
+   viên P, thuộc A) thêm Z vào P, **Then** Z là thành viên của P.
 4. **Given** người dùng W không thuộc tổ chức A, **When** thêm W vào P, **Then** bị từ chối.
 5. **Given** Z là thành viên của P, **When** xoá Z khỏi P, **Then** Z không còn truy cập cấp dự án vào P,
    và các bản ghi lịch sử liên quan tới Z vẫn được giữ.

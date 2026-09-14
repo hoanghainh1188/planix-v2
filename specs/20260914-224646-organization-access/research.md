@@ -45,7 +45,9 @@ registry ngày 2026-09-14.
      `id, organization_id, email, roles, status, expires_at` và tên tổ chức; mọi thao tác tiếp theo chạy trong
      `withTenantTransaction` của `organization_id` đó.
   3. **Platform Operator** (`/platform/*`): role DB riêng `planix_platform` (pool `DATABASE_URL_PLATFORM`) có quyền trên
-     `organization`, `platform_operator_grant`, INSERT `organization_invitation`, và hàm `app_count_active_admins(uuid)`;
+     `organization`, `platform_operator_grant`, INSERT `organization_invitation` (chỉ lời mời Admin), INSERT `audit_entry`
+     (chỉ `actor_kind = 'platformOperator'`) và hàm `app_count_active_admins(uuid)` — cấp bằng **policy RLS `TO planix_platform`**,
+     không dùng BYPASSRLS;
      **không** có quyền trên `project`, `project_member`, `raci_assignment`, đọc `audit_entry`.
   4. **`audit_entry` với `organization_id` NULL** (sự kiện tài khoản/nền tảng): policy INSERT
      `WITH CHECK (organization_id IS NULL OR organization_id = app_current_organization_id())`; SELECT chỉ theo tổ chức;
@@ -141,7 +143,7 @@ registry ngày 2026-09-14.
 - **Decision**: bảng `platform_operator_grant(user_id)`; route riêng `/platform/*` với guard riêng, **không**
   dựng `TenantContext`. Operator chỉ có action `platform.organization.create|list|update-status` và
   `platform.invitation.admin.create|resend|revoke`. Cấp quyền Operator bằng **CLI vận hành**
-  (`npm run ops:grant-operator`), không có UI.
+  (`npm run ops:grant-operator`), không có UI. Truy cập DB qua role `planix_platform` với policy RLS riêng (R3 lối 3).
 - **Rationale**: tách principal nền tảng khỏi principal tổ chức → không thể vô tình đọc dữ liệu tổ chức.
 
 ## R12. Hiệu năng (SC-006; OI-14)
