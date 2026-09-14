@@ -6,8 +6,8 @@
 
 Planix là hệ thống ra quyết định dựa trên số liệu; một công thức sai làm hỏng mọi báo cáo phía sau.
 
-- Thứ tự chuẩn khi tính toán: **bảng công thức §5 của `docs/01-basic-design/_project/srs-v1.md`**
-  > PMBOK 6 > PMBOK 7 / Agile Practice Guide (chỉ cho phân hệ Agile). Công thức trong code PHẢI khớp
+- Thứ tự chuẩn khi tính toán: (1) **bảng công thức §5 của `docs/01-basic-design/_project/srs-v1.md`**,
+  (2) PMBOK 6, (3) PMBOK 7 / Agile Practice Guide (chỉ cho phân hệ Agile). Công thức trong code PHẢI khớp
   §5 và các decision record liên quan (VD phương sai PERT `((P − O)/6)²`).
 - Tiền tệ và mọi chỉ số tài chính/EVM PHẢI dùng kiểu **decimal cố định**. **CẤM** float/double cho
   tiền và chỉ số.
