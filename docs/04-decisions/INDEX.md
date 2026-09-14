@@ -9,6 +9,14 @@ bảng này trước — nếu câu hỏi đã có ở đây, dùng lại quyế
 
 | Ngày | Quyết định | Feature | Thuật ngữ / chủ đề |
 |---|---|---|---|
+| 2026-09-14 | [Thành viên tổ chức giữ nhiều vai trò hệ thống, quyền là hợp](2026-09-14-005-multiple-system-roles.md) | `005-organization-access` | role / organization membership |
+| 2026-09-14 | [Chính sách mật khẩu và phiên đăng nhập](2026-09-14-005-password-and-session-policy.md) | `005-organization-access` | authentication / session |
+| 2026-09-14 | [Mỗi dự án luôn có đúng một Accountable](2026-09-14-005-single-accountable-per-project.md) | `005-organization-access` | RACI / Accountable |
+| 2026-09-14 | [Kích hoạt lại thành viên: về vai trò Thành viên, không khôi phục quyền cũ](2026-09-14-005-member-reactivation.md) | `005-organization-access` | organization membership / vô hiệu hoá |
+| 2026-09-14 | [Có chức năng đặt lại mật khẩu qua email trong v1](2026-09-14-005-password-reset.md) | `005-organization-access` | authentication / password reset |
+| 2026-09-14 | [Chỉ Platform Operator được tạo tổ chức](2026-09-14-005-organization-creation.md) | `005-organization-access` | Platform Operator / organization |
+| 2026-09-14 | [Ma trận quyền vai trò hệ thống giai đoạn 1](2026-09-14-005-phase1-permission-matrix.md) | `005-organization-access` | role / RBAC / ma trận quyền |
+| 2026-09-14 | [Một tài khoản được thuộc nhiều tổ chức](2026-09-14-005-multi-organization-membership.md) | `005-organization-access` | organization membership / tổ chức đang hoạt động |
 | 2026-09-14 | [OI-01 · Tên sản phẩm: Planix](2026-09-14-oi01-product-name.md) | `_project` SRS v1 | tên sản phẩm |
 | 2026-09-14 | [OI-02 · Chuẩn tham chiếu PMBOK](2026-09-14-oi02-pmbok-baseline.md) | `_project` SRS v1 | PMBOK |
 | 2026-09-14 | [OI-03 · Phân quyền 2 lớp: RBAC tổ chức + RACI dự án](2026-09-14-oi03-access-control-model.md) | `_project` SRS v1 | RBAC / RACI / phân quyền |
