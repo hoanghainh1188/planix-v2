@@ -30,6 +30,7 @@ export default tseslint.config(
     rules: {
       'planix/no-number-money': ['error', { financialFileGlobs: ['**/money/**', '**/finance/**', '**/evm/**'] }],
       '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
   {
