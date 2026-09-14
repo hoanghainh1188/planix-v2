@@ -1,0 +1,19 @@
+{
+  "name": "eslint-plugin-planix",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.70.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.70.0",
+    "@typescript-eslint/rule-tester": "^8.70.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit"
+  }
+}
