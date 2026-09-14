@@ -19,6 +19,8 @@ export default defineConfig({
           root: './apps/server',
           include: ['src/**/*.test.ts'],
           environment: 'node',
+          globalSetup: ['./src/test/global-setup.ts'],
+          fileParallelism: false,
           testTimeout: 60_000,
           hookTimeout: 120_000,
           env: { TZ: 'UTC' },
