@@ -4,7 +4,7 @@
 **Planix V2** — phần mềm quản trị dự án (project management).
 
 - Khách hàng / người dùng cuối: _chưa chốt — bổ sung khi có basic design_
-- Ngôn ngữ tài liệu thiết kế gốc: _chưa chốt — bổ sung khi nhận 基本設計 / 詳細設計_
+- Ngôn ngữ tài liệu thiết kế gốc: **Tiếng Việt** (SRS); giao diện VI + EN
 
 ## Tech stack
 **CHƯA CHỐT** — sẽ đánh giá và chọn stack khi có specs chi tiết (sau các feature đầu tiên đi qua
@@ -29,8 +29,8 @@
   Đây là source of truth duy nhất. Agent KHÔNG BAO GIỜ sửa nội dung ở đây. Khi có bản mới, thêm file mới +
   CHANGELOG.md, không ghi đè.
 
-- **`docs/00-glossary.md`** — thuật ngữ Nhật-Việt-Anh. Mọi agent PHẢI tra file này trước khi đặt tên biến/field
-  liên quan nghiệp vụ. Gặp thuật ngữ mới → **append** vào đây trước khi đặt tên (được làm ngay trong branch
+- **`docs/00-glossary.md`** — thuật ngữ Việt-Anh (kèm định danh code chuẩn). Mọi agent PHẢI tra file
+  này trước khi đặt tên biến/field liên quan nghiệp vụ. Gặp thuật ngữ mới → **append** vào đây trước khi đặt tên (được làm ngay trong branch
   feature, xem rule 5), không tự dịch rồi bỏ qua.
 
 - **`docs/04-decisions/`** — nơi lưu câu trả lời cho mọi ambiguity mà `/speckit-clarify` từng giải quyết

@@ -21,7 +21,7 @@ Sau mỗi bước: báo cáo ngắn — vừa làm gì, artifact ở đâu, bư�
    Đọc và tóm tắt ngắn cho người dùng 5 nguồn memory dạng file (bộ nhớ dài hạn của dự án, xem
    `CLAUDE.md` mục "Memory"):
    - `.specify/memory/constitution.md` — nguyên tắc bất biến (nếu đã có).
-   - `docs/00-glossary.md` — thuật ngữ Nhật-Việt-Anh.
+   - `docs/00-glossary.md` — thuật ngữ Việt-Anh + định danh code.
    - `docs/04-decisions/INDEX.md` — ambiguity đã chốt (đừng hỏi lại thứ đã có).
    - `docs/05-lessons.md` — gotcha/cạm bẫy đã gặp (đừng lặp lại).
    - `CLAUDE.md` — quy ước dự án.

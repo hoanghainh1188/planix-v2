@@ -126,27 +126,40 @@ SEP_RE = re.compile(r"^[\s|:\-]+$")
 
 
 def check_glossary_duplicates() -> None:
+    """Thuật ngữ chuẩn (cột English) không được trùng trong toàn file glossary.
+
+    Hỗ trợ nhiều bảng: dòng ngay trước `|---|` là header; cột kiểm là cột có header bắt đầu bằng
+    "English" (fallback cột đầu tiên nếu không có).
+    """
     path = os.path.join(ROOT, "docs", "00-glossary.md")
     if not os.path.exists(path):
         err("[glossary] không tìm thấy docs/00-glossary.md")
         return
     with open(path, encoding="utf-8") as f:
         lines = f.read().splitlines()
+
+    def cells_of(line: str) -> list[str]:
+        return [c.strip() for c in line.strip().strip("|").split("|")]
+
     seen: dict[str, int] = {}
+    col = 0
     for i, line in enumerate(lines, start=1):
         s = line.strip()
-        if not s.startswith("|"):
+        if not s.startswith("|") or SEP_RE.match(s):
             continue
-        if SEP_RE.match(s):  # dòng phân cách |---|
+        nxt = lines[i].strip() if i < len(lines) else ""
+        if nxt.startswith("|") and SEP_RE.match(nxt):  # header của bảng mới
+            header = cells_of(s)
+            col = next((k for k, h in enumerate(header) if h.startswith("English")), 0)
             continue
-        cells = [c.strip() for c in s.strip("|").split("|")]
-        if not cells:
+        cells = cells_of(s)
+        if col >= len(cells):
             continue
-        term = cells[0]
-        if not term or term == "日本語":  # bỏ header
+        term = cells[col].lower()
+        if not term:
             continue
         if term in seen:
-            err(f"[glossary] 日本語 '{term}' trùng ở dòng {seen[term]} và {i}")
+            err(f"[glossary] thuật ngữ '{cells[col]}' trùng ở dòng {seen[term]} và {i}")
         else:
             seen[term] = i
 

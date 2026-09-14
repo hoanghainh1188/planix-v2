@@ -50,7 +50,7 @@ dòng `tools:` của agent này.
    - **Ambiguities to raise in /speckit-clarify** — danh sách mâu thuẫn/mơ hồ giữa basic/detail/Figma
      (đã loại các mục có quyết định trong `docs/04-decisions/INDEX.md`)
    - **Thuật ngữ mới (append vào glossary)** — term nghiệp vụ chưa có trong `docs/00-glossary.md` +
-     gợi ý bản dịch Nhật/Việt/Anh, để người phụ trách append vào glossary (làm trong branch feature)
+     gợi ý Tiếng Việt / English / định danh code (thêm tiếng Nhật trong cột Ghi chú nếu tài liệu nguồn là tiếng Nhật), để người phụ trách append vào glossary (làm trong branch feature)
    - **Suggested constitution amendments** — nếu tài liệu này gợi 1 rule chung nên bổ sung vào `.specify/memory/constitution.md`
 
 ## Quy tắc
