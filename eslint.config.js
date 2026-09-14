@@ -33,6 +33,25 @@ export default tseslint.config(
     },
   },
   {
+    // packages/core is pure domain: no I/O, no framework (plan.md Structure Decision)
+    files: ['packages/core/src/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['node:*', 'fs', 'path', 'http', 'crypto'], message: 'packages/core must not do I/O.' },
+            {
+              group: ['@nestjs/*', 'pg', 'drizzle-orm', 'react', 'react-dom'],
+              message: 'packages/core must stay framework-free.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['apps/web/**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser } },
     plugins: { 'react-hooks': reactHooks },

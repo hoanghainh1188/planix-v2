@@ -69,17 +69,17 @@ RED tương ứng chưa tồn tại và chưa fail.
 
 ### Core (domain thuần)
 
-- [ ] T015 [P] **RED** `packages/core/src/shared/decimal/decimal.test.ts`: `Decimal.of(string)` nhận chuỗi thập phân, **từ chối `number`** ở type-level (`// @ts-expect-error`) và runtime; cộng/trừ/nhân/chia giữ ≥ 4 chữ số thập phân; `toString()` không làm tròn; `roundHalfUp(scale)` chỉ dùng cho hiển thị (Nguyên tắc I, decision tech-stack ràng buộc 1)
-- [ ] T016 **GREEN** `packages/core/src/shared/decimal/decimal.ts` bọc `decimal.js`
-- [ ] T017 [P] **RED** `packages/core/src/shared/errors/error-codes.test.ts`: tập mã lỗi bằng đúng danh sách trong `contracts/api.md` §Mã lỗi **cộng** `INTERNAL_ERROR`; mỗi mã có HTTP status theo `contracts/authorization.md` §3 và bảng API
-- [ ] T018 **GREEN** `packages/core/src/shared/errors/error-codes.ts` (const + `httpStatusOf(code)`); đồng thời thêm `INTERNAL_ERROR` (500) vào danh sách mã lỗi trong `specs/20260914-224646-organization-access/contracts/api.md`
-- [ ] T019 [P] **RED** `FEAT_CORE/permission-matrix.test.ts`: ma trận bằng **đúng** bảng `contracts/authorization.md` §1 — 16 action, cấp `org`/`project`, tập vai trò được phép cho 6 vai trò `admin|portfolioLead|projectManager|functionalManager|member|finance` ; `project.member.manage` = `portfolioLead` + `projectManager`, `project.raci.manage` = chỉ `projectManager` (decision `2026-09-15-005-portfolio-lead-manages-project-members`) (FR-011, FR-013)
-- [ ] T020 **GREEN** `FEAT_CORE/roles.ts` (`SystemRole`, `RaciRole`) và `FEAT_CORE/permission-matrix.ts` (dữ liệu hằng `Record<Action, {scope, roles, requiresRaci?}>`)
-- [ ] T021 [P] **RED** `FEAT_CORE/decide.test.ts`: bảng quyết định **đầy đủ** — mọi action × mọi tập con vai trò (hợp — FR-012) × `membershipStatus` × `projectMembership` × `raciRoles`; kiểm thứ tự đánh giá 1→6 và `DenyReason` đúng; không có nhánh riêng cho `admin` (FR-016); action không khai báo → `ACTION_NOT_DECLARED` (FR-022, FR-023, SC-002)
-- [ ] T022 **GREEN** `FEAT_CORE/decide.ts` — hàm thuần theo `contracts/authorization.md` §2
-- [ ] T023 [P] **RED** `packages/core/src/shared/sensitive-field/sensitive-field.test.ts`: `sensitive('sensitive.financial.read','sensitive.financial.write')` gắn metadata lên field zod; `stripSensitive(schema, value, can)` **xoá khoá** (không đặt `null`) ở object lồng và mảng; `findSensitiveWrites(schema, input, can)` trả danh sách field bị ghi trái phép (FR-025)
-- [ ] T024 **GREEN** `packages/core/src/shared/sensitive-field/sensitive-field.ts`
-- [ ] T025 [P] Tạo `packages/core/src/shared/tenant-context.ts` (`TenantContext { organizationId }` — kiểu brand, chỉ tạo qua hàm `tenantFromVerifiedSession`) và `FEAT_CORE/principal.ts` (`Principal`, `Target`, `Decision` theo `contracts/authorization.md` §2)
+- [X] T015 [P] **RED** `packages/core/src/shared/decimal/decimal.test.ts`: `Decimal.of(string)` nhận chuỗi thập phân, **từ chối `number`** ở type-level (`// @ts-expect-error`) và runtime; cộng/trừ/nhân/chia giữ ≥ 4 chữ số thập phân; `toString()` không làm tròn; `roundHalfUp(scale)` chỉ dùng cho hiển thị (Nguyên tắc I, decision tech-stack ràng buộc 1)
+- [X] T016 **GREEN** `packages/core/src/shared/decimal/decimal.ts` bọc `decimal.js`
+- [X] T017 [P] **RED** `packages/core/src/shared/errors/error-codes.test.ts`: tập mã lỗi bằng đúng danh sách trong `contracts/api.md` §Mã lỗi **cộng** `INTERNAL_ERROR`; mỗi mã có HTTP status theo `contracts/authorization.md` §3 và bảng API
+- [X] T018 **GREEN** `packages/core/src/shared/errors/error-codes.ts` (const + `httpStatusOf(code)`); đồng thời thêm `INTERNAL_ERROR` (500) vào danh sách mã lỗi trong `specs/20260914-224646-organization-access/contracts/api.md`
+- [X] T019 [P] **RED** `FEAT_CORE/permission-matrix.test.ts`: ma trận bằng **đúng** bảng `contracts/authorization.md` §1 — 16 action, cấp `org`/`project`, tập vai trò được phép cho 6 vai trò `admin|portfolioLead|projectManager|functionalManager|member|finance` ; `project.member.manage` = `portfolioLead` + `projectManager`, `project.raci.manage` = chỉ `projectManager` (decision `2026-09-15-005-portfolio-lead-manages-project-members`) (FR-011, FR-013)
+- [X] T020 **GREEN** `FEAT_CORE/roles.ts` (`SystemRole`, `RaciRole`) và `FEAT_CORE/permission-matrix.ts` (dữ liệu hằng `Record<Action, {scope, roles, requiresRaci?}>`)
+- [X] T021 [P] **RED** `FEAT_CORE/decide.test.ts`: bảng quyết định **đầy đủ** — mọi action × mọi tập con vai trò (hợp — FR-012) × `membershipStatus` × `projectMembership` × `raciRoles`; kiểm thứ tự đánh giá 1→6 và `DenyReason` đúng; không có nhánh riêng cho `admin` (FR-016); action không khai báo → `ACTION_NOT_DECLARED` (FR-022, FR-023, SC-002)
+- [X] T022 **GREEN** `FEAT_CORE/decide.ts` — hàm thuần theo `contracts/authorization.md` §2
+- [X] T023 [P] **RED** `packages/core/src/shared/sensitive-field/sensitive-field.test.ts`: `sensitive('sensitive.financial.read','sensitive.financial.write')` gắn metadata lên field zod; `stripSensitive(schema, value, can)` **xoá khoá** (không đặt `null`) ở object lồng và mảng; `findSensitiveWrites(schema, input, can)` trả danh sách field bị ghi trái phép (FR-025)
+- [X] T024 **GREEN** `packages/core/src/shared/sensitive-field/sensitive-field.ts`
+- [X] T025 [P] Tạo `packages/core/src/shared/tenant-context.ts` (`TenantContext { organizationId }` — kiểu brand, chỉ tạo qua hàm `tenantFromVerifiedSession`) và `FEAT_CORE/principal.ts` (`Principal`, `Target`, `Decision` theo `contracts/authorization.md` §2)
 
 ### Database, RLS, audit (server)
 
