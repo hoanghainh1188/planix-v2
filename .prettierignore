@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+coverage/
+package-lock.json
+.specify/
+specs/
+docs/
+*.md
+.github/
+.claude-plugin/

@@ -13,7 +13,7 @@
   `apps/web` (React 19 + Vite 8). Mỗi package: `src/features/<slug>/` + `src/shared/`.
 - **Ngôn ngữ:** TypeScript **6.0.x** (pin `<6.1`), Node.js 24 LTS.
 - **Dữ liệu:** PostgreSQL 17 + Drizzle ORM; cô lập tổ chức 2 lớp (ứng dụng + Row-Level Security).
-- **Test:** Vitest 5 + coverage v8 (≥ 80% business logic), Supertest + Testcontainers, Playwright E2E.
+- **Test:** Vitest 5 (`vitest.config.ts` + `test.projects`) + coverage v8 (≥ 80% business logic), Supertest + Testcontainers, Playwright E2E.
 - **Tiền/chỉ số (Nguyên tắc I):** kiểu `Decimal` (decimal.js) trong core · chuỗi trên API · `NUMERIC` trong DB ·
   ESLint cấm `number` cho giá trị tài chính. **Không bao giờ** dùng `number`/`parseFloat` cho tiền.
 - **i18n:** i18next + react-i18next (vi, en); server trả **mã lỗi**, web dịch.

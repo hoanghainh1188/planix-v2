@@ -29,3 +29,7 @@ version Y có bug Z, dùng workaround W". Đây là *tri thức vận hành*, kh
 
 | Ngày | Bài học (gotcha) | Nơi phát hiện (feature / file) | Ghi chú / cách áp dụng |
 |---|---|---|---|
+| 2026-09-15 | `@nestjs/throttler` 6.5 (bản mới nhất) chỉ khai báo peer NestJS ≤ 11 — không cài được với NestJS 12 | `005-organization-access` · T005 | Dùng `express-rate-limit` 8 làm middleware; đã ghi sửa đổi vào decision tech-stack |
+| 2026-09-15 | Vitest ≥ 4 đã bỏ `vitest.workspace.ts` (lỗi "workspace option was removed") | `005-organization-access` · T007 | Dùng `vitest.config.ts` với `test.projects` |
+| 2026-09-15 | Hook chặn bỏ qua git hook hiểu cờ `-n` của lệnh khác (VD `grep`) hoặc chữ trong nội dung là cờ bỏ qua hook nếu nằm cùng lệnh Bash với `git commit` | commit sau `/speckit-analyze` | Luôn chạy `git commit` trong một lệnh Bash riêng |
+| 2026-09-15 | Package workspace không có script `build` thì lỗi kiểu không bị gate `npm run build` bắt | `005-organization-access` · T009 | Mọi workspace (kể cả `tools/*`) phải có script `build` chạy `tsc --noEmit` |

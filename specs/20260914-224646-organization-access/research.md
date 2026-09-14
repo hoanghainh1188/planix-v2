@@ -66,7 +66,7 @@ registry ngày 2026-09-14.
   - Mật khẩu: argon2id (tham số mặc định OWASP), ≥ 12 ký tự, chặn danh sách mật khẩu phổ biến đóng gói sẵn
     (offline, không gọi dịch vụ ngoài).
   - Chống đoán: bộ đếm sai theo tài khoản (5 lần → khoá 15 phút) + giới hạn tần suất theo IP cho
-    `/auth/*` (`@nestjs/throttler`).
+    `/auth/*`, `/invitations/*` (`express-rate-limit` 8 làm middleware — `@nestjs/throttler` chưa hỗ trợ NestJS 12).
   - CSRF: `SameSite=Lax` + token double-submit cho mọi request thay đổi trạng thái. Cookie CSRF cấp ở
     `GET /auth/session` kể cả khi chưa đăng nhập; route chưa đăng nhập kiểm thêm `Origin` khớp `APP_BASE_URL` (chống
     login CSRF).
@@ -154,7 +154,8 @@ registry ngày 2026-09-14.
 
 ## R13. Coverage và lint gate
 
-- **Decision**: `vitest --coverage` với ngưỡng **80%** (lines/branches/functions) cho `packages/core` và
+- **Decision**: `vitest run --coverage` cấu hình ở `vitest.config.ts` root với `test.projects` (Vitest ≥ 4 bỏ file
+  workspace), ngưỡng **80%** (lines/branches/functions) cho `packages/core` và
   `apps/server/src/features/**`; CI fail nếu dưới ngưỡng. ESLint rule tuỳ chỉnh `planix/no-number-money`
   (Nguyên tắc I ràng buộc 4) có test RuleTester — feature này chưa có tiền nhưng rule được dựng cùng nền móng.
 

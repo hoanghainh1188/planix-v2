@@ -20,7 +20,7 @@ phiên phía server để thu hồi tức thì; `apps/web` (React) chỉ phản 
 
 **Language/Version**: TypeScript 6.0.x (pin `<6.1`), Node.js 24 LTS — research R1, R2
 
-**Primary Dependencies**: NestJS 12 (Express), Drizzle ORM 0.45 + `pg` 8, zod 4, argon2, `@nestjs/throttler` 6,
+**Primary Dependencies**: NestJS 12 (Express), Drizzle ORM 0.45 + `pg` 8, zod 4, argon2, `express-rate-limit` 8,
 decimal.js 10; React 19, Vite 8, React Router 7, TanStack Query 5, i18next 26 + react-i18next 17
 
 **Storage**: PostgreSQL 17 (RLS, `citext`, `timestamptz`, `NUMERIC`); migration drizzle-kit; 3 role DB `planix_owner`
@@ -88,7 +88,7 @@ specs/20260914-224646-organization-access/
 package.json                         # npm workspaces, script lint/test/build/dev/db:migrate/ops:*/perf:*
 tsconfig.base.json
 eslint.config.js                     # gồm plugin nội bộ planix (no-number-money)
-vitest.workspace.ts                  # ngưỡng coverage 80%
+vitest.config.ts                     # test.projects + ngưỡng coverage 80%
 docker-compose.yml                   # postgres 17, mailpit (dev)
 tools/
 └── eslint-plugin-planix/            # rule no-number-money + RuleTester
@@ -113,7 +113,7 @@ apps/server/                         # NestJS
 └── src/
     ├── shared/
     │   ├── db/                      # Drizzle client, transaction + SET LOCAL app.organization_id
-    │   ├── auth/                    # session guard, CSRF, throttler
+    │   ├── auth/                    # session guard, CSRF, rate limit
     │   ├── authorization/           # guard gọi core.decide, decorator @RequireAction
     │   ├── sensitive-field/         # response interceptor
     │   ├── audit/                   # AuditWriter
