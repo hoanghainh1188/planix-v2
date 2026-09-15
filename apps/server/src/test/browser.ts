@@ -34,6 +34,15 @@ export class Browser {
     );
   }
 
+  async patch(path: string, body?: object): Promise<Response> {
+    return this.#absorb(
+      await api(this.app)
+        .patch(`/api/v1${path}`)
+        .set(this.#headers())
+        .send(body ?? {}),
+    );
+  }
+
   async delete(path: string): Promise<Response> {
     return this.#absorb(await api(this.app).delete(`/api/v1${path}`).set(this.#headers()));
   }
