@@ -88,4 +88,28 @@ describe('migrations on managed PostgreSQL (non-superuser owner, decision 2026-0
     );
     expect(recorded.rows.map((r) => r.name)).toEqual(MIGRATIONS);
   });
+
+  it('fails and returns its connection to the pool when taking the lock fails (code review: no hung migrate)', async () => {
+    await asManagedOwner('planix_managed', async (pool) => {
+      const connect = pool.connect.bind(pool);
+      // The first query of the run is the advisory lock; make it fail as a dropped connection would.
+      (pool as unknown as { connect: () => Promise<pg.PoolClient> }).connect = async () => {
+        const client = await connect();
+        const query = client.query.bind(client) as (...args: unknown[]) => Promise<unknown>;
+        let first = true;
+        (client as unknown as { query: (...args: unknown[]) => Promise<unknown> }).query = (...args: unknown[]) => {
+          if (first) {
+            first = false;
+            return Promise.reject(new Error('Connection terminated unexpectedly'));
+          }
+          return query(...args);
+        };
+        return client;
+      };
+
+      await expect(migrate(pool, credentials)).rejects.toThrow('Connection terminated unexpectedly');
+      // No client left checked out, so pool.end() (db.close()) can finish instead of waiting forever.
+      expect(pool.totalCount - pool.idleCount).toBe(0);
+    });
+  });
 });
