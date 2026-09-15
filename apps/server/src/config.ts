@@ -11,6 +11,10 @@ export interface ServerConfig {
   readonly statementTimeoutMs: number | undefined;
   readonly idleInTransactionTimeoutMs: number | undefined;
   readonly connectionTimeoutMs: number | undefined;
+  /** Proxies in front of the server (hosting load balancer); undefined = trust none. Never `true`. */
+  readonly trustProxyHops: number | undefined;
+  /** Built web app served by the server itself, so web and API share one origin (demo deploy). */
+  readonly webDistDir: string | undefined;
 }
 
 function optionalInteger(env: NodeJS.ProcessEnv, name: string): number | undefined {
@@ -43,5 +47,7 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     statementTimeoutMs: optionalInteger(env, 'DATABASE_STATEMENT_TIMEOUT_MS'),
     idleInTransactionTimeoutMs: optionalInteger(env, 'DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS'),
     connectionTimeoutMs: optionalInteger(env, 'DATABASE_CONNECTION_TIMEOUT_MS'),
+    trustProxyHops: optionalInteger(env, 'TRUST_PROXY_HOPS'),
+    webDistDir: env.WEB_DIST_DIR?.trim() || undefined,
   };
 }

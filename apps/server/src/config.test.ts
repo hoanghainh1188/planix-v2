@@ -42,6 +42,20 @@ describe('server configuration from the environment', () => {
     );
   });
 
+  it('trusts no proxy unless TRUST_PROXY_HOPS is a positive hop count (decision 2026-09-15-018-demo-deploy)', () => {
+    expect(loadServerConfig(base).trustProxyHops).toBeUndefined();
+    expect(loadServerConfig({ ...base, TRUST_PROXY_HOPS: '1' }).trustProxyHops).toBe(1);
+    // `true` would trust any client-supplied X-Forwarded-For entry.
+    expect(() => loadServerConfig({ ...base, TRUST_PROXY_HOPS: 'true' })).toThrow(
+      'TRUST_PROXY_HOPS must be a positive integer',
+    );
+  });
+
+  it('reads the optional directory of the built web app', () => {
+    expect(loadServerConfig(base).webDistDir).toBeUndefined();
+    expect(loadServerConfig({ ...base, WEB_DIST_DIR: '/app/apps/web/dist' }).webDistDir).toBe('/app/apps/web/dist');
+  });
+
   it('fails fast when a required variable is missing', () => {
     expect(() => loadServerConfig({ ...base, SMTP_URL: '' })).toThrow('Missing required environment variable SMTP_URL');
   });

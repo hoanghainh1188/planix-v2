@@ -25,6 +25,11 @@ function declaredBodyLimit(req: Request, _res: Response, next: NextFunction): vo
 
 export interface ConfigureAppOptions {
   readonly rateLimit?: RateLimitOptions;
+  /**
+   * Number of proxies in front of the server. The hosting proxy appends the client address to X-Forwarded-For without
+   * removing what the client sent, so only a hop count is safe; `true` would let any client pick its own IP (#14).
+   */
+  readonly trustProxyHops?: number;
 }
 
 /** Cross-cutting HTTP setup shared by main.ts and integration tests. */
@@ -37,6 +42,7 @@ export function configureApp(
   const express = app as NestExpressApplication;
   // helmet() also removes x-powered-by; disabling it here too keeps the header gone if helmet is ever reconfigured.
   express.disable('x-powered-by');
+  if (options.trustProxyHops !== undefined) express.set('trust proxy', options.trustProxyHops);
   // First, so every response — rate-limited and error ones included — carries the headers (T125).
   app.use(helmet());
   app.use(declaredBodyLimit);

@@ -18,6 +18,9 @@ export async function createTestApp(options: {
   clock?: ClockPort;
   logSink?: LogSink;
   invitationRateLimit?: RateLimitOptions;
+  /** IP rate limit on credential routes; tests default to a limit no suite reaches. */
+  rateLimit?: RateLimitOptions;
+  trustProxyHops?: number;
   /** Test-only modules (e.g. SampleFinancialModule) mounted next to the production AppModule. */
   extraModules?: readonly Type[];
 }): Promise<INestApplication> {
@@ -37,7 +40,8 @@ export async function createTestApp(options: {
   const logger = new AppLogger(options.logSink ?? (() => {}));
   // Integration suites sign in many times from one IP; the limiter itself is covered by its own test.
   const app = configureApp(moduleRef.createNestApplication({ logger }), logger, {
-    rateLimit: { windowMs: 60_000, limit: 100_000 },
+    rateLimit: options.rateLimit ?? { windowMs: 60_000, limit: 100_000 },
+    ...(options.trustProxyHops === undefined ? {} : { trustProxyHops: options.trustProxyHops }),
   });
   await app.listen(0, '127.0.0.1');
   return app;

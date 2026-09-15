@@ -30,7 +30,9 @@ async function bootstrap(): Promise<void> {
     logger,
     bufferLogs: true,
   });
-  configureApp(app, logger);
+  configureApp(app, logger, {
+    ...(config.trustProxyHops === undefined ? {} : { trustProxyHops: config.trustProxyHops }),
+  });
   app.enableShutdownHooks();
   await app.listen(config.port);
 }
