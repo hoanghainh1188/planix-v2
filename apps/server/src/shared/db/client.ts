@@ -30,8 +30,12 @@ export const DEFAULT_STATEMENT_TIMEOUT_MS = 15_000;
 /** A transaction left open without running a statement longer than this is terminated by PostgreSQL. */
 export const DEFAULT_IDLE_IN_TRANSACTION_TIMEOUT_MS = 30_000;
 
+/** Waiting longer than this for a free pooled connection fails the request instead of hanging (security review). */
+export const DEFAULT_CONNECTION_TIMEOUT_MS = 10_000;
+
 export interface DatabaseOptions {
   readonly appPoolMax?: number;
+  readonly connectionTimeoutMs?: number;
   readonly statementTimeoutMs?: number;
   readonly idleInTransactionTimeoutMs?: number;
 }
@@ -51,12 +55,20 @@ export function createDatabase(urls: DatabaseUrls, options: DatabaseOptions = {}
     statement_timeout: options.statementTimeoutMs ?? DEFAULT_STATEMENT_TIMEOUT_MS,
     idle_in_transaction_session_timeout: options.idleInTransactionTimeoutMs ?? DEFAULT_IDLE_IN_TRANSACTION_TIMEOUT_MS,
   };
-  const ownerPool = ignoreIdleConnectionErrors(new pg.Pool({ connectionString: urls.owner, max: 2 }));
+  const connectionTimeoutMillis = options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS;
+  const ownerPool = ignoreIdleConnectionErrors(
+    new pg.Pool({ connectionString: urls.owner, max: 2, connectionTimeoutMillis }),
+  );
   const appPool = ignoreIdleConnectionErrors(
-    new pg.Pool({ connectionString: urls.app, max: options.appPoolMax ?? DEFAULT_APP_POOL_MAX, ...timeouts }),
+    new pg.Pool({
+      connectionString: urls.app,
+      max: options.appPoolMax ?? DEFAULT_APP_POOL_MAX,
+      connectionTimeoutMillis,
+      ...timeouts,
+    }),
   );
   const platformPool = ignoreIdleConnectionErrors(
-    new pg.Pool({ connectionString: urls.platform, max: 5, ...timeouts }),
+    new pg.Pool({ connectionString: urls.platform, max: 5, connectionTimeoutMillis, ...timeouts }),
   );
   return {
     ownerPool,

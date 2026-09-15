@@ -39,4 +39,17 @@ describe('database timeouts end stuck work instead of holding connections (secur
     const { rows } = await withAnonymousTransaction(short, (tx) => tx.client.query<{ ok: number }>('SELECT 1 AS ok'));
     expect(rows).toEqual([{ ok: 1 }]);
   });
+
+  it('a request waiting for a connection from a full pool gets an error instead of waiting forever', async () => {
+    const tiny = createDatabase(inject('databaseUrls'), { appPoolMax: 1, connectionTimeoutMs: 300 });
+    const held = await openTransaction(tiny.appPool, {});
+    try {
+      const started = Date.now();
+      await expect(openTransaction(tiny.appPool, {})).rejects.toThrow(/timeout/i);
+      expect(Date.now() - started).toBeLessThan(3_000);
+    } finally {
+      await held.rollback();
+      await tiny.close();
+    }
+  });
 });

@@ -10,6 +10,7 @@ export interface ServerConfig {
   readonly appPoolMax: number | undefined;
   readonly statementTimeoutMs: number | undefined;
   readonly idleInTransactionTimeoutMs: number | undefined;
+  readonly connectionTimeoutMs: number | undefined;
 }
 
 function optionalInteger(env: NodeJS.ProcessEnv, name: string): number | undefined {
@@ -41,5 +42,6 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     appPoolMax: optionalInteger(env, 'DATABASE_APP_POOL_MAX'),
     statementTimeoutMs: optionalInteger(env, 'DATABASE_STATEMENT_TIMEOUT_MS'),
     idleInTransactionTimeoutMs: optionalInteger(env, 'DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS'),
+    connectionTimeoutMs: optionalInteger(env, 'DATABASE_CONNECTION_TIMEOUT_MS'),
   };
 }
