@@ -17,7 +17,8 @@
     "dev": "npm run dev --workspace apps/server & npm run dev --workspace apps/web",
     "db:migrate": "npm run db:migrate --workspace apps/server",
     "ops:grant-operator": "npm run ops:grant-operator --workspace apps/server --",
-    "perf:org-access": "npm run perf:org-access --workspace apps/server"
+    "perf:org-access": "npm run perf:org-access --workspace apps/server",
+    "test:e2e": "npm exec --workspace apps/web -- playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",

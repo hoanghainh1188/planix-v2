@@ -7,6 +7,7 @@ build/
 coverage/
 playwright-report/
 test-results/
+apps/web/e2e/.state.json
 .DS_Store
 *.tsbuildinfo
 *.log

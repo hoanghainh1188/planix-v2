@@ -168,7 +168,7 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T074 [P] [US2] Web `FEAT_WEB/password-reset/{RequestResetPage.tsx,ConfirmResetPage.tsx}` + khoá i18n
 - [X] T075 [P] [US2] Web `FEAT_WEB/organization-switcher/OrganizationSwitcher.tsx` (chọn tổ chức sau đăng nhập, chuyển tổ chức, xoá cache TanStack Query khi chuyển)
 - [X] T076 [P] [US2] Web `FEAT_WEB/platform/PlatformOrganizationsPage.tsx` (tạo tổ chức, gửi lại lời mời Admin)
-- [ ] T077 [US2] E2E Playwright `apps/web/e2e/onboarding.spec.ts` (Q1 → Q2, Q11) và `apps/web/e2e/password-reset.spec.ts` (Q14) dùng Mailpit; đo thời gian bằng thao tác tự động và fail nếu Operator tạo tổ chức + gửi lời mời > 2 phút, chấp nhận lời mời (kể cả tạo tài khoản) > 2 phút, chuyển tổ chức > 5 giây (SC-003 — sửa sau `/speckit-analyze` G1)
+- [X] T077 [US2] E2E Playwright `apps/web/e2e/onboarding.spec.ts` (Q1 → Q2, Q11) và `apps/web/e2e/password-reset.spec.ts` (Q14) dùng Mailpit; đo thời gian bằng thao tác tự động và fail nếu Operator tạo tổ chức + gửi lời mời > 2 phút, chấp nhận lời mời (kể cả tạo tài khoản) > 2 phút, chuyển tổ chức > 5 giây (SC-003 — sửa sau `/speckit-analyze` G1)
 
 **Checkpoint**: US2 chạy độc lập — có tổ chức, Admin đăng nhập được; Q1, Q2, Q11–Q14 xanh.
 
