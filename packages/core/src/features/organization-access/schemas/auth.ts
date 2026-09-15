@@ -24,6 +24,8 @@ export type CreateOrganizationRequest = z.infer<typeof CreateOrganizationRequest
 export const AdminInvitationRequest = z.object({ email });
 export type AdminInvitationRequest = z.infer<typeof AdminInvitationRequest>;
 
+const TIME_ZONE_MAX_LENGTH = 100;
+
 /** `UTC` or an IANA `Area/Location[/Sub]` name with its official capitalization. */
 const IANA_NAME = /^(UTC|[A-Z][A-Za-z]*(\/[A-Z][A-Za-z0-9_+-]*)+)$/;
 
@@ -34,7 +36,8 @@ const IANA_NAME = /^(UTC|[A-Z][A-Za-z]*(\/[A-Z][A-Za-z0-9_+-]*)+)$/;
  * depends on the Node/ICU version).
  */
 export function isIanaTimeZone(value: string): boolean {
-  if (!IANA_NAME.test(value) || value.startsWith('Etc/')) return false;
+  // Length first: zod runs refinements even after .max() fails, so this keeps long input away from regex and Intl.
+  if (value.length > TIME_ZONE_MAX_LENGTH || !IANA_NAME.test(value) || value.startsWith('Etc/')) return false;
   let resolved: string;
   try {
     resolved = new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone;
@@ -47,7 +50,7 @@ export function isIanaTimeZone(value: string): boolean {
 
 export const UpdateMeRequest = z.object({
   locale: z.enum(['vi', 'en']).optional(),
-  timeZone: z.string().max(100).refine(isIanaTimeZone).optional(),
+  timeZone: z.string().max(TIME_ZONE_MAX_LENGTH).refine(isIanaTimeZone).optional(),
 });
 export type UpdateMeRequest = z.infer<typeof UpdateMeRequest>;
 
