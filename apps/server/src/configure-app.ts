@@ -21,6 +21,7 @@ export function configureApp(
 ): INestApplication {
   app.setGlobalPrefix('api/v1');
   const express = app as NestExpressApplication;
+  // helmet() also removes x-powered-by; disabling it here too keeps the header gone if helmet is ever reconfigured.
   express.disable('x-powered-by');
   // First, so every response — rate-limited and error ones included — carries the headers (T125).
   app.use(helmet());
