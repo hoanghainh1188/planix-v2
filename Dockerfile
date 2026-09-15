@@ -2,7 +2,8 @@
 # One container: migrations, then the NestJS API, which also serves the built web app on the same origin.
 
 # ---- build: install everything and build the web app ----
-FROM node:24-bookworm-slim AS build
+# Base image pinned by digest (multi-arch index); update deliberately.
+FROM node:24-bookworm-slim@sha256:2fe369e969550cde8e867afc3fe370b260140cab4a23d467074295b42163d553 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/core/package.json packages/core/
@@ -16,7 +17,7 @@ COPY apps/web apps/web
 RUN npm run build --workspace apps/web
 
 # ---- runtime: server production dependencies, sources run by tsx, web build ----
-FROM node:24-bookworm-slim AS runtime
+FROM node:24-bookworm-slim@sha256:2fe369e969550cde8e867afc3fe370b260140cab4a23d467074295b42163d553 AS runtime
 ENV NODE_ENV=production \
     TZ=UTC \
     WEB_DIST_DIR=/app/apps/web/dist

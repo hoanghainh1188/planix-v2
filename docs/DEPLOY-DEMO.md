@@ -49,11 +49,34 @@ flowchart LR
 
 ## 4. Tạo Platform Operator đầu tiên
 
-Chạy **từ máy người vận hành** (repo đã `npm install`), kết nối thẳng tới Neon; link đặt mật khẩu dẫn về demo:
+Chạy **từ máy người vận hành** (repo đã `npm install`), kết nối thẳng tới Neon; link đặt mật khẩu dẫn về demo.
+Không gõ mật khẩu/connection string thẳng trên dòng lệnh (sẽ nằm lại trong shell history): ghi vào file tạm chỉ
+mình đọc được, dùng xong xoá ngay.
 
-```bash
-TZ=UTC APP_BASE_URL='https://<service>.onrender.com' DATABASE_URL_OWNER='<owner direct url>' DATABASE_URL_APP='<app url>' DATABASE_URL_PLATFORM='<platform url>' SMTP_URL='<mailtrap smtp url>' npm run ops:grant-operator -- --email <email-operator> --create --locale vi
-```
+1. Tạo file `.env.operator` ở thư mục gốc repo (đã bị `.gitignore` bỏ qua qua mẫu `.env*`), chỉnh quyền:
+   ```bash
+   touch .env.operator && chmod 600 .env.operator
+   ```
+2. Mở bằng trình soạn thảo và điền (không dán vào terminal):
+   ```text
+   TZ=UTC
+   APP_BASE_URL=https://<service>.onrender.com
+   DATABASE_URL_OWNER=<owner direct url>?sslmode=verify-full
+   DATABASE_URL_APP=<app url>?sslmode=verify-full
+   DATABASE_URL_PLATFORM=<platform url>?sslmode=verify-full
+   SMTP_URL=<mailtrap smtp url>
+   ```
+3. Chạy lệnh với các biến đó:
+   ```bash
+   set -a && . ./.env.operator && set +a && npm run ops:grant-operator -- --email <email-operator> --create --locale vi
+   ```
+4. Xoá file ngay sau khi xong:
+   ```bash
+   rm -P .env.operator 2>/dev/null || rm -f .env.operator
+   ```
+
+Nếu nghi file hoặc lịch sử terminal bị lộ: đổi mật khẩu owner trên Neon, đổi mật khẩu `planix_app`/`planix_platform`
+(sửa URL trên Render rồi deploy lại — `db:migrate` đặt lại mật khẩu), và đổi mật khẩu Mailtrap.
 
 Mở email trong Mailtrap → link `…/password-reset/<token>` (hạn 1 giờ) → đặt mật khẩu → đăng nhập → `/platform/organizations`
 tạo tổ chức demo. Tài khoản đã tồn tại thì dùng `--confirm` thay cho `--create`.
