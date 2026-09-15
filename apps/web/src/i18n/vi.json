@@ -84,7 +84,8 @@
     "label": "Điều hướng chính",
     "members": "Thành viên",
     "invitations": "Lời mời",
-    "projects": "Dự án"
+    "projects": "Dự án",
+    "settings": "Cài đặt"
   },
   "roles": {
     "admin": "Quản trị viên",
@@ -171,5 +172,15 @@
     "newAccountable": "Người chịu trách nhiệm giải trình mới",
     "confirm": "Xác nhận đổi",
     "noCandidates": "Hãy thêm thành viên dự án khác trước."
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "language": "Ngôn ngữ",
+    "timeZone": "Múi giờ",
+    "timeExample": "Thời gian hiển thị như sau: {{time}}",
+    "languages": {
+      "vi": "Tiếng Việt",
+      "en": "English"
+    }
   }
 }

@@ -6,6 +6,7 @@ import { LoginPage } from '../features/organization-access/login/LoginPage.tsx';
 import { MembersPage } from '../features/organization-access/members/MembersPage.tsx';
 import { ProjectMembersPage } from '../features/organization-access/project-members/ProjectMembersPage.tsx';
 import { ProjectsPage } from '../features/organization-access/projects/ProjectsPage.tsx';
+import { SettingsPage } from '../features/organization-access/settings/SettingsPage.tsx';
 import { OrganizationSwitcher } from '../features/organization-access/organization-switcher/OrganizationSwitcher.tsx';
 import { ConfirmResetPage } from '../features/organization-access/password-reset/ConfirmResetPage.tsx';
 import { RequestResetPage } from '../features/organization-access/password-reset/RequestResetPage.tsx';
@@ -37,6 +38,9 @@ function AppLayout() {
             {canInvite && <NavLink to="/org/invitations">{t('nav.invitations')}</NavLink>}
           </nav>
         )}
+        <NavLink to="/settings" className="settings-link">
+          {t('nav.settings')}
+        </NavLink>
         <OrganizationSwitcher />
       </header>
       <main>
@@ -80,6 +84,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: '/platform/organizations', element: <PlatformOrganizationsPage /> },
+          { path: '/settings', element: <SettingsPage /> },
           {
             element: <RequireActiveOrganization />,
             children: [

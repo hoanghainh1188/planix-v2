@@ -88,6 +88,12 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
+    // FR-029/SC-007: web screens, app shell and shared UI take every display string from i18n (T118).
+    files: ['apps/web/src/{features,app,shared/ui}/**/*.tsx'],
+    ignores: ['**/*.test.tsx'],
+    rules: { 'planix/no-literal-string': 'error' },
+  },
+  {
     // Test files: HTTP response bodies from supertest are untyped JSON.
     files: ['**/*.test.ts', '**/*.test.tsx'],
     rules: {

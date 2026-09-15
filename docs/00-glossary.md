@@ -64,6 +64,8 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Kích hoạt lại thành viên | Membership Reactivation | | `membershipReactivation` | Động từ trong code: `reactivate`. Vai trò về `member`, không khôi phục dự án/RACI cũ | FR-015, decision `2026-09-14-005-member-reactivation` |
 | Thu hồi lời mời | Invitation Revocation | | `invitationRevocation` | Động từ trong code: `revoke`. Lời mời `pending` → `revoked`; mời lại cùng email tự thu hồi lời mời cũ | FR-009 |
 | Lý do từ chối | Deny Reason | | `denyReason` | Mã lý do khi `decide` từ chối, VD `MEMBERSHIP_INACTIVE` | contracts/authorization.md |
+| Ngôn ngữ ưa thích | Locale | | `locale` | `vi` \| `en` trên `User`; đổi áp dụng ngay ở UI, lưu trên tài khoản cho các phiên sau | FR-029 |
+| Múi giờ ưa thích | Time Zone | | `timeZone` | Tên IANA (`Area/Location` hoặc `UTC`) trên `User`; lưu đúng như gửi; chỉ đổi cách hiển thị, thời điểm vẫn lưu UTC | FR-030 |
 
 ## TASK — Tác nghiệp
 
