@@ -167,4 +167,111 @@ describe('changing the Accountable while the candidate is being deactivated or r
     }
     expect(await accountableRows()).toEqual([candidateProjectMemberId]);
   });
+
+  it('a change that starts while the candidate is being removed waits and then refuses NOT_PROJECT_MEMBER', async () => {
+    // Only the explicit lock on the candidate's project member can block here: the change has not inserted its
+    // accountable row yet, so no foreign-key lock helps (code review).
+    const removal = await openTransaction(db.appPool, settings());
+    const change = await openTransaction(db.appPool, settings());
+    try {
+      const probe = await lockProbe(change);
+      await projectMembers.remove(
+        removal.tx,
+        principal(pmUserId, 'projectManager'),
+        projectId,
+        candidateProjectMemberId,
+      );
+      let settled = false;
+      const changing = raci
+        .changeAccountable(change.tx, principal(pmUserId, 'projectManager'), projectId, candidateProjectMemberId)
+        .finally(() => (settled = true));
+      await expect
+        .poll(
+          probe(() => settled),
+          { timeout: 10_000, interval: 50 },
+        )
+        .toBe('Lock');
+      await removal.commit();
+      const error: unknown = await changing.catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(DomainError);
+      expect((error as DomainError).code).toBe('NOT_PROJECT_MEMBER');
+    } finally {
+      await change.rollback();
+      await removal.rollback();
+    }
+    const accountable = await accountableRows();
+    expect(accountable).toHaveLength(1);
+    expect(accountable).not.toContain(candidateProjectMemberId);
+  });
+
+  it('editing RACI roles of the candidate during the change waits and keeps the new Accountable', async () => {
+    const change = await openTransaction(db.appPool, settings());
+    const edit = await openTransaction(db.appPool, settings());
+    try {
+      const probe = await lockProbe(edit);
+      await raci.changeAccountable(
+        change.tx,
+        principal(pmUserId, 'projectManager'),
+        projectId,
+        candidateProjectMemberId,
+      );
+      let settled = false;
+      const editing = raci
+        .replaceRaciRoles(edit.tx, principal(pmUserId, 'projectManager'), projectId, candidateProjectMemberId, [
+          'consulted',
+        ])
+        .finally(() => (settled = true));
+      await expect
+        .poll(
+          probe(() => settled),
+          { timeout: 10_000, interval: 50 },
+        )
+        .toBe('Lock');
+      await change.commit();
+      expect((await editing).raciRoles).toEqual(['accountable', 'consulted']);
+      await edit.commit();
+    } finally {
+      await edit.rollback();
+      await change.rollback();
+    }
+    expect(await accountableRows()).toEqual([candidateProjectMemberId]);
+  });
+
+  it('editing RACI roles of the former Accountable during the change waits and never restores the old Accountable', async () => {
+    const pmProjectMemberId = (await accountableRows())[0]!;
+    const change = await openTransaction(db.appPool, settings());
+    const edit = await openTransaction(db.appPool, settings());
+    try {
+      const probe = await lockProbe(edit);
+      await raci.changeAccountable(
+        change.tx,
+        principal(pmUserId, 'projectManager'),
+        projectId,
+        candidateProjectMemberId,
+      );
+      let settled = false;
+      // The edit's new assignment references the project row, which the change holds FOR UPDATE.
+      const editing = raci
+        .replaceRaciRoles(edit.tx, principal(pmUserId, 'projectManager'), projectId, pmProjectMemberId, ['responsible'])
+        .finally(() => (settled = true));
+      await expect
+        .poll(
+          probe(() => settled),
+          { timeout: 10_000, interval: 50 },
+        )
+        .toBe('Lock');
+      await change.commit();
+      await editing;
+      await edit.commit();
+    } finally {
+      await edit.rollback();
+      await change.rollback();
+    }
+    expect(await accountableRows()).toEqual([candidateProjectMemberId]);
+    const { rows } = await db.ownerPool.query<{ raci_role: string }>(
+      'SELECT raci_role FROM raci_assignment WHERE project_member_id = $1',
+      [pmProjectMemberId],
+    );
+    expect(rows.map((r) => r.raci_role)).toEqual(['responsible']);
+  });
 });

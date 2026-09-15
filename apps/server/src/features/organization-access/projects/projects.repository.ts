@@ -243,7 +243,12 @@ export class AccountableLocks {
     await tx.client.query('SELECT id FROM project WHERE id = $1 FOR UPDATE', [projectId]);
   }
 
-  /** Locks the candidate (membership FOR SHARE, then project member FOR SHARE); false if not an active member. */
+  /**
+   * Locks the candidate (membership FOR SHARE, then project member FOR SHARE); false if not an active member.
+   * Once the accountable row is inserted, its foreign key also holds a KEY SHARE lock on the project member — but
+   * before that insert only this explicit lock stops a concurrent removal (race test "change that starts while the
+   * candidate is being removed" fails without it).
+   */
   static async lockActiveCandidate(tx: Tx, projectId: string, projectMemberId: string): Promise<boolean> {
     const found = await tx.client.query<{ membership_id: string }>(
       'SELECT membership_id FROM project_member WHERE id = $1 AND project_id = $2',
