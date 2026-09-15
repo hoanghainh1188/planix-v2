@@ -9,6 +9,7 @@ bảng này trước — nếu câu hỏi đã có ở đây, dùng lại quyế
 
 | Ngày | Quyết định | Feature | Thuật ngữ / chủ đề |
 |---|---|---|---|
+| 2026-09-15 | [Môi trường demo: Render (free) + Neon (free) + hộp thư bắt email](2026-09-15-018-demo-deploy.md) | `018-demo-deploy` | deploy / demo / Render / Neon |
 | 2026-09-15 | [Branch protection của `main` khi chỉ có một Code Owner](2026-09-15-005-single-owner-branch-protection.md) | toàn repo (ghi lại từ `005-organization-access` T128) | quy trình / branch protection / Code Owner |
 | 2026-09-15 | [Tạo Platform Operator đầu tiên bằng `ops:grant-operator --create`](2026-09-15-005-first-platform-operator.md) | `005-organization-access` | Platform Operator / bootstrap / CLI vận hành |
 | 2026-09-15 | [Body vượt giới hạn trả 413 `PAYLOAD_TOO_LARGE`](2026-09-15-005-payload-too-large.md) | `005-organization-access` | mã lỗi / giới hạn body / security hardening |
