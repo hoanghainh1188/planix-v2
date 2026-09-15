@@ -38,6 +38,12 @@ export class RaciService {
     if (member === undefined) throw new DomainError('RESOURCE_NOT_FOUND');
     const plan = replaceRaciRoles(new Set(member.raciRoles), requested);
     if (!plan.ok) throw new DomainError(plan.code);
+    const unchanged =
+      plan.raciRoles.length === member.raciRoles.length &&
+      plan.raciRoles.every((role, i) => role === member.raciRoles[i]);
+    if (unchanged) {
+      return (await this.projects.members(tx, projectId)).find((m) => m.projectMemberId === projectMemberId)!;
+    }
 
     await this.projects.replaceAssignableRaciRoles(tx, {
       organizationId: principal.organizationId,

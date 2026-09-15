@@ -69,6 +69,19 @@ describe('RACI roles (FR-020)', () => {
     expect(audit.rowCount).toBe(3);
   });
 
+  it('writes no audit entry when the roles do not change (code review)', async () => {
+    const roles = { raciRoles: ['informed', 'responsible'] };
+    expect((await pm.browser.put(raciPath(u2.projectMemberId), roles)).status).toBe(200);
+    const again = await pm.browser.put(raciPath(u2.projectMemberId), { raciRoles: ['responsible', 'informed'] });
+    expect(again.status).toBe(200);
+    expect(again.body.raciRoles).toEqual(['responsible', 'informed']);
+    const audit = await db.ownerPool.query(
+      "SELECT 1 FROM audit_entry WHERE action = 'project.raci.update' AND target_id = $1",
+      [u2.projectMemberId],
+    );
+    expect(audit.rowCount).toBe(1);
+  });
+
   it('keeps the Accountable when their R/C/I roles change', async () => {
     const response = await pm.browser.put(raciPath(pmProjectMemberId), { raciRoles: ['responsible'] });
     expect(response.status).toBe(200);
