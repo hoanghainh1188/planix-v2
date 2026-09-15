@@ -266,9 +266,9 @@ hiệu lực ngay; từ chối được ghi audit.
 
 ### Tests for User Story 5 (RED) ⚠️
 
-- [ ] T105 [P] [US5] **RED** `FEAT_CORE/raci-invariants.test.ts`: dự án luôn đúng 1 Accountable; thay thế là 1 bước; gỡ Accountable không kèm người thay → `ACCOUNTABLE_REQUIRED`; một thành viên giữ nhiều vai trò RACI (FR-020, decision single-accountable)
-- [ ] T106 [P] [US5] **RED** `FEAT_SRV/projects/raci.integration.test.ts`: `PUT /projects/{id}/members/{pmId}/raci { raciRoles }` không nhận `accountable` (có → 400 `VALIDATION_FAILED`); `PUT /projects/{id}/accountable { projectMemberId }` → 200 `{ previous, current }` + audit; người không phải thành viên → 409 `NOT_PROJECT_MEMBER`; **2 yêu cầu đổi Accountable đồng thời** → vẫn đúng 1 Accountable (partial unique index); PUT `raciRoles: ["responsible"]` cho Accountable hiện tại → vẫn là Accountable và có thêm R (FR-020, Q9)
-- [ ] T107 [P] [US5] **RED** `FEAT_SRV/projects/accountable.query.integration.test.ts`: `getAccountable(tx, tenant, projectId)` (chữ ký theo decision `2026-09-15-005-accountable-query-takes-transaction`) luôn trả đúng 1 kết quả, dùng transaction của người gọi — không mở connection mới; `isAccountable` đúng/sai; dự án tổ chức khác hoặc không tồn tại → `RESOURCE_NOT_FOUND` (FR-021, `contracts/authorization.md` §4)
+- [X] T105 [P] [US5] **RED** `FEAT_CORE/raci-invariants.test.ts`: dự án luôn đúng 1 Accountable; thay thế là 1 bước; gỡ Accountable không kèm người thay → `ACCOUNTABLE_REQUIRED`; một thành viên giữ nhiều vai trò RACI (FR-020, decision single-accountable)
+- [X] T106 [P] [US5] **RED** `FEAT_SRV/projects/raci.integration.test.ts`: `PUT /projects/{id}/members/{pmId}/raci { raciRoles }` không nhận `accountable` (có → 400 `VALIDATION_FAILED`); `PUT /projects/{id}/accountable { projectMemberId }` → 200 `{ previous, current }` + audit; người không phải thành viên → 409 `NOT_PROJECT_MEMBER`; **2 yêu cầu đổi Accountable đồng thời** → vẫn đúng 1 Accountable (partial unique index); PUT `raciRoles: ["responsible"]` cho Accountable hiện tại → vẫn là Accountable và có thêm R (FR-020, Q9)
+- [X] T107 [P] [US5] **RED** `FEAT_SRV/projects/accountable.query.integration.test.ts`: `getAccountable(tx, tenant, projectId)` (chữ ký theo decision `2026-09-15-005-accountable-query-takes-transaction`) luôn trả đúng 1 kết quả, dùng transaction của người gọi — không mở connection mới; `isAccountable` đúng/sai; dự án tổ chức khác hoặc không tồn tại → `RESOURCE_NOT_FOUND` (FR-021, `contracts/authorization.md` §4)
 
 ### Implementation for User Story 5 (GREEN)
 
