@@ -17,7 +17,7 @@ export default defineConfig({
         test: {
           name: 'server',
           root: './apps/server',
-          include: ['src/**/*.test.ts'],
+          include: ['src/**/*.test.ts', 'perf/**/*.test.ts'],
           environment: 'node',
           globalSetup: ['./src/test/global-setup.ts'],
           fileParallelism: false,
