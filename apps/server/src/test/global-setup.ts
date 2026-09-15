@@ -24,6 +24,9 @@ export async function setup(project: TestProject): Promise<void> {
   const ownerPool = new pg.Pool({ connectionString: owner, max: 1 });
   try {
     await migrate(ownerPool, credentials);
+    // Probe tables of infrastructure tests live here, never in public, so schema-wide checks (rls-policies) and
+    // concurrently running test files do not see each other's temporary tables.
+    await ownerPool.query('CREATE SCHEMA test_probes; GRANT USAGE ON SCHEMA test_probes TO planix_app');
   } finally {
     await ownerPool.end();
   }

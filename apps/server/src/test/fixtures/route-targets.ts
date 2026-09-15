@@ -60,6 +60,16 @@ export const ROUTE_TARGETS: Readonly<Record<string, RouteTarget>> = {
     params: (victim) => ({ projectId: victim.projectId }),
     body: { membershipId: '00000000-0000-4000-8000-000000000000' },
   },
+  'PUT /projects/:projectId/members/:projectMemberId/raci': {
+    kind: 'item',
+    params: (victim) => ({ projectId: victim.projectId, projectMemberId: victim.projectMemberId }),
+    body: { raciRoles: ['informed'] },
+  },
+  'PUT /projects/:projectId/accountable': {
+    kind: 'item',
+    params: (victim) => ({ projectId: victim.projectId }),
+    body: { projectMemberId: '00000000-0000-4000-8000-000000000000' },
+  },
   'DELETE /projects/:projectId/members/:projectMemberId': {
     kind: 'item',
     params: (victim) => ({ projectId: victim.projectId, projectMemberId: victim.projectMemberId }),

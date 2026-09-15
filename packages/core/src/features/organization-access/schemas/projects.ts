@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ASSIGNABLE_RACI_ROLES } from '../raci-invariants.ts';
 import type { RaciRole } from '../roles.ts';
 
 /** Request/response contracts for projects and project members (contracts/api.md §Dự án, thành viên dự án, RACI). */
@@ -11,6 +12,15 @@ export type CreateProjectRequest = z.infer<typeof CreateProjectRequest>;
 
 export const AddProjectMemberRequest = z.object({ membershipId: z.uuid() });
 export type AddProjectMemberRequest = z.infer<typeof AddProjectMemberRequest>;
+
+/** Only responsible/consulted/informed — `accountable` in the body is VALIDATION_FAILED (contracts/api.md). */
+export const ReplaceRaciRolesRequest = z.object({
+  raciRoles: z.array(z.enum(ASSIGNABLE_RACI_ROLES)).max(ASSIGNABLE_RACI_ROLES.length * 2),
+});
+export type ReplaceRaciRolesRequest = z.infer<typeof ReplaceRaciRolesRequest>;
+
+export const ChangeAccountableRequest = z.object({ projectMemberId: z.uuid() });
+export type ChangeAccountableRequest = z.infer<typeof ChangeAccountableRequest>;
 
 export interface ProjectView {
   readonly id: string;
@@ -37,4 +47,9 @@ export interface ProjectMemberView {
   readonly membershipId: string;
   readonly email: string;
   readonly raciRoles: readonly RaciRole[];
+}
+
+export interface AccountableChange {
+  readonly previous: AccountableView;
+  readonly current: AccountableView;
 }

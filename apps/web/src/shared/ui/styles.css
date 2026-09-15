@@ -226,3 +226,11 @@ body {
   border-radius: var(--radius-control);
   resize: vertical;
 }
+
+.dialog {
+  width: min(32rem, calc(100% - 2 * var(--space-4)));
+}
+
+.dialog::backdrop {
+  background: oklch(22% 0.02 260 / 0.45);
+}

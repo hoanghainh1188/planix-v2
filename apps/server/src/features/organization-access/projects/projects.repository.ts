@@ -177,12 +177,95 @@ export class ProjectsRepository {
     return { membershipId: locked.rows[0].membership_id, raciRoles: orderedRaci(rows.map((r) => r.raci_role)) };
   }
 
+  /** Replaces responsible/consulted/informed; the accountable assignment is never touched here. */
+  async replaceAssignableRaciRoles(
+    tx: Tx,
+    input: {
+      organizationId: string;
+      projectId: string;
+      projectMemberId: string;
+      raciRoles: readonly RaciRole[];
+      now: Date;
+    },
+  ): Promise<void> {
+    const assignable = input.raciRoles.filter((role) => role !== 'accountable');
+    await tx.client.query(
+      `DELETE FROM raci_assignment
+        WHERE project_member_id = $1 AND raci_role <> 'accountable' AND NOT (raci_role = ANY($2::text[]))`,
+      [input.projectMemberId, assignable],
+    );
+    await tx.client.query(
+      `INSERT INTO raci_assignment (organization_id, project_id, project_member_id, raci_role, assigned_at)
+       SELECT $1, $2, $3, role, $5 FROM unnest($4::text[]) AS role
+       ON CONFLICT (project_member_id, raci_role) DO NOTHING`,
+      [input.organizationId, input.projectId, input.projectMemberId, assignable, input.now],
+    );
+  }
+
+  /** Moves the single accountable assignment; the partial unique index backs the invariant. */
+  async moveAccountable(
+    tx: Tx,
+    input: {
+      organizationId: string;
+      projectId: string;
+      fromProjectMemberId: string;
+      toProjectMemberId: string;
+      now: Date;
+    },
+  ): Promise<void> {
+    await tx.client.query(
+      "DELETE FROM raci_assignment WHERE project_id = $1 AND project_member_id = $2 AND raci_role = 'accountable'",
+      [input.projectId, input.fromProjectMemberId],
+    );
+    await tx.client.query(
+      `INSERT INTO raci_assignment (organization_id, project_id, project_member_id, raci_role, assigned_at)
+       VALUES ($1, $2, $3, 'accountable', $4)`,
+      [input.organizationId, input.projectId, input.toProjectMemberId, input.now],
+    );
+  }
+
   async removeMember(tx: Tx, projectMemberId: string, now: Date): Promise<void> {
     await tx.client.query('DELETE FROM raci_assignment WHERE project_member_id = $1', [projectMemberId]);
     await tx.client.query("UPDATE project_member SET status = 'removed', removed_at = $2 WHERE id = $1", [
       projectMemberId,
       now,
     ]);
+  }
+}
+
+/**
+ * Lock order for changing the Accountable (never reversed elsewhere, so no deadlock): project row → candidate's
+ * organization membership → candidate's project member. Member removal locks only the project member (FOR UPDATE);
+ * deactivation locks memberships (FOR UPDATE) before touching project members.
+ */
+export class AccountableLocks {
+  static async lockProject(tx: Tx, projectId: string): Promise<void> {
+    await tx.client.query('SELECT id FROM project WHERE id = $1 FOR UPDATE', [projectId]);
+  }
+
+  /**
+   * Locks the candidate (membership FOR SHARE, then project member FOR SHARE); false if not an active member.
+   * Once the accountable row is inserted, its foreign key also holds a KEY SHARE lock on the project member — but
+   * before that insert only this explicit lock stops a concurrent removal (race test "change that starts while the
+   * candidate is being removed" fails without it).
+   */
+  static async lockActiveCandidate(tx: Tx, projectId: string, projectMemberId: string): Promise<boolean> {
+    const found = await tx.client.query<{ membership_id: string }>(
+      'SELECT membership_id FROM project_member WHERE id = $1 AND project_id = $2',
+      [projectMemberId, projectId],
+    );
+    const membershipId = found.rows[0]?.membership_id;
+    if (membershipId === undefined) return false;
+    const membership = await tx.client.query(
+      "SELECT 1 FROM organization_membership WHERE id = $1 AND status = 'active' FOR SHARE",
+      [membershipId],
+    );
+    if (membership.rowCount !== 1) return false;
+    const member = await tx.client.query(
+      "SELECT 1 FROM project_member WHERE id = $1 AND project_id = $2 AND status = 'active' FOR SHARE",
+      [projectMemberId, projectId],
+    );
+    return member.rowCount === 1;
   }
 }
 

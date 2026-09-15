@@ -157,5 +157,19 @@
     "raciRoles": "RACI roles",
     "remove": "Remove",
     "removeFor": "Remove {{email}} from the project"
+  },
+  "raciEditor": {
+    "edit": "Edit RACI",
+    "editFor": "Edit RACI roles for {{email}}",
+    "rolesFor": "RACI roles for {{email}}",
+    "save": "Save RACI roles",
+    "accountableKept": "This person stays Accountable; use Change Accountable to hand it over."
+  },
+  "changeAccountable": {
+    "title": "Change Accountable",
+    "explanation": "A project always has exactly one Accountable. The new person replaces the current one in one step.",
+    "newAccountable": "New Accountable",
+    "confirm": "Confirm change",
+    "noCandidates": "Add another project member first."
   }
 }

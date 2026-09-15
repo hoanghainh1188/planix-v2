@@ -157,5 +157,19 @@
     "raciRoles": "Vai trò RACI",
     "remove": "Gỡ",
     "removeFor": "Gỡ {{email}} khỏi dự án"
+  },
+  "raciEditor": {
+    "edit": "Sửa RACI",
+    "editFor": "Sửa vai trò RACI của {{email}}",
+    "rolesFor": "Vai trò RACI của {{email}}",
+    "save": "Lưu vai trò RACI",
+    "accountableKept": "Người này vẫn là Người chịu trách nhiệm giải trình; dùng Đổi người chịu trách nhiệm giải trình để chuyển giao."
+  },
+  "changeAccountable": {
+    "title": "Đổi người chịu trách nhiệm giải trình",
+    "explanation": "Mỗi dự án luôn có đúng một Người chịu trách nhiệm giải trình. Người mới thay người hiện tại trong một bước.",
+    "newAccountable": "Người chịu trách nhiệm giải trình mới",
+    "confirm": "Xác nhận đổi",
+    "noCandidates": "Hãy thêm thành viên dự án khác trước."
   }
 }

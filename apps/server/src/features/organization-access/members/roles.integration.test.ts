@@ -148,6 +148,10 @@ describe('organization members and system roles (FR-012, FR-014, Q4, Q5)', () =>
       let waitingSettled = false;
       const waiting = service
         .assignRoles(t2.tx, principal(second.userId), admin.membershipId, ['member'])
+        .then(
+          () => undefined,
+          (e: unknown) => e,
+        )
         .finally(() => (waitingSettled = true));
       // Proof of blocking, not a timer: the second transaction's backend is waiting on a row lock held by the first.
       await expect
@@ -164,7 +168,7 @@ describe('organization members and system roles (FR-012, FR-014, Q4, Q5)', () =>
         )
         .toBe('Lock');
       await t1.commit();
-      const error: unknown = await waiting.catch((e: unknown) => e);
+      const error: unknown = await waiting;
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('LAST_ADMIN_REQUIRED');
     } finally {
