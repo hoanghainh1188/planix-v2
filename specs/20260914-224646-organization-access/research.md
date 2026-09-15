@@ -144,7 +144,9 @@ registry ngày 2026-09-14.
 - **Decision**: bảng `platform_operator_grant(user_id)`; route riêng `/platform/*` với guard riêng, **không**
   dựng `TenantContext`. Operator chỉ có action `platform.organization.create|list|update-status` và
   `platform.invitation.admin.create|resend|revoke`. Cấp quyền Operator bằng **CLI vận hành**
-  (`npm run ops:grant-operator`), không có UI. Truy cập DB qua role `planix_platform` với policy RLS riêng (R3 lối 3).
+  (`npm run ops:grant-operator`), không có UI. Cài đặt mới chưa có tài khoản nào: `--create` tạo tài khoản Operator
+  đầu tiên (mật khẩu không dùng được + liên kết đặt lại mật khẩu gửi qua email) — decision
+  `2026-09-15-005-first-platform-operator`. Truy cập DB qua role `planix_platform` với policy RLS riêng (R3 lối 3).
 - **Rationale**: tách principal nền tảng khỏi principal tổ chức → không thể vô tình đọc dữ liệu tổ chức.
 
 ## R12. Hiệu năng (SC-006; OI-14)

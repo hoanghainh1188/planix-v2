@@ -9,6 +9,7 @@ bảng này trước — nếu câu hỏi đã có ở đây, dùng lại quyế
 
 | Ngày | Quyết định | Feature | Thuật ngữ / chủ đề |
 |---|---|---|---|
+| 2026-09-15 | [Tạo Platform Operator đầu tiên bằng `ops:grant-operator --create`](2026-09-15-005-first-platform-operator.md) | `005-organization-access` | Platform Operator / bootstrap / CLI vận hành |
 | 2026-09-15 | [Body vượt giới hạn trả 413 `PAYLOAD_TOO_LARGE`](2026-09-15-005-payload-too-large.md) | `005-organization-access` | mã lỗi / giới hạn body / security hardening |
 | 2026-09-15 | [Tra cứu Accountable nhận transaction của người gọi](2026-09-15-005-accountable-query-takes-transaction.md) | `005-organization-access` | Accountable / AccountableQuery / transaction |
 | 2026-09-15 | [Lãnh đạo danh mục quản lý thành viên dự án; bổ sung 2 dòng ma trận quyền](2026-09-15-005-portfolio-lead-manages-project-members.md) | `005-organization-access` | role / ma trận quyền / project member |
