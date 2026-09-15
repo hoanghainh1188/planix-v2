@@ -65,8 +65,9 @@ registry ngày 2026-09-14.
     lực từ yêu cầu kế tiếp (SC-004). Đặt lại mật khẩu → xoá mọi `auth_session` của user.
   - Mật khẩu: argon2id (tham số mặc định OWASP), ≥ 12 ký tự, chặn danh sách mật khẩu phổ biến đóng gói sẵn
     (offline, không gọi dịch vụ ngoài).
-  - Chống đoán: bộ đếm sai theo tài khoản (5 lần → khoá 15 phút) + giới hạn tần suất theo IP cho
-    `/auth/*`, `/invitations/*` (`express-rate-limit` 8 làm middleware — `@nestjs/throttler` chưa hỗ trợ NestJS 12).
+  - Chống đoán: bộ đếm sai theo tài khoản (5 lần → khoá 15 phút) + giới hạn tần suất theo IP cho request thay
+    đổi trạng thái dưới `/auth/*`, `/invitations/*` — không đếm GET/HEAD/OPTIONS (sửa đổi 2026-09-15 trong decision
+    tech-stack) (`express-rate-limit` 8 làm middleware — `@nestjs/throttler` chưa hỗ trợ NestJS 12).
   - CSRF: `SameSite=Lax` + token double-submit cho mọi request thay đổi trạng thái. Cookie CSRF cấp ở
     `GET /auth/session` kể cả khi chưa đăng nhập; route chưa đăng nhập kiểm thêm `Origin` khớp `APP_BASE_URL` (chống
     login CSRF).
