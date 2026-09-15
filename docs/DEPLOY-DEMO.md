@@ -83,13 +83,17 @@ tạo tổ chức demo. Tài khoản đã tồn tại thì dùng `--confirm` tha
 
 ## 5. Kiểm sau deploy đầu tiên
 
-- **`trust proxy` (#14):** `render.yaml` đặt `TRUST_PROXY_HOPS=1`. Kiểm rate limit không bị qua mặt bằng
-  `X-Forwarded-For` giả — lần thứ 31 phải trả `429`:
+- **`trust proxy` (#14):** `render.yaml` đặt `TRUST_PROXY_HOPS=2` (kiểm trên demo 2026-09-16). Mỗi response đăng nhập
+  có header `ratelimit-policy: … pk=<mã khoá bucket>` và `ratelimit: … r=<lượt còn lại>`. Gửi vài request **không**
+  kèm `X-Forwarded-For`, rồi vài request kèm IP giả khác nhau, và so `pk`:
   ```bash
-  for i in $(seq 1 31); do curl -s -o /dev/null -w "%{http_code} " -X POST "https://<service>.onrender.com/api/v1/auth/login" -H "Origin: https://<service>.onrender.com" -H "Content-Type: application/json" -H "X-Forwarded-For: 10.0.0.$i" -d '{"email":"x@example.com","password":"x"}'; done; echo
+  for h in "" "" "" "X-Forwarded-For: 192.0.2.1" "X-Forwarded-For: 192.0.2.2" "X-Forwarded-For: 192.0.2.3"; do curl -s -D - -o /dev/null -X POST "https://<service>.onrender.com/api/v1/auth/login" -H "Origin: https://<service>.onrender.com" -H "Content-Type: application/json" ${h:+-H "$h"} -d '{}' | grep -ioE 'pk=:[^:]+:|r=[0-9]+' | tr '\n' ' '; echo; done
   ```
-  Nếu không bao giờ thấy `429` → số hop sai (đang lấy IP giả): dừng demo và sửa `TRUST_PROXY_HOPS`. Chờ 15 phút
-  (hết cửa sổ rate limit) trước khi thử đăng nhập thật.
+  - **Đúng:** cả 6 dòng cùng **một** `pk`, `r` giảm dần.
+  - **Hop quá ít** (`pk` xoay giữa vài giá trị dù không gửi header): đang lấy IP proxy nội bộ → mọi người dùng chung
+    bucket. Tăng `TRUST_PROXY_HOPS`.
+  - **Hop quá nhiều** (`pk` đổi theo IP giả): client tự chọn được IP, né được rate limit. Giảm ngay.
+  Mỗi request bị tính vào giới hạn 30 lần / 15 phút của IP người kiểm.
 - **HSTS:** header có `Strict-Transport-Security` — chấp nhận cho `*.onrender.com`; xem lại khi dùng domain riêng (#14).
 
 ## Vận hành
