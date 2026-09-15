@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
-import { seedOrganizationWithAdmin, signIn, type SeededAdmin } from './support.ts';
+import { seedMember, seedOrganizationWithAdmin, seedProject, signIn, type SeededAdmin } from './support.ts';
 
 let acme: SeededAdmin;
 let beta: SeededAdmin;
@@ -53,5 +53,24 @@ test.describe('organization isolation in the browser (Q3)', () => {
       expect(aimed).toEqual({ status: 404, body: { error: { code: 'RESOURCE_NOT_FOUND', params: {} } } });
       expect(aimed).toEqual(random);
     }
+  });
+
+  test("opening another organization's project by URL shows the same not-found page as an unknown project (moved from T092)", async ({
+    page,
+  }) => {
+    const acmePm = await seedMember(acme.organizationId, ['projectManager'], 'pm');
+    const betaPm = await seedMember(beta.organizationId, ['projectManager'], 'pm');
+    const betaProjectId = await seedProject(beta.organizationId, betaPm.membershipId, 'Beta secret project');
+    await signIn(page, acmePm.email, acmePm.password);
+
+    await page.goto(`/projects/${betaProjectId}/members`);
+    await expect(page.getByText('The page or data you requested was not found.')).toBeVisible();
+    const aimed = await page.locator('main').innerText();
+    expect(aimed).not.toContain('Beta secret project');
+    expect(aimed).not.toContain(betaPm.email);
+
+    await page.goto(`/projects/${randomUUID()}/members`);
+    await expect(page.getByText('The page or data you requested was not found.')).toBeVisible();
+    expect(await page.locator('main').innerText()).toBe(aimed);
   });
 });

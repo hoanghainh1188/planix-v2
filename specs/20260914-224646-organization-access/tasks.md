@@ -234,8 +234,8 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T095 [US4] **GREEN** `FEAT_SRV/projects/{projects.module.ts,projects.controller.ts,projects.service.ts,projects.repository.ts}` cho T093
 - [X] T096 [US4] **GREEN** `FEAT_SRV/projects/{project-members.controller.ts,project-members.service.ts}` cho T094
 - [X] T097 [US4] Thêm các route dự án vào `apps/server/src/test/fixtures/route-targets.ts` để T089 bao phủ (SC-001)
-- [ ] T098 [P] [US4] Web `FEAT_WEB/projects/ProjectsPage.tsx` (danh sách, tạo dự án) + khoá i18n
-- [ ] T099 [P] [US4] Web `FEAT_WEB/project-members/ProjectMembersPage.tsx` (thêm/xoá thành viên từ thành viên tổ chức) + khoá i18n; mở rộng `apps/web/e2e/isolation.spec.ts`: mở URL trực tiếp trang dự án / thành viên dự án của tổ chức khác → trang "không tìm thấy", giống hệt id ngẫu nhiên (chuyển từ T092, Q3)
+- [X] T098 [P] [US4] Web `FEAT_WEB/projects/ProjectsPage.tsx` (danh sách, tạo dự án) + khoá i18n
+- [X] T099 [P] [US4] Web `FEAT_WEB/project-members/ProjectMembersPage.tsx` (thêm/xoá thành viên từ thành viên tổ chức) + khoá i18n; mở rộng `apps/web/e2e/isolation.spec.ts`: mở URL trực tiếp trang dự án / thành viên dự án của tổ chức khác → trang "không tìm thấy", giống hệt id ngẫu nhiên (chuyển từ T092, Q3)
 
 **Checkpoint**: US4 xanh; test cô lập T089 bao phủ route dự án.
 

@@ -83,7 +83,8 @@
   "nav": {
     "label": "Điều hướng chính",
     "members": "Thành viên",
-    "invitations": "Lời mời"
+    "invitations": "Lời mời",
+    "projects": "Dự án"
   },
   "roles": {
     "admin": "Quản trị viên",
@@ -130,5 +131,31 @@
       "expired": "Đã hết hạn"
     },
     "empty": "Chưa có lời mời nào."
+  },
+  "raci": {
+    "responsible": "Người thực hiện",
+    "accountable": "Người chịu trách nhiệm giải trình",
+    "consulted": "Người được tham vấn",
+    "informed": "Người được thông báo"
+  },
+  "projects": {
+    "title": "Dự án",
+    "createTitle": "Tạo dự án",
+    "name": "Tên dự án",
+    "description": "Mô tả",
+    "create": "Tạo dự án",
+    "createdAt": "Ngày tạo",
+    "empty": "Chưa có dự án nào."
+  },
+  "projectMembers": {
+    "title": "Thành viên dự án",
+    "accountable": "Người chịu trách nhiệm giải trình: {{email}}",
+    "organizationMember": "Thành viên tổ chức",
+    "choose": "Chọn một người…",
+    "add": "Thêm vào dự án",
+    "email": "Email",
+    "raciRoles": "Vai trò RACI",
+    "remove": "Gỡ",
+    "removeFor": "Gỡ {{email}} khỏi dự án"
   }
 }

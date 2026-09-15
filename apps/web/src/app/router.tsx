@@ -4,6 +4,8 @@ import { AcceptInvitationPage } from '../features/organization-access/accept-inv
 import { InvitationsPage } from '../features/organization-access/invitations/InvitationsPage.tsx';
 import { LoginPage } from '../features/organization-access/login/LoginPage.tsx';
 import { MembersPage } from '../features/organization-access/members/MembersPage.tsx';
+import { ProjectMembersPage } from '../features/organization-access/project-members/ProjectMembersPage.tsx';
+import { ProjectsPage } from '../features/organization-access/projects/ProjectsPage.tsx';
 import { OrganizationSwitcher } from '../features/organization-access/organization-switcher/OrganizationSwitcher.tsx';
 import { ConfirmResetPage } from '../features/organization-access/password-reset/ConfirmResetPage.tsx';
 import { RequestResetPage } from '../features/organization-access/password-reset/RequestResetPage.tsx';
@@ -29,6 +31,7 @@ function AppLayout() {
         <strong>{t('common.appName')}</strong>
         {session?.activeOrganizationId && (
           <nav aria-label={t('nav.label')} className="app-nav">
+            <NavLink to="/projects">{t('nav.projects')}</NavLink>
             <NavLink to="/org/members">{t('nav.members')}</NavLink>
             {roles.has('admin') && <NavLink to="/org/invitations">{t('nav.invitations')}</NavLink>}
           </nav>
@@ -82,6 +85,8 @@ export const router = createBrowserRouter([
               { path: '/', element: <Home /> },
               { path: '/org/members', element: <MembersPage /> },
               { path: '/org/invitations', element: <InvitationsPage /> },
+              { path: '/projects', element: <ProjectsPage /> },
+              { path: '/projects/:projectId/members', element: <ProjectMembersPage /> },
             ],
           },
         ],
