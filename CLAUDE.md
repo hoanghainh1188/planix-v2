@@ -7,12 +7,16 @@
 - Ngôn ngữ tài liệu thiết kế gốc: **Tiếng Việt** (SRS); giao diện VI + EN
 
 ## Tech stack
-**CHƯA CHỐT** — sẽ đánh giá và chọn stack khi có specs chi tiết (sau các feature đầu tiên đi qua
-`/speckit-specify` → `/speckit-plan`). Việc chọn stack phải ghi thành 1 quyết định trong
-`docs/04-decisions/` (+ append `INDEX.md`), rồi cập nhật lại mục này.
+**Đã chốt** — decision `docs/04-decisions/2026-09-14-005-tech-stack.md` (đọc bản đầy đủ trước khi code).
 
-> Cho đến khi chốt: agent KHÔNG tự chọn framework/ngôn ngữ/DB và KHÔNG sinh code trong `src/`.
-> Nếu `/speckit-plan` cần stack để lập plan, dừng lại và hỏi thay vì tự giả định.
+- **Monorepo npm workspaces:** `packages/core` (domain thuần, không I/O) · `apps/server` (NestJS 12) ·
+  `apps/web` (React 19 + Vite 8). Mỗi package: `src/features/<slug>/` + `src/shared/`.
+- **Ngôn ngữ:** TypeScript **6.0.x** (pin `<6.1`), Node.js 24 LTS.
+- **Dữ liệu:** PostgreSQL 17 + Drizzle ORM; cô lập tổ chức 2 lớp (ứng dụng + Row-Level Security).
+- **Test:** Vitest 5 (`vitest.config.ts` + `test.projects`) + coverage v8 (≥ 80% business logic), Supertest + Testcontainers, Playwright E2E.
+- **Tiền/chỉ số (Nguyên tắc I):** kiểu `Decimal` (decimal.js) trong core · chuỗi trên API · `NUMERIC` trong DB ·
+  ESLint cấm `number` cho giá trị tài chính. **Không bao giờ** dùng `number`/`parseFloat` cho tiền.
+- **i18n:** i18next + react-i18next (vi, en); server trả **mã lỗi**, web dịch.
 
 > Khi đã chốt stack: điền lệnh formatter vào `.claude/hooks/format.sh` để bật format-on-save
 > (PostToolUse hook chạy sau mỗi Edit/Write). Thứ tự chuẩn: format → lint → type check → build

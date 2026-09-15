@@ -1,0 +1,134 @@
+{
+  "common": {
+    "appName": "Planix",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "notFound": "The page or data you requested was not found."
+  },
+  "errors": {
+    "AUTH_REQUIRED": "Please sign in to continue.",
+    "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "RATE_LIMITED": "Too many attempts. Please try again in a few minutes.",
+    "CSRF_INVALID": "Your session is no longer valid. Please reload the page.",
+    "ACTIVE_ORGANIZATION_REQUIRED": "Please choose an organization to continue.",
+    "MEMBERSHIP_INACTIVE": "Your membership in this organization has been deactivated.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "RESOURCE_NOT_FOUND": "The data you requested was not found.",
+    "VALIDATION_FAILED": "Some of the information entered is invalid.",
+    "PASSWORD_POLICY_VIOLATION": "The password does not meet the requirements.",
+    "TOKEN_INVALID_OR_EXPIRED": "This link is invalid or has expired.",
+    "INVITATION_EMAIL_MISMATCH": "This invitation was sent to a different email address.",
+    "INVITATION_NOT_PENDING": "This invitation is no longer pending.",
+    "ALREADY_MEMBER": "This person is already a member of the organization.",
+    "MEMBER_DEACTIVATED_USE_REACTIVATE": "This person was deactivated. Reactivate them instead of inviting again.",
+    "MEMBERSHIP_NOT_DEACTIVATED": "This member is not deactivated.",
+    "LAST_ADMIN_REQUIRED": "The organization must always keep at least one admin.",
+    "ACCOUNTABLE_REQUIRED": "A project must always have one Accountable person. Transfer this role first.",
+    "ALREADY_PROJECT_MEMBER": "This person is already a project member.",
+    "NOT_PROJECT_MEMBER": "This person is not a project member.",
+    "INTERNAL_ERROR": "Something went wrong. Please try again."
+  },
+  "login": {
+    "title": "Sign in to Planix",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "forgotPassword": "Forgot your password?"
+  },
+  "invitation": {
+    "title": "Join {{organizationName}}",
+    "invitedEmail": "This invitation was sent to {{email}}.",
+    "choosePassword": "Choose a password for your new account",
+    "signInAs": "An account for {{email}} already exists. Sign in with that email to accept.",
+    "accept": "Accept invitation"
+  },
+  "passwordReset": {
+    "requestTitle": "Forgot password",
+    "requestSubmit": "Send reset link",
+    "requestSent": "If this email has an account, we sent a password reset link. It expires in 1 hour.",
+    "backToLogin": "Back to sign in",
+    "confirmTitle": "Choose a new password",
+    "newPassword": "New password",
+    "confirmSubmit": "Save new password",
+    "confirmDone": "Your password was changed and all previous sessions were signed out."
+  },
+  "passwordRules": {
+    "hint": "At least 12 characters; avoid common passwords.",
+    "MIN_LENGTH_12": "The password needs at least 12 characters.",
+    "COMMON_PASSWORD": "This password is too common."
+  },
+  "organization": {
+    "active": "Organization",
+    "placeholder": "Choose an organization…",
+    "chooseTitle": "Choose an organization to work in",
+    "none": "You are not a member of any organization yet."
+  },
+  "platform": {
+    "title": "Organizations (Platform Operator)",
+    "createTitle": "Create an organization",
+    "organizationName": "Organization name",
+    "firstAdminEmail": "First admin email",
+    "create": "Create and send invitation",
+    "status": "Status",
+    "createdAt": "Created",
+    "activeAdmins": "Admins",
+    "resendInvitation": "Resend invitation",
+    "statuses": {
+      "active": "Active",
+      "suspended": "Suspended"
+    }
+  },
+  "nav": {
+    "label": "Main navigation",
+    "members": "Members",
+    "invitations": "Invitations"
+  },
+  "roles": {
+    "admin": "Admin",
+    "portfolioLead": "Portfolio lead",
+    "projectManager": "Project manager",
+    "functionalManager": "Functional manager",
+    "member": "Member",
+    "finance": "Finance"
+  },
+  "members": {
+    "title": "Members",
+    "email": "Email",
+    "status": "Status",
+    "roles": "Roles",
+    "actions": "Actions",
+    "statuses": {
+      "active": "Active",
+      "deactivated": "Deactivated"
+    },
+    "editRoles": "Edit roles",
+    "editRolesFor": "Edit roles for {{email}}",
+    "rolesFor": "Roles for {{email}}",
+    "saveRoles": "Save roles",
+    "deactivate": "Deactivate",
+    "deactivateFor": "Deactivate {{email}}",
+    "reactivate": "Reactivate",
+    "reactivateFor": "Reactivate {{email}}",
+    "empty": "No members yet."
+  },
+  "invitations": {
+    "title": "Invitations",
+    "inviteTitle": "Invite a person",
+    "email": "Email",
+    "roles": "Roles",
+    "send": "Send invitation",
+    "status": "Status",
+    "expiresAt": "Expires",
+    "revoke": "Revoke",
+    "revokeFor": "Revoke invitation for {{email}}",
+    "statuses": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "revoked": "Revoked",
+      "expired": "Expired"
+    },
+    "empty": "No invitations yet."
+  }
+}

@@ -34,6 +34,36 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Đường cơ sở | Baseline | | `baseline` | Có version; chỉ đổi qua CCB → Accountable | CHG, OI-07 |
 | Phiên bản đường cơ sở | Baseline Version | | `baselineVersion` | | FR-CHG-04 |
 
+## Tổ chức, tài khoản & phân quyền
+
+| Tiếng Việt | English | Viết tắt | Định danh code | Ghi chú | Nguồn |
+|---|---|---|---|---|---|
+| Người vận hành nền tảng | Platform Operator | | `platformOperator` | Vai trò cấp nền tảng, ngoài mọi tổ chức; tạo tổ chức, mời Admin đầu tiên; không đọc dữ liệu nghiệp vụ | FR-004, decision `2026-09-14-005-organization-creation` |
+| Thành viên tổ chức | Organization Membership | | `organizationMembership` | Quan hệ User – Organization; một user có nhiều membership ở các tổ chức khác nhau | FR-017 |
+| Gán vai trò hệ thống | Membership Role | | `membershipRole` | Một membership giữ nhiều vai trò, quyền là hợp | FR-012 |
+| Lời mời tham gia tổ chức | Organization Invitation | | `organizationInvitation` | Hạn 7 ngày, dùng một lần; trạng thái `pending`/`accepted`/`revoked`/`expired` | FR-009 |
+| Phiên đăng nhập | Session | | `authSession` | Phiên phía server; hết sau 8 giờ không hoạt động. Không dùng `session` trần để tránh nhầm framework | FR-007 |
+| Tổ chức đang hoạt động | Active Organization | | `activeOrganization` | Tổ chức mà mọi yêu cầu hiện tại gắn vào | FR-017 |
+| Mã đặt lại mật khẩu | Password Reset Token | | `passwordResetToken` | Dùng một lần, hết hạn sau 1 giờ; chỉ lưu bản băm | FR-031 |
+| Bản ghi kiểm toán | Audit Entry | | `auditEntry` | Append-only | FR-027 |
+| Chính sách trường nhạy cảm | Sensitive Field Policy | | `sensitiveFieldPolicy` | Đánh dấu trường cần quyền để đọc/ghi (VD `billingRate`, `budgetAtCompletion`) | FR-025 |
+| Quản trị viên tổ chức | Organization Admin | | `admin` | Giá trị của `role` | FR-011, OI-03 |
+| Lãnh đạo danh mục | Portfolio Lead | | `portfolioLead` | Giá trị của `role`; khác `portfolio` (thực thể) | FR-011, OI-03 |
+| Thành viên (vai trò hệ thống) | Member | | `member` | Giá trị mặc định của `role` | FR-011, OI-03 |
+| Tài chính (vai trò hệ thống) | Finance | | `finance` | Giá trị của `role`; được xem trường tài chính nhạy cảm | FR-011, OI-03 |
+| Khoá đăng nhập tạm thời | Login Lockout | | `loginLockout` | Khoá 15 phút sau 5 lần đăng nhập sai liên tiếp; bộ đếm về 0 khi hết khoá hoặc đăng nhập đúng | FR-006 |
+| Chính sách mật khẩu | Password Policy | | `passwordPolicy` | Tối thiểu 12 ký tự, chặn mật khẩu phổ biến; không bắt buộc ký tự đặc biệt | FR-006 |
+| Quyền Người vận hành nền tảng | Platform Operator Grant | | `platformOperatorGrant` | Gán tư cách Platform Operator cho một user; không gắn `organizationId` | FR-004 |
+| Ma trận quyền | Permission Matrix | | `permissionMatrix` | Bảng Action → vai trò được phép + điều kiện cấp dự án | FR-013, contracts/authorization.md |
+| Hành động (ma trận quyền) | Action | | `action` | Mã hành động được khai báo trong ma trận quyền, VD `org.member.invite`; mọi route phải khai báo | FR-013, contracts/authorization.md |
+| Chủ thể yêu cầu | Principal | | `principal` | Danh tính người gọi trong tổ chức đang hoạt động (vai trò, trạng thái membership) — đầu vào của `decide` | contracts/authorization.md |
+| Đối tượng kiểm tra quyền | Target | | `target` | Đối tượng bị tác động (`organization` hoặc `project`, kèm tư cách thành viên/RACI) | contracts/authorization.md |
+| Quyết định quyền | Decision | | `decision` | Kết quả của `decide`: cho phép, hoặc từ chối kèm lý do (mặc định từ chối) | FR-014, contracts/authorization.md |
+| Vô hiệu hoá thành viên | Membership Deactivation | | `membershipDeactivation` | Động từ trong code: `deactivate`. Giữ lịch sử; gỡ vai trò, thành viên dự án (`removed`) và RACI; chặn nếu là Admin cuối hoặc đang là Accountable | FR-015 |
+| Kích hoạt lại thành viên | Membership Reactivation | | `membershipReactivation` | Động từ trong code: `reactivate`. Vai trò về `member`, không khôi phục dự án/RACI cũ | FR-015, decision `2026-09-14-005-member-reactivation` |
+| Thu hồi lời mời | Invitation Revocation | | `invitationRevocation` | Động từ trong code: `revoke`. Lời mời `pending` → `revoked`; mời lại cùng email tự thu hồi lời mời cũ | FR-009 |
+| Lý do từ chối | Deny Reason | | `denyReason` | Mã lý do khi `decide` từ chối, VD `MEMBERSHIP_INACTIVE` | contracts/authorization.md |
+
 ## TASK — Tác nghiệp
 
 | Tiếng Việt | English | Viết tắt | Định danh code | Ghi chú | Nguồn |

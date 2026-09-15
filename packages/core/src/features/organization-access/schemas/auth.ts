@@ -1,0 +1,56 @@
+import { z } from 'zod';
+
+/** Request/response contracts shared by server and web (contracts/api.md §Xác thực, §Lời mời, §Platform). */
+const email = z.email().max(254);
+
+export const LoginRequest = z.object({ email, password: z.string().min(1).max(1024) });
+export type LoginRequest = z.infer<typeof LoginRequest>;
+
+export const SwitchOrganizationRequest = z.object({ organizationId: z.uuid() });
+export type SwitchOrganizationRequest = z.infer<typeof SwitchOrganizationRequest>;
+
+export const AcceptInvitationRequest = z.object({ password: z.string().max(1024).optional() });
+export type AcceptInvitationRequest = z.infer<typeof AcceptInvitationRequest>;
+
+export const PasswordResetRequest = z.object({ email });
+export type PasswordResetRequest = z.infer<typeof PasswordResetRequest>;
+
+export const PasswordResetConfirm = z.object({ token: z.string().min(1).max(256), newPassword: z.string().max(1024) });
+export type PasswordResetConfirm = z.infer<typeof PasswordResetConfirm>;
+
+export const CreateOrganizationRequest = z.object({ name: z.string().trim().min(1).max(200), firstAdminEmail: email });
+export type CreateOrganizationRequest = z.infer<typeof CreateOrganizationRequest>;
+
+export const AdminInvitationRequest = z.object({ email });
+export type AdminInvitationRequest = z.infer<typeof AdminInvitationRequest>;
+
+export interface SessionMembership {
+  readonly organizationId: string;
+  readonly organizationName: string;
+  readonly status: 'active' | 'deactivated';
+  readonly roles: readonly string[];
+}
+
+export interface SessionPayload {
+  readonly user: {
+    readonly id: string;
+    readonly email: string;
+    readonly locale: 'vi' | 'en';
+    readonly timeZone: string;
+  };
+  readonly memberships: readonly SessionMembership[];
+  readonly activeOrganizationId: string | null;
+}
+
+/** Login auto-selection (contracts/api.md): one active membership, else the last active one if still active. */
+export function chooseActiveOrganization(
+  memberships: readonly SessionMembership[],
+  lastActiveOrganizationId: string | null,
+): string | null {
+  const active = memberships.filter((m) => m.status === 'active');
+  if (active.length === 1) return active[0]!.organizationId;
+  if (lastActiveOrganizationId !== null && active.some((m) => m.organizationId === lastActiveOrganizationId)) {
+    return lastActiveOrganizationId;
+  }
+  return null;
+}
