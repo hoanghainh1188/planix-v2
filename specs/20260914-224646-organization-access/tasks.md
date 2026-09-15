@@ -210,7 +210,7 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T089 [US1] **RED** `FEAT_SRV/isolation.integration.test.ts`: **tự liệt kê** mọi route có `@RequireAction` từ NestJS `DiscoveryService`; với principal Acme nhắm id Beta → 404 `RESOURCE_NOT_FOUND`, body **giống hệt** khi dùng UUID ngẫu nhiên; endpoint danh sách không chứa dòng Beta; số dòng bảng của Beta không đổi; route mới chưa có trong `route-targets.ts` → test **fail** (FR-001–003, SC-001, Q3)
 - [X] T090 [US1] **RED** `FEAT_SRV/db/rls-policies.integration.test.ts`: với **mọi** bảng có cột `organization_id` (đọc từ `information_schema`), `planix_app` trong context Acme không `SELECT`/`INSERT`/`UPDATE` được dòng Beta; bảng có `organization_id` mà chưa bật RLS → fail; policy SELECT theo `app_current_user_id()` (R3 lối 1) và policy INSERT NULL của `audit_entry` (R3 lối 4) là ngoại lệ liệt kê tường minh trong test (FR-002, R3)
 - [X] T091 [US1] **GREEN** Sửa policy RLS còn thiếu mà T090 phát hiện (migration mới `apps/server/drizzle/0007_rls_fixes.sql` chỉ khi có thiếu sót — không tạo lại policy đã có từ T031) và sửa repository thiếu điều kiện tổ chức để T089, T090 xanh
-- [ ] T092 [US1] E2E `apps/web/e2e/isolation.spec.ts`: URL trực tiếp tới đối tượng tổ chức khác → trang "không tìm thấy", danh sách không lộ dữ liệu (Q3)
+- [X] T092 [US1] E2E `apps/web/e2e/isolation.spec.ts`: danh sách không lộ dữ liệu tổ chức khác; gọi API tới đối tượng tổ chức khác từ phiên đăng nhập → 404 giống id ngẫu nhiên (Q3). Phần "URL trực tiếp tới đối tượng tổ chức khác → trang không tìm thấy" **chuyển sang T099** vì chưa có trang chi tiết đối tượng (quyết định 2026-09-15, @hoanghainh1188)
 
 **Checkpoint**: mọi route hiện có đã chứng minh cô lập; route thêm ở phase sau bắt buộc thêm ánh xạ.
 
@@ -235,7 +235,7 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [ ] T096 [US4] **GREEN** `FEAT_SRV/projects/{project-members.controller.ts,project-members.service.ts}` cho T094
 - [ ] T097 [US4] Thêm các route dự án vào `apps/server/src/test/fixtures/route-targets.ts` để T089 bao phủ (SC-001)
 - [ ] T098 [P] [US4] Web `FEAT_WEB/projects/ProjectsPage.tsx` (danh sách, tạo dự án) + khoá i18n
-- [ ] T099 [P] [US4] Web `FEAT_WEB/project-members/ProjectMembersPage.tsx` (thêm/xoá thành viên từ thành viên tổ chức) + khoá i18n
+- [ ] T099 [P] [US4] Web `FEAT_WEB/project-members/ProjectMembersPage.tsx` (thêm/xoá thành viên từ thành viên tổ chức) + khoá i18n; mở rộng `apps/web/e2e/isolation.spec.ts`: mở URL trực tiếp trang dự án / thành viên dự án của tổ chức khác → trang "không tìm thấy", giống hệt id ngẫu nhiên (chuyển từ T092, Q3)
 
 **Checkpoint**: US4 xanh; test cô lập T089 bao phủ route dự án.
 
