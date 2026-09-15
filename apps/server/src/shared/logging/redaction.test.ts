@@ -85,7 +85,7 @@ describe('request logging never leaks credentials (constitution III, FR-028)', (
     app = moduleRef.createNestApplication({ logger });
     app.use(requestLoggingMiddleware(logger));
     app.useGlobalFilters(new DomainErrorFilter());
-    await app.init();
+    await app.listen(0, '127.0.0.1');
   });
 
   afterAll(() => app.close());

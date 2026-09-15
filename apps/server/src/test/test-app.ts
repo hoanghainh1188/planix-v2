@@ -36,6 +36,6 @@ export async function createTestApp(options: {
   const app = configureApp(moduleRef.createNestApplication({ logger }), logger, {
     rateLimit: { windowMs: 60_000, limit: 100_000 },
   });
-  await app.init();
+  await app.listen(0, '127.0.0.1');
   return app;
 }

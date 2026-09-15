@@ -95,7 +95,7 @@ async function buildApp(
   if (options.auditWriter !== undefined) builder.overrideProvider(AUDIT_WRITER).useValue(options.auditWriter);
   const moduleRef = await builder.compile();
   const app = configureApp(moduleRef.createNestApplication({ logger }), logger);
-  await app.init();
+  await app.listen(0, '127.0.0.1');
   return app;
 }
 

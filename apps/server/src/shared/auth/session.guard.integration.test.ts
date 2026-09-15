@@ -86,7 +86,7 @@ beforeAll(async () => {
   }).compile();
   const logger = new AppLogger(() => {});
   app = configureApp(moduleRef.createNestApplication({ logger }), logger);
-  await app.init();
+  await app.listen(0, '127.0.0.1');
 });
 
 afterAll(() => app.close());
