@@ -31,6 +31,15 @@ test.describe.serial('RACI roles and changing the Accountable (Q6, Q9)', () => {
     await page.getByRole('button', { name: 'Save RACI roles' }).click();
     await expect(colleagueRow).toContainText('Responsible, Consulted');
 
+    // A real modal: focus moves inside, the page behind is inert, Esc cancels without changing anything.
+    await page.getByRole('button', { name: 'Change Accountable' }).click();
+    await expect(page.getByRole('dialog', { name: 'Change Accountable' }).getByLabel('New Accountable')).toBeFocused();
+    // `:modal` means showModal(): the browser makes everything outside the dialog inert.
+    await expect(page.locator('dialog:modal')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Change Accountable' })).toHaveCount(0);
+    await expect(page.getByText(`Accountable: ${pm.email}`)).toBeVisible();
+
     await page.getByRole('button', { name: 'Change Accountable' }).click();
     const dialog = page.getByRole('dialog', { name: 'Change Accountable' });
     await dialog.getByLabel('New Accountable').selectOption({ label: colleague.email });
