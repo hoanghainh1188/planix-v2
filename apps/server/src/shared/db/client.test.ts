@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createApplicationDatabase,
   createDatabase,
   DEFAULT_APP_POOL_MAX,
   DEFAULT_CONNECTION_TIMEOUT_MS,
@@ -65,6 +66,14 @@ describe('createDatabase connection wait (security review: pool deadlock)', () =
         (pool as unknown as { options: { connectionTimeoutMillis?: number } }).options.connectionTimeoutMillis,
       ).toBe(10_000);
     }
+    await db.close();
+  });
+});
+
+describe('createApplicationDatabase (security review: the server holds no owner credentials)', () => {
+  it('opens only the application and platform pools', async () => {
+    const db = createApplicationDatabase({ app: urls.app, platform: urls.platform });
+    expect(Object.keys(db).sort()).toEqual(['appPool', 'close', 'platformPool']);
     await db.close();
   });
 });

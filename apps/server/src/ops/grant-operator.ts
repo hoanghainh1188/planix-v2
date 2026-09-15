@@ -129,11 +129,11 @@ async function main(): Promise<void> {
   if (values.locale !== undefined && values.locale !== 'vi' && values.locale !== 'en') {
     throw new Error('--locale must be vi or en');
   }
-  const { loadServerConfig } = await import('../config.ts');
+  const { loadOpsDatabaseUrls, loadServerConfig } = await import('../config.ts');
   const { createDatabase } = await import('../shared/db/client.ts');
   const { SmtpMailSender } = await import('../shared/mail/smtp-mail-sender.ts');
   const config = loadServerConfig();
-  const db = createDatabase(config.databaseUrls);
+  const db = createDatabase(loadOpsDatabaseUrls());
   const mailSender = values.create ? new SmtpMailSender({ smtpUrl: config.smtpUrl, from: config.mailFrom }) : undefined;
   try {
     const result = await grantOperator(db, values.email, userInfo().username, {

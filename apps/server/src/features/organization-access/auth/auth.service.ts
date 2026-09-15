@@ -15,7 +15,11 @@ import { AUDIT_WRITER, type AuditWriter } from '../../../shared/audit/audit-writ
 import { PASSWORD_HASHER, type PasswordHasher } from '../../../shared/auth/password-hasher.ts';
 import { SESSION_STORE, type SessionStore, type StoredSession } from '../../../shared/auth/session-store.ts';
 import { CLOCK, type ClockPort } from '../../../shared/clock/clock.ts';
-import { withAnonymousTransaction, withTenantTransaction, type Database } from '../../../shared/db/client.ts';
+import {
+  withAnonymousTransaction,
+  withTenantTransaction,
+  type ApplicationDatabase,
+} from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
 import { buildSessionPayload, loadMemberships, loadUser } from '../session-payload.ts';
 
@@ -37,7 +41,7 @@ export interface SignedIn {
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(DATABASE) private readonly db: Database,
+    @Inject(DATABASE) private readonly db: ApplicationDatabase,
     @Inject(CLOCK) private readonly clock: ClockPort,
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasher,
     @Inject(SESSION_STORE) private readonly sessions: SessionStore,

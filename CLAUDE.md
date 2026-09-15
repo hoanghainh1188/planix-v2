@@ -93,8 +93,17 @@ implement → code-reviewer → glossary-steward → security-reviewer → **tes
 Dừng xin xác nhận ở mọi checkpoint.
 
 ## Deploy
-**CHƯA CHỐT** — phụ thuộc tech stack. Cho đến khi điền, `/design-to-code` bước 15 phải dừng và hỏi
-trước khi deploy.
+**Chỉ có môi trường DEMO** — decision `docs/04-decisions/2026-09-15-018-demo-deploy.md` (đọc trước khi đụng deploy).
+
+- **Render** gói free (Singapore), `render.yaml` + `Dockerfile`; server phục vụ luôn bản build web (cùng domain).
+- **Neon** gói free (PostgreSQL 17, Singapore), kết nối **trực tiếp** + `sslmode=verify-full`.
+- Email vào **hộp thư bắt email** (Mailtrap, cổng 2525) — không gửi tới người thật.
+- **Tự deploy** khi commit trên `main` có CI xanh (`autoDeployTrigger: checksPass`) → `/design-to-code` bước 15 =
+  merge PR vào `main` khi CI xanh; **không** có bước deploy tay. Container chạy `db:migrate` trước khi start.
+- Hướng dẫn dựng lại từ đầu: `docs/DEPLOY-DEMO.md`. Ghi chú bắt buộc về `trust proxy` / HSTS / giới hạn body:
+  decision tech-stack + issue #14.
+- **Chưa có staging/production thật.** Cần môi trường có dữ liệu thật → quyết định mới (đổi gói, `preDeployCommand`,
+  SMTP gửi thật, sao lưu), không dùng lại demo.
 
 ## Quy tắc bắt buộc
 1. Mọi mâu thuẫn giữa basic design / detail design / Figma phải được nêu vào `/speckit-clarify`,

@@ -1,4 +1,5 @@
 import { Module, type DynamicModule } from '@nestjs/common';
+import { HealthModule } from './shared/health/health.controller.ts';
 import { OrganizationAccessModule } from './features/organization-access/organization-access.module.ts';
 import { AuthCoreModule } from './shared/auth/auth-core.module.ts';
 import { AuthorizationModule } from './shared/authorization/authorization.module.ts';
@@ -17,6 +18,7 @@ export class AppModule {
         AuthorizationModule,
         SensitiveFieldModule,
         OrganizationAccessModule,
+        HealthModule,
       ],
     };
   }

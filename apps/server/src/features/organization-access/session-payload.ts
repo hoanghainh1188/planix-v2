@@ -1,5 +1,5 @@
 import type { SessionMembership, SessionPayload } from '@planix/core/features/organization-access/schemas/auth.ts';
-import { withAnonymousTransaction, withUserTransaction, type Database } from '../../shared/db/client.ts';
+import { withAnonymousTransaction, withUserTransaction, type ApplicationDatabase } from '../../shared/db/client.ts';
 
 export interface UserRecord {
   readonly id: string;
@@ -9,7 +9,7 @@ export interface UserRecord {
   readonly lastActiveOrganizationId: string | null;
 }
 
-export async function loadUser(db: Database, userId: string): Promise<UserRecord | undefined> {
+export async function loadUser(db: ApplicationDatabase, userId: string): Promise<UserRecord | undefined> {
   const { rows } = await withAnonymousTransaction(db, (tx) =>
     tx.client.query<{
       id: string;
@@ -32,7 +32,7 @@ export async function loadUser(db: Database, userId: string): Promise<UserRecord
 }
 
 /** The caller's own memberships in every organization, read through the user-scoped path (R3 path 1). */
-export async function loadMemberships(db: Database, userId: string): Promise<SessionMembership[]> {
+export async function loadMemberships(db: ApplicationDatabase, userId: string): Promise<SessionMembership[]> {
   const { rows } = await withUserTransaction(db, userId, (tx) =>
     tx.client.query<{ organization_id: string; name: string; status: 'active' | 'deactivated'; roles: string[] }>(
       `SELECT m.organization_id, o.name, m.status,
@@ -55,7 +55,7 @@ export async function loadMemberships(db: Database, userId: string): Promise<Ses
 }
 
 export async function buildSessionPayload(
-  db: Database,
+  db: ApplicationDatabase,
   user: UserRecord,
   activeOrganizationId: string | null,
 ): Promise<SessionPayload> {

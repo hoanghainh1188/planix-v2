@@ -6,7 +6,7 @@ import { PASSWORD_HASHER, type PasswordHasher } from '../../../shared/auth/passw
 import { generateToken, hashToken } from '../../../shared/auth/secure-token.ts';
 import { SESSION_STORE, type SessionStore } from '../../../shared/auth/session-store.ts';
 import { CLOCK, type ClockPort } from '../../../shared/clock/clock.ts';
-import { withAnonymousTransaction, type Database } from '../../../shared/db/client.ts';
+import { withAnonymousTransaction, type ApplicationDatabase } from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
 import { BackgroundJobs } from '../../../shared/background/background-jobs.ts';
 import { MAIL_SENDER, type MailSender } from '../../../shared/mail/mail-sender.ts';
@@ -17,7 +17,7 @@ export const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 @Injectable()
 export class PasswordResetService implements BeforeApplicationShutdown {
   constructor(
-    @Inject(DATABASE) private readonly db: Database,
+    @Inject(DATABASE) private readonly db: ApplicationDatabase,
     @Inject(CLOCK) private readonly clock: ClockPort,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasher,

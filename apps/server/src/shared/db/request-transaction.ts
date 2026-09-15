@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import type { TenantContext } from '@planix/core/shared/tenant-context.ts';
-import { openTransaction, tenantSettings, type Database, type OpenTransaction, type Tx } from './client.ts';
+import { openTransaction, tenantSettings, type ApplicationDatabase, type OpenTransaction, type Tx } from './client.ts';
 
 const REQUEST_TRANSACTION = Symbol('planix.requestTransaction');
 const AFTER_COMMIT = Symbol('planix.afterCommit');
@@ -19,7 +19,7 @@ interface TransactionCarrier {
 export async function openRequestTransaction(
   req: object,
   res: Response,
-  db: Database,
+  db: ApplicationDatabase,
   tenant: TenantContext,
 ): Promise<Tx> {
   const carrier = req as TransactionCarrier;
