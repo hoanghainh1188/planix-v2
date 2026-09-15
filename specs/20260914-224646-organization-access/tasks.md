@@ -314,8 +314,8 @@ hiệu lực ngay; từ chối được ghi audit.
 ## Phase 11: Polish & Cross-Cutting Concerns
 
 - [ ] T120 [P] Chạy subagent `glossary-steward` trên code + spec của feature; append thuật ngữ **mới phát sinh** trong lúc code vào `docs/00-glossary.md` (Nguyên tắc VI)
-- [ ] T121 [P] **RED** `FEAT_SRV/audit-coverage.integration.test.ts`: mỗi hành động liệt kê ở FR-027 sinh đúng 1 bản ghi; quét toàn bảng `audit_entry` không có mật khẩu thô, token thô hay giá trị field nhạy cảm (SC-008, Q17)
-- [ ] T122 **GREEN** Bổ sung ghi audit còn thiếu mà T121 phát hiện trong service tương ứng dưới `FEAT_SRV/` — làm T121 xanh
+- [X] T121 [P] **RED** `FEAT_SRV/audit-coverage.integration.test.ts`: mỗi hành động liệt kê ở FR-027 sinh đúng 1 bản ghi; quét toàn bảng `audit_entry` không có mật khẩu thô, token thô hay giá trị field nhạy cảm (SC-008, Q17)
+- [X] T122 **GREEN** Bổ sung ghi audit còn thiếu mà T121 phát hiện trong service tương ứng dưới `FEAT_SRV/` — làm T121 xanh. **Không có gì thiếu**: T121 xanh ngay (mọi hành động FR-027 đã ghi audit từ các phase trước); chứng minh bằng 5 mutation (bỏ audit, ghi trùng, bỏ audit từ chối, lộ token, không strip field nhạy cảm) — đều làm T121 đỏ
 - [ ] T123 [P] Kịch bản tải `apps/server/perf/org-access.ts` (autocannon) + script `npm run perf:org-access`: seed 500 dự án/tổ chức, 200 kết nối đồng thời trên các endpoint của feature, **fail nếu p95 ≥ 1 giây** (SC-006, R12)
 - [ ] T124 **RED** `apps/server/src/security-headers.integration.test.ts`: response có CSP, HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`; không có `x-powered-by`; body vượt giới hạn → 413
 - [ ] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh
