@@ -272,9 +272,9 @@ hiệu lực ngay; từ chối được ghi audit.
 
 ### Implementation for User Story 5 (GREEN)
 
-- [ ] T108 [US5] **GREEN** `FEAT_CORE/raci-invariants.ts` cho T105
-- [ ] T109 [US5] **GREEN** `FEAT_SRV/projects/{raci.controller.ts,raci.service.ts}` cho T106 và thêm route vào `apps/server/src/test/fixtures/route-targets.ts`
-- [ ] T110 [US5] **GREEN** `FEAT_SRV/projects/accountable.query.ts` export từ `projects.module.ts` làm provider công khai cho feature sau (Change Control — OI-07) cho T107
+- [X] T108 [US5] **GREEN** `FEAT_CORE/raci-invariants.ts` cho T105
+- [X] T109 [US5] **GREEN** `FEAT_SRV/projects/{raci.controller.ts,raci.service.ts}` cho T106 và thêm route vào `apps/server/src/test/fixtures/route-targets.ts`
+- [X] T110 [US5] **GREEN** `FEAT_SRV/projects/accountable.query.ts` export từ `projects.module.ts` làm provider công khai cho feature sau (Change Control — OI-07) cho T107
 - [ ] T111 [P] [US5] Web `FEAT_WEB/project-members/{RaciEditor.tsx,ChangeAccountableDialog.tsx}` + khoá i18n
 - [ ] T112 [US5] E2E `apps/web/e2e/raci.spec.ts` (Q6, Q9)
 
