@@ -12,6 +12,7 @@ Closes #<!-- số issue = feature ID -->
 - [ ] `specs/<feature>/` — spec.md / plan.md / tasks.md do Spec Kit sinh
 
 ## Chất lượng
+<!-- CI (quality-gate) kiểm các mục review + test gate dưới đây phải được TICK [x] — decision 2026-09-15-005-single-owner-branch-protection -->
 - [ ] Đã chạy subagent `code-reviewer`, xử lý hết mục **Blocking**
 - [ ] Đã chạy `glossary-steward` (term lệch đã sửa) và `security-reviewer` (nếu feature đụng data/auth/API)
 - [ ] Test gate xanh: `npm run lint` / `test` / `build` (hoặc tương đương của dự án)

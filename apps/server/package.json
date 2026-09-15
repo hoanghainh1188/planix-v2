@@ -33,6 +33,7 @@
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "autocannon": "^8.0.0",
     "drizzle-kit": "^0.31.10",
     "supertest": "^7.2.2",
     "testcontainers": "^12.1.0",

@@ -10,6 +10,7 @@
   "errors": {
     "AUTH_REQUIRED": "Vui lòng đăng nhập để tiếp tục.",
     "AUTH_INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng.",
+    "PAYLOAD_TOO_LARGE": "Dữ liệu gửi lên quá lớn. Vui lòng rút gọn rồi thử lại.",
     "RATE_LIMITED": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
     "CSRF_INVALID": "Phiên làm việc không hợp lệ. Vui lòng tải lại trang.",
     "ACTIVE_ORGANIZATION_REQUIRED": "Vui lòng chọn tổ chức để tiếp tục.",
@@ -25,7 +26,7 @@
     "MEMBER_DEACTIVATED_USE_REACTIVATE": "Người này đã bị vô hiệu hoá. Hãy kích hoạt lại thay vì mời mới.",
     "MEMBERSHIP_NOT_DEACTIVATED": "Thành viên này chưa bị vô hiệu hoá.",
     "LAST_ADMIN_REQUIRED": "Tổ chức phải luôn còn ít nhất một quản trị viên.",
-    "ACCOUNTABLE_REQUIRED": "Dự án phải luôn có một người Accountable. Hãy chuyển vai trò này trước.",
+    "ACCOUNTABLE_REQUIRED": "Dự án phải luôn có một Người chịu trách nhiệm giải trình. Hãy chuyển vai trò này trước.",
     "ALREADY_PROJECT_MEMBER": "Người này đã là thành viên của dự án.",
     "NOT_PROJECT_MEMBER": "Người này chưa là thành viên của dự án.",
     "INTERNAL_ERROR": "Đã có lỗi xảy ra. Vui lòng thử lại."

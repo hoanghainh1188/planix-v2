@@ -313,15 +313,16 @@ hiệu lực ngay; từ chối được ghi audit.
 
 ## Phase 11: Polish & Cross-Cutting Concerns
 
-- [ ] T120 [P] Chạy subagent `glossary-steward` trên code + spec của feature; append thuật ngữ **mới phát sinh** trong lúc code vào `docs/00-glossary.md` (Nguyên tắc VI)
-- [ ] T121 [P] **RED** `FEAT_SRV/audit-coverage.integration.test.ts`: mỗi hành động liệt kê ở FR-027 sinh đúng 1 bản ghi; quét toàn bảng `audit_entry` không có mật khẩu thô, token thô hay giá trị field nhạy cảm (SC-008, Q17)
-- [ ] T122 **GREEN** Bổ sung ghi audit còn thiếu mà T121 phát hiện trong service tương ứng dưới `FEAT_SRV/` — làm T121 xanh
-- [ ] T123 [P] Kịch bản tải `apps/server/perf/org-access.ts` (autocannon) + script `npm run perf:org-access`: seed 500 dự án/tổ chức, 200 kết nối đồng thời trên các endpoint của feature, **fail nếu p95 ≥ 1 giây** (SC-006, R12)
-- [ ] T124 **RED** `apps/server/src/security-headers.integration.test.ts`: response có CSP, HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`; không có `x-powered-by`; body vượt giới hạn → 413
-- [ ] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh
-- [ ] T126 Chạy `npm run lint`, `npm run test -- --coverage` (≥ 80%), `npm run build`; thiếu coverage → bổ sung test cho nhánh chưa phủ (Nguyên tắc IV)
+- [X] T120 [P] Chạy subagent `glossary-steward` trên code + spec của feature; append thuật ngữ **mới phát sinh** trong lúc code vào `docs/00-glossary.md` (Nguyên tắc VI). Kết quả 2026-09-15: không có thuật ngữ mới (mã lỗi `PAYLOAD_TOO_LARGE` là kỹ thuật); sửa 1 chỗ lệch: bản dịch vi `ACCOUNTABLE_REQUIRED` dùng "Người chịu trách nhiệm giải trình"
+- [X] T121 [P] **RED** `FEAT_SRV/audit-coverage.integration.test.ts`: mỗi hành động liệt kê ở FR-027 sinh đúng 1 bản ghi; quét toàn bảng `audit_entry` không có mật khẩu thô, token thô hay giá trị field nhạy cảm (SC-008, Q17)
+- [X] T122 **GREEN** Bổ sung ghi audit còn thiếu mà T121 phát hiện trong service tương ứng dưới `FEAT_SRV/` — làm T121 xanh. **Không có gì thiếu**: T121 xanh ngay (mọi hành động FR-027 đã ghi audit từ các phase trước); chứng minh bằng 5 mutation (bỏ audit, ghi trùng, bỏ audit từ chối, lộ token, không strip field nhạy cảm) — đều làm T121 đỏ
+- [X] T123 [P] Kịch bản tải `apps/server/perf/org-access.ts` (autocannon) + script `npm run perf:org-access`: seed 500 dự án/tổ chức, 200 kết nối đồng thời trên các endpoint của feature, **fail nếu p95 ≥ 1 giây** (SC-006, R12)
+- [X] T124 **RED** `apps/server/src/security-headers.integration.test.ts`: response có CSP, HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`; không có `x-powered-by`; body vượt giới hạn → 413
+- [X] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh. Đặt trong `configureApp` (được `main.ts` gọi, dùng chung với test); body JSON/urlencoded > 100 KB → 413 `PAYLOAD_TOO_LARGE` (decision `2026-09-15-005-payload-too-large`)
+- [X] T126 Chạy `npm run lint`, `npm run test -- --coverage` (≥ 80%), `npm run build`; thiếu coverage → bổ sung test cho nhánh chưa phủ (Nguyên tắc IV)
 - [ ] T127 Chạy toàn bộ `quickstart.md` Q1–Q18 trên môi trường dev; gotcha phát hiện → append `docs/05-lessons.md`; phần cảm nhận người dùng thật của SC-003 kiểm thủ công
-- [X] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin). **Đã làm trực tiếp** thay cho ghi chú: 2026-09-15 khi merge PR #6, thêm `quality-gate` vào required status checks của `main` (cùng lúc đặt approvals = 0, bỏ code owner review vì chỉ có một owner) — @hoanghainh1188 chấp thuận
+  - 2026-09-15 (agent): môi trường dev (`docker compose` postgres + mailpit, `db:migrate`, `ops:grant-operator --create`, server dev) — Q1–Q11, Q14, Q17, Q18 chạy qua HTTP: **15/15 đạt**; Q12, Q13 (đồng hồ giả), Q15 (module chỉ có trong test) và Q16 phủ bằng integration test + E2E (xanh). Phát hiện và sửa: không tạo được Operator đầu tiên (decision `2026-09-15-005-first-platform-operator`). **Còn kiểm tay** (chưa đánh dấu [X]): SC-003 thời gian thao tác của người thật; Q16 xem trực quan các màn hình ở English.
+- [X] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin). **Đã làm trực tiếp** thay cho ghi chú: 2026-09-15 khi merge PR #6, thêm `quality-gate` vào required status checks của `main` (cùng lúc đặt approvals = 0, bỏ code owner review vì chỉ có một owner) — @hoanghainh1188 chấp thuận; ghi thành decision `2026-09-15-005-single-owner-branch-protection` (code review Phase 11)
 
 ---
 

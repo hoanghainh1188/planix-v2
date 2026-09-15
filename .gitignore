@@ -21,3 +21,6 @@ apps/web/e2e/.state.json
 # - .specify/          (constitution + template)
 # - .claude/agents/    (subagent config)
 # - .claude/commands/  (slash command)
+
+# Python bytecode (.github/scripts tests)
+__pycache__/

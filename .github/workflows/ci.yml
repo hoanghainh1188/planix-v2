@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    # `edited`: re-check the review evidence when the PR description is filled in after opening.
+    types: [opened, edited, synchronize, reopened]
 
 jobs:
   quality-gate:
@@ -12,6 +14,15 @@ jobs:
       TZ: UTC
     steps:
       - uses: actions/checkout@v4
+
+      - name: Review evidence in the PR description (decision 2026-09-15-005-single-owner-branch-protection)
+        if: github.event_name == 'pull_request'
+        env:
+          # Passed as data through the environment, never interpolated into the shell command.
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+          python3 .github/scripts/check-review-evidence.py
 
       - uses: actions/setup-node@v4
         with:
