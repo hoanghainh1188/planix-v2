@@ -248,8 +248,8 @@ hiệu lực ngay; từ chối được ghi audit.
 
 **Independent Test**: Q7, Q8.
 
-- [ ] T100 [US6] **RED** `FEAT_SRV/authorization.integration.test.ts`: với mỗi action cấp dự án có route (`project.read`, `project.member.manage`, `project.raci.manage`) chạy 4 tổ hợp (có/không vai trò × có/không thành viên dự án) → chỉ "có × có" được phép; Admin không là thành viên → 403; từ chối trên dữ liệu dự án ghi `audit_entry.outcome = denied` (FR-016, FR-022–024, FR-027, SC-002, Q7, Q8)
-- [ ] T101 [US6] **RED** `FEAT_SRV/permission-change-immediacy.integration.test.ts`: gỡ vai trò / xoá khỏi dự án / vô hiệu hoá rồi gửi ngay request kế tiếp → 0 request lẽ ra bị từ chối lại được phép (SC-004)
+- [X] T100 [US6] **RED** `FEAT_SRV/authorization.integration.test.ts`: với mỗi action cấp dự án có route (`project.read`, `project.member.manage`, `project.raci.manage`) chạy 4 tổ hợp (có/không vai trò × có/không thành viên dự án) → chỉ "có × có" được phép; Admin không là thành viên → 403; từ chối trên dữ liệu dự án ghi `audit_entry.outcome = denied` (FR-016, FR-022–024, FR-027, SC-002, Q7, Q8)
+- [X] T101 [US6] **RED** `FEAT_SRV/permission-change-immediacy.integration.test.ts`: gỡ vai trò / xoá khỏi dự án / vô hiệu hoá rồi gửi ngay request kế tiếp → 0 request lẽ ra bị từ chối lại được phép (SC-004)
 - [ ] T102 [US6] **GREEN** Ghi audit từ chối trong `apps/server/src/shared/authorization/authorization.guard.ts` và hoàn thiện `project-target.resolver.ts` (không cache) cho T100, T101
 - [ ] T103 [P] [US6] **RED** `apps/web/src/shared/authorization/useCan.test.ts`: kết quả khớp ma trận `packages/core` cho các tổ hợp vai trò × thành viên dự án
 - [ ] T104 [US6] **GREEN** `apps/web/src/shared/authorization/useCan.ts`: dùng ma trận từ `packages/core` để **ẩn** thao tác không được phép; server vẫn là nơi quyết định — làm T103 xanh
