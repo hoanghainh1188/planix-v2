@@ -317,7 +317,7 @@ hiệu lực ngay; từ chối được ghi audit.
 - [X] T121 [P] **RED** `FEAT_SRV/audit-coverage.integration.test.ts`: mỗi hành động liệt kê ở FR-027 sinh đúng 1 bản ghi; quét toàn bảng `audit_entry` không có mật khẩu thô, token thô hay giá trị field nhạy cảm (SC-008, Q17)
 - [X] T122 **GREEN** Bổ sung ghi audit còn thiếu mà T121 phát hiện trong service tương ứng dưới `FEAT_SRV/` — làm T121 xanh. **Không có gì thiếu**: T121 xanh ngay (mọi hành động FR-027 đã ghi audit từ các phase trước); chứng minh bằng 5 mutation (bỏ audit, ghi trùng, bỏ audit từ chối, lộ token, không strip field nhạy cảm) — đều làm T121 đỏ
 - [ ] T123 [P] Kịch bản tải `apps/server/perf/org-access.ts` (autocannon) + script `npm run perf:org-access`: seed 500 dự án/tổ chức, 200 kết nối đồng thời trên các endpoint của feature, **fail nếu p95 ≥ 1 giây** (SC-006, R12)
-- [ ] T124 **RED** `apps/server/src/security-headers.integration.test.ts`: response có CSP, HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`; không có `x-powered-by`; body vượt giới hạn → 413
+- [X] T124 **RED** `apps/server/src/security-headers.integration.test.ts`: response có CSP, HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`; không có `x-powered-by`; body vượt giới hạn → 413
 - [ ] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh
 - [ ] T126 Chạy `npm run lint`, `npm run test -- --coverage` (≥ 80%), `npm run build`; thiếu coverage → bổ sung test cho nhánh chưa phủ (Nguyên tắc IV)
 - [ ] T127 Chạy toàn bộ `quickstart.md` Q1–Q18 trên môi trường dev; gotcha phát hiện → append `docs/05-lessons.md`; phần cảm nhận người dùng thật của SC-003 kiểm thủ công

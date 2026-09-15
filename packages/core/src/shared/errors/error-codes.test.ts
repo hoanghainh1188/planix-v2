@@ -40,6 +40,7 @@ describe('error codes', () => {
     ['ACCOUNTABLE_REQUIRED', 409],
     ['ALREADY_PROJECT_MEMBER', 409],
     ['NOT_PROJECT_MEMBER', 409],
+    ['PAYLOAD_TOO_LARGE', 413],
     ['INTERNAL_ERROR', 500],
   ] as const)('%s → HTTP %i', (code, status) => {
     expect(httpStatusOf(code)).toBe(status);
