@@ -32,13 +32,26 @@ function required(env: NodeJS.ProcessEnv, name: string): string {
   return value;
 }
 
+/**
+ * A database URL. When `sslmode` is set it must be `verify-full`: pg 8 treats `require` like `verify-full` today but
+ * announces libpq semantics (encrypt without verifying the certificate) for its next major version (security review).
+ */
+function databaseUrl(env: NodeJS.ProcessEnv, name: string): string {
+  const value = required(env, name);
+  const mode = /[?&]sslmode=([^&]*)/.exec(value)?.[1];
+  if (mode !== undefined && mode !== 'verify-full') {
+    throw new Error(`${name} must use sslmode=verify-full when sslmode is set`);
+  }
+  return value;
+}
+
 /** Fails fast at start-up when configuration is incomplete (secrets come only from the environment). */
 export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   return {
     app: { appBaseUrl: required(env, 'APP_BASE_URL') },
     databaseUrls: {
-      app: required(env, 'DATABASE_URL_APP'),
-      platform: required(env, 'DATABASE_URL_PLATFORM'),
+      app: databaseUrl(env, 'DATABASE_URL_APP'),
+      platform: databaseUrl(env, 'DATABASE_URL_PLATFORM'),
     },
     smtpUrl: required(env, 'SMTP_URL'),
     mailFrom: env.MAIL_FROM ?? 'Planix <no-reply@planix.local>',
@@ -55,8 +68,8 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
 /** Database URLs for operations commands (migrate, grant-operator), which alone need the owner. */
 export function loadOpsDatabaseUrls(env: NodeJS.ProcessEnv = process.env): DatabaseUrls {
   return {
-    owner: required(env, 'DATABASE_URL_OWNER'),
-    app: required(env, 'DATABASE_URL_APP'),
-    platform: required(env, 'DATABASE_URL_PLATFORM'),
+    owner: databaseUrl(env, 'DATABASE_URL_OWNER'),
+    app: databaseUrl(env, 'DATABASE_URL_APP'),
+    platform: databaseUrl(env, 'DATABASE_URL_PLATFORM'),
   };
 }

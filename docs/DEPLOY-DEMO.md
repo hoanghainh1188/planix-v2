@@ -9,7 +9,7 @@ Quyết định: [`docs/04-decisions/2026-09-15-018-demo-deploy.md`](04-decision
 ```mermaid
 flowchart LR
   B[Trình duyệt] -->|HTTPS| R["Render Web Service (free, Singapore)<br/>Dockerfile: db:migrate → NestJS<br/>API /api/v1 + bản build web"]
-  R -->|kết nối trực tiếp, sslmode=require| N[("Neon PostgreSQL 17<br/>(free, AWS Singapore)")]
+  R -->|kết nối trực tiếp, sslmode=verify-full| N[("Neon PostgreSQL 17<br/>(free, AWS Singapore)")]
   R -->|SMTP cổng 2525| M[Mailtrap sandbox]
   G[GitHub main + CI xanh] -->|autoDeployTrigger: checksPass| R
 ```
@@ -18,7 +18,7 @@ flowchart LR
 
 1. Tạo project mới: **PostgreSQL 17**, region **AWS Asia Pacific (Singapore)** (không đổi được sau khi tạo).
 2. Lấy connection string của role owner mặc định ở chế độ **Direct** (host **không** có `-pooler`), thêm
-   `?sslmode=require`. Đây là `DATABASE_URL_OWNER`.
+   `?sslmode=verify-full`. Đây là `DATABASE_URL_OWNER`.
 3. Chọn mật khẩu cho 2 role ứng dụng — Neon yêu cầu ≥ 60 bit entropy; tạo ngẫu nhiên, ví dụ:
    ```bash
    openssl rand -base64 24
@@ -26,7 +26,7 @@ flowchart LR
    Không cần tạo role tay: lần khởi động đầu, `db:migrate` tạo `planix_app`, `planix_platform` và đặt mật khẩu lấy
    từ connection string.
 4. `DATABASE_URL_APP` / `DATABASE_URL_PLATFORM` = cùng host Direct, cùng database, user `planix_app` /
-   `planix_platform`, mật khẩu vừa tạo, `?sslmode=require`. Mã hoá URL (`encodeURIComponent`) nếu mật khẩu có
+   `planix_platform`, mật khẩu vừa tạo, `?sslmode=verify-full`. Mã hoá URL (`encodeURIComponent`) nếu mật khẩu có
    ký tự đặc biệt.
 
 ## 2. Mailtrap — hộp thư bắt email

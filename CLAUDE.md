@@ -96,7 +96,7 @@ Dừng xin xác nhận ở mọi checkpoint.
 **Chỉ có môi trường DEMO** — decision `docs/04-decisions/2026-09-15-018-demo-deploy.md` (đọc trước khi đụng deploy).
 
 - **Render** gói free (Singapore), `render.yaml` + `Dockerfile`; server phục vụ luôn bản build web (cùng domain).
-- **Neon** gói free (PostgreSQL 17, Singapore), kết nối **trực tiếp** + `sslmode=require`.
+- **Neon** gói free (PostgreSQL 17, Singapore), kết nối **trực tiếp** + `sslmode=verify-full`.
 - Email vào **hộp thư bắt email** (Mailtrap, cổng 2525) — không gửi tới người thật.
 - **Tự deploy** khi commit trên `main` có CI xanh (`autoDeployTrigger: checksPass`) → `/design-to-code` bước 15 =
   merge PR vào `main` khi CI xanh; **không** có bước deploy tay. Container chạy `db:migrate` trước khi start.

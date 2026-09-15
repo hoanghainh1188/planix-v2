@@ -15,7 +15,7 @@ services:
       # https://<service>.onrender.com — must equal the browser origin (cookies, Origin check, email links).
       - key: APP_BASE_URL
         sync: false
-      # Neon DIRECT connection strings (not the -pooler host), each with ?sslmode=require.
+      # Neon DIRECT connection strings (not the -pooler host), each with ?sslmode=verify-full.
       - key: DATABASE_URL_OWNER
         sync: false
       - key: DATABASE_URL_APP

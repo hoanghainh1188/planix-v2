@@ -74,6 +74,24 @@ describe('server configuration from the environment', () => {
     );
   });
 
+  it.each(['require', 'prefer', 'allow', 'verify-ca', 'disable'])(
+    'refuses a database URL with sslmode=%s: only verify-full keeps certificate checks across pg upgrades (security review)',
+    (mode) => {
+      const url = `postgres://a@ep-demo.ap-southeast-1.aws.neon.tech/planix?sslmode=${mode}`;
+      expect(() => loadServerConfig({ ...base, DATABASE_URL_APP: url })).toThrow(
+        'DATABASE_URL_APP must use sslmode=verify-full when sslmode is set',
+      );
+      expect(() => loadOpsDatabaseUrls({ ...base, DATABASE_URL_OWNER: url })).toThrow(
+        'DATABASE_URL_OWNER must use sslmode=verify-full when sslmode is set',
+      );
+    },
+  );
+
+  it('accepts sslmode=verify-full and local URLs without sslmode', () => {
+    const url = 'postgres://a@ep-demo.ap-southeast-1.aws.neon.tech/planix?sslmode=verify-full';
+    expect(loadServerConfig({ ...base, DATABASE_URL_APP: url, DATABASE_URL_PLATFORM: url }).databaseUrls.app).toBe(url);
+  });
+
   it('fails fast when a required variable is missing', () => {
     expect(() => loadServerConfig({ ...base, SMTP_URL: '' })).toThrow('Missing required environment variable SMTP_URL');
   });
