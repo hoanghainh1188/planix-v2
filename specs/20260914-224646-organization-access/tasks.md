@@ -162,7 +162,7 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T068 [US2] **GREEN** `FEAT_SRV/invitations/{invitation.repository.ts,invitation.service.ts,accept-invitation.controller.ts}` cho T060 (email gửi qua `MailSender`, token qua `secure-token`)
 - [X] T069 [US2] **GREEN** `FEAT_SRV/auth/{auth.module.ts,auth.controller.ts,auth.service.ts}`: `POST /auth/login`, `POST /auth/logout`, `GET /auth/session`, `PUT /auth/session/active-organization` theo `contracts/api.md` §Xác thực cho T061, T062
 - [X] T070 [US2] **GREEN** `FEAT_SRV/auth/{password-reset.controller.ts,password-reset.service.ts}` cho T063
-- [ ] T071 [US2] CLI `apps/server/src/ops/grant-operator.ts` + script `npm run ops:grant-operator -- --email <email>` (tạo `platform_operator_grant`, `granted_by` = user OS, audit `actor_kind = system`) (R11)
+- [X] T071 [US2] CLI `apps/server/src/ops/grant-operator.ts` + script `npm run ops:grant-operator -- --email <email>` (tạo `platform_operator_grant`, `granted_by` = user OS, audit `actor_kind = system`) (R11)
 - [ ] T072 [P] [US2] Web `FEAT_WEB/login/LoginPage.tsx` + khoá i18n `login.*` (vi, en); lỗi hiển thị qua `errors.<CODE>`
 - [ ] T073 [P] [US2] Web `FEAT_WEB/accept-invitation/AcceptInvitationPage.tsx` (tạo mật khẩu hoặc yêu cầu đăng nhập đúng email) + khoá i18n
 - [ ] T074 [P] [US2] Web `FEAT_WEB/password-reset/{RequestResetPage.tsx,ConfirmResetPage.tsx}` + khoá i18n
