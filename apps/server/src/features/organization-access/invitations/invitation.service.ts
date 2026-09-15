@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, type BeforeApplicationShutdown } from '@nestjs/common';
 import { checkPasswordPolicy } from '@planix/core/features/organization-access/password-policy/password-policy.ts';
 import type { SessionPayload } from '@planix/core/features/organization-access/schemas/auth.ts';
 import type { Principal } from '@planix/core/features/organization-access/principal.ts';
@@ -42,7 +42,10 @@ export interface AcceptedInvitation {
 
 /** Accepting organization invitations (FR-005, FR-010, FR-017). Accounts are created only here. */
 @Injectable()
-export class InvitationService {
+export class InvitationService implements BeforeApplicationShutdown {
+  readonly #logger = new Logger('InvitationService');
+  readonly #pendingEmails = new Set<Promise<void>>();
+
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(CLOCK) private readonly clock: ClockPort,
@@ -58,13 +61,15 @@ export class InvitationService {
 
   /**
    * Admin invites a person by email (FR-009) inside the request's tenant transaction. A pending invitation for the
-   * same email is revoked first; the email is written in the inviter's locale.
+   * same email is revoked first. The email (in the inviter's locale) is handed to `afterCommit`: it is sent only
+   * once the invitation is committed, and the response does not wait for it (code review: email after commit).
    */
   async invite(
     tx: Tx,
     principal: Principal,
     email: string,
     roles: readonly SystemRole[] = ['member'],
+    afterCommit: (work: () => void) => void,
   ): Promise<InvitationView> {
     const { organizationId } = principal;
     const status = await this.organizationInvitations.membershipStatusByEmail(tx, organizationId, email);
@@ -100,13 +105,30 @@ export class InvitationService {
          FROM organization o CROSS JOIN app_user u WHERE o.id = $1 AND u.id = $2`,
       [organizationId, principal.userId],
     );
-    await this.mail.send(email, {
+    const message = {
       kind: 'organizationInvitation',
       locale: rows[0]?.locale ?? 'vi',
       organizationName: rows[0]?.organization_name ?? '',
       acceptUrl: `${this.config.appBaseUrl}/invitations/${token}`,
-    });
+    } as const;
+    afterCommit(() => this.#sendInBackground(email, message));
     return invitation;
+  }
+
+  /** Lets invitation emails already scheduled after commit go out before the application stops. */
+  async beforeApplicationShutdown(): Promise<void> {
+    await Promise.all(this.#pendingEmails);
+  }
+
+  #sendInBackground(email: string, message: Parameters<MailSender['send']>[1]): void {
+    const job: Promise<void> = this.mail
+      .send(email, message)
+      .catch((error: unknown) => {
+        // Never log the error message: it may carry the invitation link.
+        this.#logger.error(`invitation email failed (${error instanceof Error ? error.name : 'unknown'})`);
+      })
+      .finally(() => this.#pendingEmails.delete(job));
+    this.#pendingEmails.add(job);
   }
 
   listForOrganization(tx: Tx, principal: Principal, status?: InvitationStatus): Promise<InvitationView[]> {

@@ -47,6 +47,8 @@ export type Tx = NodePgDatabase & { readonly client: pg.PoolClient };
 
 export interface OpenTransaction {
   readonly tx: Tx;
+  /** `committed` only after a successful COMMIT; a rollback (or failed commit) ends as `rolledBack`. */
+  readonly state: 'open' | 'committed' | 'rolledBack';
   commit(): Promise<void>;
   rollback(): Promise<void>;
 }
@@ -67,18 +69,22 @@ export async function openTransaction(
     client.release(error as Error);
     throw error;
   }
-  let finished = false;
+  let state: OpenTransaction['state'] = 'open';
   const finish = async (statement: 'COMMIT' | 'ROLLBACK') => {
-    if (finished) return;
-    finished = true;
+    if (state !== 'open') return;
+    state = 'rolledBack';
     try {
       await client.query(statement);
+      if (statement === 'COMMIT') state = 'committed';
     } finally {
       client.release();
     }
   };
   return {
     tx: Object.assign(drizzle(client), { client }),
+    get state() {
+      return state;
+    },
     commit: () => finish('COMMIT'),
     rollback: () => finish('ROLLBACK'),
   };

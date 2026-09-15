@@ -6,7 +6,7 @@ import {
 } from '@planix/core/features/organization-access/schemas/members.ts';
 import type { AuthenticatedRequest } from '../../../shared/auth/session.guard.ts';
 import { RequireAction } from '../../../shared/authorization/require-action.decorator.ts';
-import { requireRequestTransaction } from '../../../shared/db/request-transaction.ts';
+import { onRequestCommit, requireRequestTransaction } from '../../../shared/db/request-transaction.ts';
 import { parseBody } from '../../../shared/http/parse-body.ts';
 import { InvitationService } from './invitation.service.ts';
 
@@ -19,7 +19,13 @@ export class OrganizationInvitationsController {
   @RequireAction('org.member.invite')
   async invite(@Req() req: AuthenticatedRequest, @Body() body: unknown): Promise<{ invitation: InvitationView }> {
     const { email, roles } = parseBody(CreateInvitationRequest, body);
-    const invitation = await this.invitations.invite(requireRequestTransaction(req), req.principal!, email, roles);
+    const invitation = await this.invitations.invite(
+      requireRequestTransaction(req),
+      req.principal!,
+      email,
+      roles,
+      (work) => onRequestCommit(req, work),
+    );
     return { invitation };
   }
 

@@ -1,12 +1,13 @@
 import type { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import type { MailSender } from '../../../shared/mail/mail-sender.ts';
 import { Browser } from '../../../test/browser.ts';
 import { useTestDatabase } from '../../../test/postgres.ts';
 import { RecordingMailSender } from '../../../test/recording-mail-sender.ts';
 import { seedMembership, seedOrganization, seedUser } from '../../../test/seed.ts';
 import { signedInMember, type SignedInMember } from '../../../test/signed-in-member.ts';
-import { createTestApp } from '../../../test/test-app.ts';
+import { createTestApp, TEST_APP_BASE_URL } from '../../../test/test-app.ts';
 
 const db = useTestDatabase();
 const mail = new RecordingMailSender();
@@ -58,6 +59,53 @@ describe('organization invitations (FR-009, Q4)', () => {
     expect(accepted.body.memberships).toEqual([
       { organizationId, organizationName: 'Acme', status: 'active', roles: ['member'] },
     ]);
+  });
+
+  it('answers without waiting for the invitation email, and still sends it (code review: email after commit)', async () => {
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => (release = resolve));
+    const sent: string[] = [];
+    const gatedMail: MailSender = {
+      send: async (to) => {
+        await released;
+        sent.push(to);
+      },
+    };
+    const gatedApp = await createTestApp({ database: db, mailSender: gatedMail });
+    const email = newEmail();
+    try {
+      const inviter = await signedInMember(gatedApp, db, organizationId, ['admin']);
+      const outcome = await Promise.race([
+        inviter.browser.post('/org/invitations', { email }),
+        new Promise<'still waiting'>((resolve) => setTimeout(() => resolve('still waiting'), 3000)),
+      ]);
+      expect(outcome === 'still waiting' ? outcome : outcome.status).toBe(201);
+      expect(sent).toEqual([]);
+    } finally {
+      release();
+      await gatedApp.close();
+    }
+    expect(sent).toEqual([email]);
+  });
+
+  it('logs a failed invitation email without the link', async () => {
+    const lines: string[] = [];
+    const failingMail: MailSender = {
+      send: (_to, message) =>
+        Promise.reject(
+          new Error(`SMTP rejected ${message.kind === 'organizationInvitation' ? message.acceptUrl : ''}`),
+        ),
+    };
+    const failingApp = await createTestApp({ database: db, mailSender: failingMail, logSink: (l) => lines.push(l) });
+    try {
+      const inviter = await signedInMember(failingApp, db, organizationId, ['admin']);
+      expect((await inviter.browser.post('/org/invitations', { email: newEmail() })).status).toBe(201);
+    } finally {
+      await failingApp.close();
+    }
+    expect(lines.some((l) => l.includes('invitation email failed'))).toBe(true);
+    expect(lines.join('\n')).not.toContain(`${TEST_APP_BASE_URL}/invitations/`);
+    expect(lines.join('\n')).not.toContain('SMTP rejected');
   });
 
   it('re-inviting the same email revokes the earlier pending invitation', async () => {
