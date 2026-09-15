@@ -8,7 +8,7 @@ import { DATABASE } from '../app-tokens.ts';
 import { AUDIT_WRITER, type AuditWriter } from '../audit/audit-writer.ts';
 import type { AuthenticatedRequest } from '../auth/session.guard.ts';
 import { withAnonymousTransaction, withTenantTransaction, type Database } from '../db/client.ts';
-import { requestTransaction } from '../db/request-transaction.ts';
+import { requestTransaction, rollbackRequestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PLATFORM_ACTION } from './platform-action.decorator.ts';
 import { PROJECT_TARGET_RESOLVER, type ProjectTargetResolver } from './project-target.resolver.ts';
@@ -57,16 +57,21 @@ export class AuthorizationGuard implements CanActivate {
 
     const decision = decide(principal, required.action, target);
     if (!decision.allowed) {
-      if (target.kind === 'project')
+      if (target.kind === 'project') {
+        // Release the request's connection before taking one for the audit: a denial must never hold two at once, or
+        // concurrent denials can deadlock the shared pool (security review).
+        await rollbackRequestTransaction(req);
         await this.#auditDenial(principal, required.action, target.projectId, decision.reason);
+      }
       throw toHttpError(decision.reason);
     }
     return true;
   }
 
   /**
-   * FR-027: a refusal on project data is audited. The request's transaction is rolled back on denial, so the entry is
-   * written in its own tenant transaction. A failing audit write never turns the refusal into an allow or a 500.
+   * FR-027: a refusal on project data is audited. The request's transaction has already been rolled back (the request
+   * is refused), so the entry is written in its own tenant transaction on the connection that was just released.
+   * A failing audit write never turns the refusal into an allow or a 500.
    */
   async #auditDenial(principal: Principal, action: string, projectId: string, reason: DenyReason): Promise<void> {
     try {

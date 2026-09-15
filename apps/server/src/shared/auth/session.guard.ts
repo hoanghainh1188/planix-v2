@@ -5,7 +5,7 @@ import type { Principal } from '@planix/core/features/organization-access/princi
 import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
 import { DATABASE } from '../app-tokens.ts';
 import type { Database, Tx } from '../db/client.ts';
-import { openRequestTransaction } from '../db/request-transaction.ts';
+import { openRequestTransaction, rollbackRequestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PRINCIPAL_LOADER, type PrincipalLoader } from './principal.loader.ts';
 import { ORGANIZATION_SCOPED, PUBLIC_ROUTE } from './route-scope.decorators.ts';
@@ -51,6 +51,8 @@ export class SessionGuard implements CanActivate {
     const tx = await openRequestTransaction(req, res, this.db, tenantFromVerifiedSession(organizationId));
     const principal = await this.principals.load(tx, session.userId, organizationId);
     if (principal === undefined || principal.membershipStatus !== 'active') {
+      // Release the request's connection first: never hold two at once (security review: pool deadlock).
+      await rollbackRequestTransaction(req);
       await this.sessions.setActiveOrganization(session.idHash, null);
       throw new DomainError('MEMBERSHIP_INACTIVE');
     }
