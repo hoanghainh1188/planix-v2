@@ -47,6 +47,7 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Mã đặt lại mật khẩu | Password Reset Token | | `passwordResetToken` | Dùng một lần, hết hạn sau 1 giờ; chỉ lưu bản băm | FR-031 |
 | Bản ghi kiểm toán | Audit Entry | | `auditEntry` | Append-only | FR-027 |
 | Chính sách trường nhạy cảm | Sensitive Field Policy | | `sensitiveFieldPolicy` | Đánh dấu trường cần quyền để đọc/ghi (VD `billingRate`, `budgetAtCompletion`) | FR-025 |
+| Trường nhạy cảm | Sensitive Field | | `sensitiveField` | Trường chỉ đọc/ghi được khi có quyền `sensitive.*` (VD `billingRate`, `budgetAtCompletion`); khi thiếu quyền **không có khoá** trong response, danh sách, body lỗi và audit. Code: đánh dấu `sensitive()`, thực thi `stripSensitive`/`findSensitiveWrites`, áp dụng tại `SensitiveFieldInterceptor` | FR-025, FR-026, contracts/authorization.md §5 |
 | Quản trị viên tổ chức | Organization Admin | | `admin` | Giá trị của `role` | FR-011, OI-03 |
 | Lãnh đạo danh mục | Portfolio Lead | | `portfolioLead` | Giá trị của `role`; khác `portfolio` (thực thể) | FR-011, OI-03 |
 | Thành viên (vai trò hệ thống) | Member | | `member` | Giá trị mặc định của `role` | FR-011, OI-03 |
