@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../app.module.ts';
 import { configureApp } from '../configure-app.ts';
@@ -18,6 +18,8 @@ export async function createTestApp(options: {
   clock?: ClockPort;
   logSink?: LogSink;
   invitationRateLimit?: RateLimitOptions;
+  /** Test-only modules (e.g. SampleFinancialModule) mounted next to the production AppModule. */
+  extraModules?: readonly Type[];
 }): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
     imports: [
@@ -29,6 +31,7 @@ export async function createTestApp(options: {
         // Integration suites invite many people as one admin; the limit itself is covered by its own test.
         invitationRateLimit: options.invitationRateLimit ?? { windowMs: 60_000, limit: 100_000 },
       }),
+      ...(options.extraModules ?? []),
     ],
   }).compile();
   const logger = new AppLogger(options.logSink ?? (() => {}));

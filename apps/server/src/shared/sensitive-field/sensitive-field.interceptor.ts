@@ -7,6 +7,7 @@ import { PERMISSION_MATRIX } from '@planix/core/features/organization-access/per
 import type { Target } from '@planix/core/features/organization-access/principal.ts';
 import {
   stripSensitive,
+  stripSensitiveErrorParams,
   type PermissionCheck,
   type SensitivePermission,
 } from '@planix/core/shared/sensitive-field/sensitive-field.ts';
@@ -45,7 +46,7 @@ export class SensitiveFieldInterceptor implements NestInterceptor {
           catchError((error: unknown) =>
             throwError(() =>
               error instanceof DomainError && responseSchema !== undefined
-                ? new DomainError(error.code, stripSensitive(responseSchema, error.params, can))
+                ? new DomainError(error.code, stripSensitiveErrorParams(responseSchema, error.params, can))
                 : error,
             ),
           ),

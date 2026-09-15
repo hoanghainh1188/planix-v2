@@ -36,8 +36,8 @@ export function redactValue(value: unknown, schema?: z.ZodType): unknown {
 }
 
 function maskSensitive(schema: z.ZodType, value: unknown): unknown {
-  const visible = stripSensitive(schema, value, () => true);
-  const hidden = stripSensitive(schema, value, () => false);
+  const visible = stripSensitive(schema, value, () => true, { undeclaredKeys: 'keep' });
+  const hidden = stripSensitive(schema, value, () => false, { undeclaredKeys: 'keep' });
   return reinsertRedacted(visible, hidden);
 }
 

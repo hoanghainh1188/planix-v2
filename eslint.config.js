@@ -53,6 +53,35 @@ export default tseslint.config(
     },
   },
   {
+    // Test-only code (fixtures, sample modules like SampleFinancialModule) must never reach the server runtime.
+    files: ['apps/server/src/**/*.ts'],
+    ignores: ['apps/server/src/test/**', '**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/test/**', './test/*', '../test/*'],
+              message: 'apps/server/src/test is test-only; production server code must not import it.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: String.raw`ImportExpression[source.type='Literal'][source.value=/(^|\/)test\//]`,
+          message: 'apps/server/src/test is test-only; production server code must not import it (dynamic import).',
+        },
+        {
+          selector: "ImportExpression:not([source.type='Literal'])",
+          message: 'Dynamic import() paths must be string literals so import boundaries can be checked.',
+        },
+      ],
+    },
+  },
+  {
     files: ['apps/web/**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser } },
     plugins: { 'react-hooks': reactHooks },
