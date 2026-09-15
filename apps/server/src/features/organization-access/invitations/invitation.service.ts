@@ -7,10 +7,12 @@ import { AUDIT_WRITER, type AuditWriter } from '../../../shared/audit/audit-writ
 import { PASSWORD_HASHER, type PasswordHasher } from '../../../shared/auth/password-hasher.ts';
 import { SESSION_STORE, type SessionStore, type StoredSession } from '../../../shared/auth/session-store.ts';
 import { CLOCK, type ClockPort } from '../../../shared/clock/clock.ts';
-import { withAnonymousTransaction, withTenantTransaction, type Database } from '../../../shared/db/client.ts';
+import { withAnonymousTransaction, withTenantTransaction, type Database, type Tx } from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
 import { buildSessionPayload, loadUser } from '../session-payload.ts';
 import { INVITATION_REPOSITORY, type InvitationByToken, type InvitationRepository } from './invitation.repository.ts';
+
+const UNIQUE_VIOLATION = '23505';
 
 export interface InvitationDescription {
   readonly organizationName: string;
@@ -70,14 +72,7 @@ export class InvitationService {
       if (locked === undefined || locked.status !== 'pending' || locked.expiresAt.getTime() <= now.getTime()) {
         throw new DomainError('TOKEN_INVALID_OR_EXPIRED');
       }
-      const id =
-        existingUserId ??
-        (
-          await tx.client.query<{ id: string }>(
-            'INSERT INTO app_user (email, password_hash) VALUES ($1, $2) RETURNING id',
-            [invitation.email, passwordHash],
-          )
-        ).rows[0]!.id;
+      const id = existingUserId ?? (await this.#createAccount(tx, invitation.email, passwordHash!));
 
       const existing = await tx.client.query<{ status: string }>(
         'SELECT status FROM organization_membership WHERE user_id = $1 AND organization_id = $2',
@@ -122,6 +117,23 @@ export class InvitationService {
     const user = await loadUser(this.db, userId);
     const payload = await buildSessionPayload(this.db, user!, organizationId);
     return newSession === undefined ? { payload } : { payload, newSession };
+  }
+
+  /**
+   * Creates the account for a first-time invitee. If another invitation for the same email created it a moment
+   * earlier (unique violation), the invitee must now sign in with that account to accept (FR-005).
+   */
+  async #createAccount(tx: Tx, email: string, passwordHash: string): Promise<string> {
+    try {
+      const { rows } = await tx.client.query<{ id: string }>(
+        'INSERT INTO app_user (email, password_hash) VALUES ($1, $2) RETURNING id',
+        [email, passwordHash],
+      );
+      return rows[0]!.id;
+    } catch (error) {
+      if ((error as { code?: string }).code === UNIQUE_VIOLATION) throw new DomainError('AUTH_REQUIRED');
+      throw error;
+    }
   }
 
   async #validInvitation(token: string): Promise<InvitationByToken> {

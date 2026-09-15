@@ -39,7 +39,7 @@ Quy ước chung:
 | GET | `/org/invitations?status=` | `org.member.invite` | — | 200 `{ items[] }` | |
 | DELETE | `/org/invitations/{id}` | `org.member.invite` | — | 204 (revoked) | 404, 409 `INVITATION_NOT_PENDING` |
 | GET | `/invitations/{token}` | — | — | 200 `{ organizationName, email, requiresAccountCreation }` | 410 `TOKEN_INVALID_OR_EXPIRED` |
-| POST | `/invitations/{token}/accept` | — | Chưa có tài khoản: `{ password }`; đã có: cần phiên đăng nhập đúng email | 200 + cookie phiên, active org = tổ chức mời | 400 `PASSWORD_POLICY_VIOLATION`, 403 `INVITATION_EMAIL_MISMATCH`, 410 `TOKEN_INVALID_OR_EXPIRED` |
+| POST | `/invitations/{token}/accept` | — | Chưa có tài khoản: `{ password }`; đã có: cần phiên đăng nhập đúng email | 200 + cookie phiên, active org = tổ chức mời | 400 `PASSWORD_POLICY_VIOLATION`, 401 `AUTH_REQUIRED` (tài khoản đã tồn tại — kể cả khi vừa được tạo bởi lời mời khác cùng lúc — cần đăng nhập đúng email), 403 `INVITATION_EMAIL_MISMATCH`, 410 `TOKEN_INVALID_OR_EXPIRED` (kể cả request trùng bị thua) |
 
 - `roles` mặc định `["member"]`. `invitation`: `{ id, email, roles[], status, expiresAt, invitedBy }` —
   **không bao giờ** trả token.

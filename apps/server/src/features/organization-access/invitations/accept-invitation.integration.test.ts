@@ -135,6 +135,51 @@ describe('accept invitation (FR-005, FR-010, Q2)', () => {
     expect(accepted.body.activeOrganizationId).toBe(organizationId);
   });
 
+  it('accepts a double-submitted invitation once and rejects the duplicate without a server error', async () => {
+    const address = email();
+    const token = await seedInvitation(db, {
+      organizationId,
+      email: address,
+      invitedByUserId: inviterId,
+      expiresAt: inSevenDays(),
+    });
+    const [first, second] = [await new Browser(app).open(), await new Browser(app).open()];
+    const responses = await Promise.all([
+      first.post(`/invitations/${token}/accept`, { password: 'lantern-fjord-42' }),
+      second.post(`/invitations/${token}/accept`, { password: 'lantern-fjord-42' }),
+    ]);
+    expect(responses.map((r) => r.status).sort()).toEqual([200, 410]);
+  });
+
+  it('handles two organizations inviting the same new email accepted at the same time', async () => {
+    const address = email();
+    const otherOrganizationId = await seedOrganization(db, 'Beta');
+    const tokenA = await seedInvitation(db, {
+      organizationId,
+      email: address,
+      invitedByUserId: inviterId,
+      expiresAt: inSevenDays(),
+    });
+    const tokenB = await seedInvitation(db, {
+      organizationId: otherOrganizationId,
+      email: address,
+      invitedByUserId: inviterId,
+      expiresAt: inSevenDays(),
+    });
+    const [a, b] = [await new Browser(app).open(), await new Browser(app).open()];
+    const responses = await Promise.all([
+      a.post(`/invitations/${tokenA}/accept`, { password: 'lantern-fjord-42' }),
+      b.post(`/invitations/${tokenB}/accept`, { password: 'lantern-fjord-42' }),
+    ]);
+    const statuses = responses.map((r) => r.status).sort();
+    expect(statuses).not.toContain(500);
+    expect(statuses).toEqual([200, 401]);
+    const loser = responses.find((r) => r.status === 401);
+    expect(loser?.body.error.code).toBe('AUTH_REQUIRED');
+    const { rows } = await db.ownerPool.query('SELECT 1 FROM app_user WHERE email = $1', [address]);
+    expect(rows).toHaveLength(1);
+  });
+
   it('offers no self sign-up route', async () => {
     const browser = await new Browser(app).open();
     for (const path of ['/auth/register', '/auth/signup', '/users']) {
