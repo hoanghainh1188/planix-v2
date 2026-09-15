@@ -69,6 +69,24 @@ describe('login and logout (FR-006–FR-008, Q12, Q13)', () => {
     expect((await browser.post('/auth/login', { email, password: PASSWORD })).status).toBe(200);
   });
 
+  it('locks the account even when failed attempts arrive concurrently (FR-006)', async () => {
+    const email = newEmail();
+    const userId = await seedUserWithPassword(db, email, PASSWORD);
+    const browser = await new Browser(app).open();
+
+    const attempts = await Promise.all(
+      Array.from({ length: 5 }, (_, i) => browser.post('/auth/login', { email, password: `parallel-bad-${i}` })),
+    );
+    expect(attempts.map((r) => r.status)).toEqual([401, 401, 401, 401, 401]);
+
+    const { rows } = await db.ownerPool.query<{ locked_until: Date | null }>(
+      'SELECT locked_until FROM app_user WHERE id = $1',
+      [userId],
+    );
+    expect(rows[0]?.locked_until).not.toBeNull();
+    expect((await browser.post('/auth/login', { email, password: PASSWORD })).status).toBe(401);
+  });
+
   it('logs out and invalidates the session', async () => {
     const email = newEmail();
     await seedUserWithPassword(db, email, PASSWORD);

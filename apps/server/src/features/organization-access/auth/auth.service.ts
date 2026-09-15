@@ -44,7 +44,6 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string): Promise<SignedIn> {
-    const now = this.clock.now();
     const { rows } = await withAnonymousTransaction(this.db, (tx) =>
       tx.client.query<LoginRow>(
         'SELECT id, password_hash, failed_login_count, locked_until, last_active_organization_id FROM app_user WHERE email = $1',
@@ -52,38 +51,41 @@ export class AuthService {
       ),
     );
     const user = rows[0];
-    const state = user && { failedLoginCount: user.failed_login_count, lockedUntil: user.locked_until };
 
-    if (user === undefined || state === undefined || isLocked(state, now)) {
+    if (user === undefined || isLocked(this.#lockState(user), this.clock.now())) {
       await this.hasher.verifyOrDummy(undefined, password);
       await this.#auditLogin(user?.id ?? null, 'denied');
       throw new DomainError('AUTH_INVALID_CREDENTIALS');
     }
-    if (!(await this.hasher.verify(user.password_hash, password))) {
-      const next = recordFailedLogin(state, now);
-      await withAnonymousTransaction(this.db, async (tx) => {
-        await tx.client.query('UPDATE app_user SET failed_login_count = $2, locked_until = $3 WHERE id = $1', [
-          user.id,
-          next.failedLoginCount,
-          next.lockedUntil,
-        ]);
-        await this.audit.record(tx, this.#loginEntry(user.id, 'denied'));
-      });
-      throw new DomainError('AUTH_INVALID_CREDENTIALS');
-    }
 
-    const reset = recordSuccessfulLogin();
-    await withAnonymousTransaction(this.db, async (tx) => {
+    const passwordMatches = await this.hasher.verify(user.password_hash, password);
+    // Re-read the counters under a row lock so concurrent attempts cannot lose updates (FR-006).
+    const outcome = await withAnonymousTransaction(this.db, async (tx) => {
+      const locked = await tx.client.query<LoginRow>(
+        'SELECT id, password_hash, failed_login_count, locked_until, last_active_organization_id FROM app_user WHERE id = $1 FOR UPDATE',
+        [user.id],
+      );
+      const current = locked.rows[0]!;
+      const now = this.clock.now();
+      const state = this.#lockState(current);
+      const next = isLocked(state, now)
+        ? state
+        : passwordMatches
+          ? recordSuccessfulLogin()
+          : recordFailedLogin(state, now);
+      const succeeded = passwordMatches && !isLocked(state, now);
       await tx.client.query('UPDATE app_user SET failed_login_count = $2, locked_until = $3 WHERE id = $1', [
         user.id,
-        reset.failedLoginCount,
-        reset.lockedUntil,
+        next.failedLoginCount,
+        next.lockedUntil,
       ]);
-      await this.audit.record(tx, this.#loginEntry(user.id, 'succeeded'));
+      await this.audit.record(tx, this.#loginEntry(user.id, succeeded ? 'succeeded' : 'denied'));
+      return { succeeded, lastActiveOrganizationId: current.last_active_organization_id };
     });
+    if (!outcome.succeeded) throw new DomainError('AUTH_INVALID_CREDENTIALS');
 
     const memberships = await loadMemberships(this.db, user.id);
-    const activeOrganizationId = chooseActiveOrganization(memberships, user.last_active_organization_id);
+    const activeOrganizationId = chooseActiveOrganization(memberships, outcome.lastActiveOrganizationId);
     const { sessionToken, csrfToken } = await this.sessions.create(user.id, activeOrganizationId);
     return { payload: await this.session(user.id, activeOrganizationId), sessionToken, csrfToken };
   }
@@ -126,6 +128,10 @@ export class AuthService {
 
   async #auditLogin(userId: string | null, outcome: 'succeeded' | 'denied'): Promise<void> {
     await withAnonymousTransaction(this.db, (tx) => this.audit.record(tx, this.#loginEntry(userId, outcome)));
+  }
+
+  #lockState(row: LoginRow) {
+    return { failedLoginCount: row.failed_login_count, lockedUntil: row.locked_until };
   }
 
   #loginEntry(userId: string | null, outcome: 'succeeded' | 'denied') {
