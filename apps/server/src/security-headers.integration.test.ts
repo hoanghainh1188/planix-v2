@@ -72,6 +72,23 @@ describe('request body limit (T124, decision 2026-09-15-005-payload-too-large)',
     expect(response.body).toEqual({ error: { code: 'PAYLOAD_TOO_LARGE', params: {} } });
   });
 
+  it.each([
+    ['text/plain', 'text/plain'],
+    ['application/octet-stream', 'application/octet-stream'],
+  ])(
+    'refuses an oversized %s body with 413 before anything else runs (security review: every content type)',
+    async (_label, contentType) => {
+      const response = await api(app)
+        .post('/api/v1/auth/login')
+        .set('Origin', TEST_APP_BASE_URL)
+        .set('Content-Type', contentType)
+        .send('x'.repeat(LIMIT_BYTES + 1));
+
+      expect(response.status).toBe(413);
+      expect(response.body).toEqual({ error: { code: 'PAYLOAD_TOO_LARGE', params: {} } });
+    },
+  );
+
   it('still accepts a body just under the limit (the request fails for its own reason, not its size)', async () => {
     const response = await api(app)
       .post('/api/v1/auth/login')

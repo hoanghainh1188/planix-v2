@@ -14,6 +14,9 @@
 - Bổ sung 2026-09-15 (code review Phase 11, chọn b): các lỗi 4xx khác của body parser (VD 415 `charset.unsupported`,
   `encoding.unsupported`) trả **400 `VALIDATION_FAILED`** thay vì 500 `INTERNAL_ERROR`; không thêm mã lỗi mới. JSON sai
   cú pháp đã được Nest tự chuyển thành 400.
+- Bổ sung 2026-09-15 (security review Phase 11): giới hạn áp cho **mọi loại body**, không chỉ JSON/urlencoded — middleware
+  đầu tiên sau `helmet` từ chối `Content-Length` > 100 KB bằng 413 `PAYLOAD_TOO_LARGE` trước mọi guard; body kiểu khác
+  không bao giờ được đọc. Body chunked không khai báo độ dài chỉ bị giới hạn khi được parse (JSON/urlencoded).
 - Phương án bị loại: B2 — trả 413 kèm `VALIDATION_FAILED` (không thêm mã, nhưng mã gợi ý sai rằng dữ liệu nhập không
   hợp lệ, trong khi nguyên nhân là kích thước).
 - Người quyết định: @hoanghainh1188 (chọn phương án B1)
