@@ -16,6 +16,9 @@
   - Tạo tài khoản, cấp quyền và token nằm trong **một transaction**; email gửi **sau khi commit**. Audit
     `platform.operator.grant` (`actor_kind = system`) ghi thêm `accountCreated: true` — không có token hay hash.
   - Email đã có tài khoản: `--create` chỉ cấp quyền như trước, không tạo gì, không gửi email.
+  - Gửi email thất bại **sau khi commit** (VD SMTP lỗi): tài khoản và quyền Operator vẫn giữ; CLI báo lỗi kèm hướng dẫn
+    dùng "Quên mật khẩu" ở trang đăng nhập để lấy liên kết mới (không lặp lại thông báo lỗi gốc của mail vì có thể chứa
+    liên kết). Chạy lại lệnh chỉ báo "đã là Operator" (bổ sung sau code review Phase 11).
   - Không có `--create` mà email chưa có tài khoản: vẫn lỗi, thông báo gợi ý dùng `--create`.
 - Phương án bị loại: B — script riêng `ops:create-operator` (hai CLI chồng chức năng); C — hướng dẫn tạo tài khoản bằng
   SQL tay trong quickstart (tự tính hash mật khẩu, dễ sai, không audit).

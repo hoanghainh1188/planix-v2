@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { hashToken } from '../shared/auth/secure-token.ts';
 import { Browser } from '../test/browser.ts';
 import { useTestDatabase } from '../test/postgres.ts';
@@ -137,5 +137,35 @@ describe('ops:grant-operator --create: the first Platform Operator (decision 202
     const { rowCount } = await db.ownerPool.query('SELECT 1 FROM app_user WHERE email = $1', [address]);
     expect(rowCount).toBe(0);
     expect(mail.lastTo(address)).toBeUndefined();
+  });
+
+  it('when the email fails after commit: says how to recover, keeps the account, and "forgot password" gets a new link', async () => {
+    const address = email();
+    const failingMail = {
+      send: () => Promise.reject(new Error('SMTP connection refused')),
+    };
+    await expect(
+      grantOperator(db, address, 'alice', { create: { mailSender: failingMail, appBaseUrl: TEST_APP_BASE_URL } }),
+    ).rejects.toThrow(/account was created and granted.*forgot password/i);
+
+    const { rows } = await db.ownerPool.query<{ id: string }>('SELECT id FROM app_user WHERE email = $1', [address]);
+    expect(rows).toHaveLength(1);
+    await expect(grantOperator(db, address, 'alice', { create })).resolves.toEqual({
+      userId: rows[0]!.id,
+      alreadyGranted: true,
+      accountCreated: false,
+    });
+
+    const browser = await new Browser(app).open();
+    expect((await browser.post('/auth/password-reset/request', { email: address })).status).toBe(202);
+    const token = await vi.waitFor(() => {
+      const message = mail.lastTo(address);
+      if (message?.kind !== 'passwordReset') throw new Error('no reset email yet');
+      return message.resetUrl.split('/').at(-1)!;
+    });
+    expect(
+      (await browser.post('/auth/password-reset/confirm', { token, newPassword: 'operator-recovered-1' })).status,
+    ).toBe(204);
+    expect((await browser.login(address, 'operator-recovered-1')).status).toBe(200);
   });
 });

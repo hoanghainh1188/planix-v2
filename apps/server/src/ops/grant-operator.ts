@@ -87,11 +87,18 @@ export async function grantOperator(
 
   if (result.accountCreated && create !== undefined) {
     // After commit: an email is never sent for an account that was rolled back.
-    await create.mailSender.send(email, {
-      kind: 'passwordReset',
-      locale: create.locale ?? 'vi',
-      resetUrl: `${create.appBaseUrl}/password-reset/${resetToken}`,
-    });
+    try {
+      await create.mailSender.send(email, {
+        kind: 'passwordReset',
+        locale: create.locale ?? 'vi',
+        resetUrl: `${create.appBaseUrl}/password-reset/${resetToken}`,
+      });
+    } catch {
+      // The account exists, so the normal reset flow recovers. The mail error is not repeated: it may carry the link.
+      throw new Error(
+        `The account was created and granted platform operator, but the password reset email to ${email} could not be sent; use "Forgot password" on the sign-in page to get a new link`,
+      );
+    }
   }
   return result;
 }
@@ -137,5 +144,11 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  await main();
+  try {
+    await main();
+  } catch (error) {
+    // Message only: no stack or cause, which could carry a reset link from the mail transport.
+    process.stderr.write(`${error instanceof Error ? error.message : 'Unexpected error'}\n`);
+    process.exitCode = 1;
+  }
 }
