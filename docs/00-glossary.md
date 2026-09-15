@@ -59,6 +59,9 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Chủ thể yêu cầu | Principal | | `principal` | Danh tính người gọi trong tổ chức đang hoạt động (vai trò, trạng thái membership) — đầu vào của `decide` | contracts/authorization.md |
 | Đối tượng kiểm tra quyền | Target | | `target` | Đối tượng bị tác động (`organization` hoặc `project`, kèm tư cách thành viên/RACI) | contracts/authorization.md |
 | Quyết định quyền | Decision | | `decision` | Kết quả của `decide`: cho phép, hoặc từ chối kèm lý do (mặc định từ chối) | FR-014, contracts/authorization.md |
+| Vô hiệu hoá thành viên | Membership Deactivation | | `membershipDeactivation` | Động từ trong code: `deactivate`. Giữ lịch sử; gỡ vai trò, thành viên dự án (`removed`) và RACI; chặn nếu là Admin cuối hoặc đang là Accountable | FR-015 |
+| Kích hoạt lại thành viên | Membership Reactivation | | `membershipReactivation` | Động từ trong code: `reactivate`. Vai trò về `member`, không khôi phục dự án/RACI cũ | FR-015, decision `2026-09-14-005-member-reactivation` |
+| Thu hồi lời mời | Invitation Revocation | | `invitationRevocation` | Động từ trong code: `revoke`. Lời mời `pending` → `revoked`; mời lại cùng email tự thu hồi lời mời cũ | FR-009 |
 | Lý do từ chối | Deny Reason | | `denyReason` | Mã lý do khi `decide` từ chối, VD `MEMBERSHIP_INACTIVE` | contracts/authorization.md |
 
 ## TASK — Tác nghiệp
