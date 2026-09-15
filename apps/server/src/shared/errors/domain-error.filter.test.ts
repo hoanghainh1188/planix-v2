@@ -26,7 +26,7 @@ describe('DomainErrorFilter', () => {
     const moduleRef = await Test.createTestingModule({ controllers: [ProbeController] }).compile();
     app = moduleRef.createNestApplication({ logger: false });
     app.useGlobalFilters(new DomainErrorFilter());
-    await app.init();
+    await app.listen(0, '127.0.0.1');
   });
 
   afterAll(() => app.close());

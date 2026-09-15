@@ -22,6 +22,7 @@ import { SESSION_COOKIE } from '../auth/session-cookie.ts';
 import { SessionStore } from '../auth/session-store.ts';
 import { systemClock } from '../clock/clock.ts';
 import { AppLogger } from '../logging/app-logger.ts';
+import { AUDIT_WRITER, AuditWriter } from '../audit/audit-writer.ts';
 import { AuthorizationModule } from './authorization.module.ts';
 import { toHttpError } from './authorization.guard.ts';
 import { PlatformAction } from './platform-action.decorator.ts';
@@ -73,10 +74,13 @@ const db = useTestDatabase();
 const sessions = new SessionStore(db, systemClock);
 const logger = new AppLogger(() => {});
 
-async function buildApp(controllers: Array<new () => unknown>): Promise<INestApplication> {
+async function buildApp(
+  controllers: Array<new () => unknown>,
+  options: { auditWriter?: AuditWriter } = {},
+): Promise<INestApplication> {
   @Module({ controllers })
   class ProbeModule {}
-  const moduleRef = await Test.createTestingModule({
+  const builder = Test.createTestingModule({
     imports: [
       InfrastructureModule.forRoot({
         database: db,
@@ -87,9 +91,11 @@ async function buildApp(controllers: Array<new () => unknown>): Promise<INestApp
       AuthorizationModule,
       ProbeModule,
     ],
-  }).compile();
+  });
+  if (options.auditWriter !== undefined) builder.overrideProvider(AUDIT_WRITER).useValue(options.auditWriter);
+  const moduleRef = await builder.compile();
   const app = configureApp(moduleRef.createNestApplication({ logger }), logger);
-  await app.init();
+  await app.listen(0, '127.0.0.1');
   return app;
 }
 
@@ -201,6 +207,26 @@ describe('AuthorizationGuard (FR-022, contracts/authorization.md §3)', () => {
       .set('Cookie', await login(outside.userId, orgA));
     expect(denied.status).toBe(403);
     expect(denied.body.error.code).toBe('FORBIDDEN');
+  });
+
+  it('still refuses with 403 when the denied-access audit cannot be written (FR-027)', async () => {
+    const failing = await buildApp([ProbeController], {
+      auditWriter: new (class extends AuditWriter {
+        override record(): Promise<void> {
+          return Promise.reject(new Error('audit unavailable'));
+        }
+      })(),
+    });
+    try {
+      const outsider = await member(orgA, ['projectManager']);
+      const response = await api(failing)
+        .get(`/api/v1/probe/projects/${projectA}`)
+        .set('Cookie', await login(outsider.userId, orgA));
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe('FORBIDDEN');
+    } finally {
+      await failing.close();
+    }
   });
 
   it('passes the project member role combination to decide()', async () => {

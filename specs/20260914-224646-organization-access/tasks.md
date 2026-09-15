@@ -226,16 +226,16 @@ RED tương ứng chưa tồn tại và chưa fail.
 
 ### Tests for User Story 4 (RED) ⚠️
 
-- [ ] T093 [P] [US4] **RED** `FEAT_SRV/projects/projects.integration.test.ts`: `POST /projects` với `name` "NOT NULL, 1–200 ký tự", `description` "NULL, ≤ 5.000 ký tự" (vượt → 400 `VALIDATION_FAILED`); `portfolioLead`/`projectManager` → 201 `{ project, accountable }`, người tạo là thành viên **và** Accountable trong **1 transaction** (lỗi giữa chừng → không còn gì); vai trò khác → 403; `GET /projects` chỉ trả dự án mình là thành viên active — Admin không phải thành viên không thấy (FR-016, Q8); `GET /projects/{id}` trả Accountable ; `portfolioLead` tạo dự án rồi `POST /projects/{id}/members` thêm một PM → 201 (không deadlock — decision `2026-09-15-005-portfolio-lead-manages-project-members`) (FR-018, Q6)
-- [ ] T094 [P] [US4] **RED** `FEAT_SRV/projects/project-members.integration.test.ts`: `POST /projects/{id}/members { membershipId }` với membership active cùng tổ chức → 201; membership tổ chức khác hoặc deactivated → 404; đã là thành viên → 409 `ALREADY_PROJECT_MEMBER`; `DELETE` → `status = removed`, RACI bị gỡ, lịch sử giữ; xoá Accountable → 409 `ACCOUNTABLE_REQUIRED`; `GET /projects/{id}/members` trả `raciRoles[]` ; `portfolioLead` là thành viên dự án thêm/xoá được thành viên; `functionalManager` là thành viên → 403 (FR-013, FR-019, FR-020, Q9)
+- [X] T093 [P] [US4] **RED** `FEAT_SRV/projects/projects.integration.test.ts`: `POST /projects` với `name` "NOT NULL, 1–200 ký tự", `description` "NULL, ≤ 5.000 ký tự" (vượt → 400 `VALIDATION_FAILED`); `portfolioLead`/`projectManager` → 201 `{ project, accountable }`, người tạo là thành viên **và** Accountable trong **1 transaction** (lỗi giữa chừng → không còn gì); vai trò khác → 403; `GET /projects` chỉ trả dự án mình là thành viên active — Admin không phải thành viên không thấy (FR-016, Q8); `GET /projects/{id}` trả Accountable ; `portfolioLead` tạo dự án rồi `POST /projects/{id}/members` thêm một PM → 201 (không deadlock — decision `2026-09-15-005-portfolio-lead-manages-project-members`) (FR-018, Q6)
+- [X] T094 [P] [US4] **RED** `FEAT_SRV/projects/project-members.integration.test.ts`: `POST /projects/{id}/members { membershipId }` với membership active cùng tổ chức → 201; membership tổ chức khác hoặc deactivated → 404; đã là thành viên → 409 `ALREADY_PROJECT_MEMBER`; `DELETE` → `status = removed`, RACI bị gỡ, lịch sử giữ; xoá Accountable → 409 `ACCOUNTABLE_REQUIRED`; `GET /projects/{id}/members` trả `raciRoles[]` ; `portfolioLead` là thành viên dự án thêm/xoá được thành viên; `functionalManager` là thành viên → 403 (FR-013, FR-019, FR-020, Q9)
 
 ### Implementation for User Story 4 (GREEN)
 
-- [ ] T095 [US4] **GREEN** `FEAT_SRV/projects/{projects.module.ts,projects.controller.ts,projects.service.ts,projects.repository.ts}` cho T093
-- [ ] T096 [US4] **GREEN** `FEAT_SRV/projects/{project-members.controller.ts,project-members.service.ts}` cho T094
-- [ ] T097 [US4] Thêm các route dự án vào `apps/server/src/test/fixtures/route-targets.ts` để T089 bao phủ (SC-001)
-- [ ] T098 [P] [US4] Web `FEAT_WEB/projects/ProjectsPage.tsx` (danh sách, tạo dự án) + khoá i18n
-- [ ] T099 [P] [US4] Web `FEAT_WEB/project-members/ProjectMembersPage.tsx` (thêm/xoá thành viên từ thành viên tổ chức) + khoá i18n; mở rộng `apps/web/e2e/isolation.spec.ts`: mở URL trực tiếp trang dự án / thành viên dự án của tổ chức khác → trang "không tìm thấy", giống hệt id ngẫu nhiên (chuyển từ T092, Q3)
+- [X] T095 [US4] **GREEN** `FEAT_SRV/projects/{projects.module.ts,projects.controller.ts,projects.service.ts,projects.repository.ts}` cho T093
+- [X] T096 [US4] **GREEN** `FEAT_SRV/projects/{project-members.controller.ts,project-members.service.ts}` cho T094
+- [X] T097 [US4] Thêm các route dự án vào `apps/server/src/test/fixtures/route-targets.ts` để T089 bao phủ (SC-001)
+- [X] T098 [P] [US4] Web `FEAT_WEB/projects/ProjectsPage.tsx` (danh sách, tạo dự án) + khoá i18n
+- [X] T099 [P] [US4] Web `FEAT_WEB/project-members/ProjectMembersPage.tsx` (thêm/xoá thành viên từ thành viên tổ chức) + khoá i18n; mở rộng `apps/web/e2e/isolation.spec.ts`: mở URL trực tiếp trang dự án / thành viên dự án của tổ chức khác → trang "không tìm thấy", giống hệt id ngẫu nhiên (chuyển từ T092, Q3)
 
 **Checkpoint**: US4 xanh; test cô lập T089 bao phủ route dự án.
 
@@ -248,11 +248,11 @@ hiệu lực ngay; từ chối được ghi audit.
 
 **Independent Test**: Q7, Q8.
 
-- [ ] T100 [US6] **RED** `FEAT_SRV/authorization.integration.test.ts`: với mỗi action cấp dự án có route (`project.read`, `project.member.manage`, `project.raci.manage`) chạy 4 tổ hợp (có/không vai trò × có/không thành viên dự án) → chỉ "có × có" được phép; Admin không là thành viên → 403; từ chối trên dữ liệu dự án ghi `audit_entry.outcome = denied` (FR-016, FR-022–024, FR-027, SC-002, Q7, Q8)
-- [ ] T101 [US6] **RED** `FEAT_SRV/permission-change-immediacy.integration.test.ts`: gỡ vai trò / xoá khỏi dự án / vô hiệu hoá rồi gửi ngay request kế tiếp → 0 request lẽ ra bị từ chối lại được phép (SC-004)
-- [ ] T102 [US6] **GREEN** Ghi audit từ chối trong `apps/server/src/shared/authorization/authorization.guard.ts` và hoàn thiện `project-target.resolver.ts` (không cache) cho T100, T101
-- [ ] T103 [P] [US6] **RED** `apps/web/src/shared/authorization/useCan.test.ts`: kết quả khớp ma trận `packages/core` cho các tổ hợp vai trò × thành viên dự án
-- [ ] T104 [US6] **GREEN** `apps/web/src/shared/authorization/useCan.ts`: dùng ma trận từ `packages/core` để **ẩn** thao tác không được phép; server vẫn là nơi quyết định — làm T103 xanh
+- [X] T100 [US6] **RED** `FEAT_SRV/authorization.integration.test.ts`: với mỗi action cấp dự án có route (`project.read`, `project.member.manage`, `project.raci.manage`) chạy 4 tổ hợp (có/không vai trò × có/không thành viên dự án) → chỉ "có × có" được phép; Admin không là thành viên → 403; từ chối trên dữ liệu dự án ghi `audit_entry.outcome = denied` (FR-016, FR-022–024, FR-027, SC-002, Q7, Q8)
+- [X] T101 [US6] **RED** `FEAT_SRV/permission-change-immediacy.integration.test.ts`: gỡ vai trò / xoá khỏi dự án / vô hiệu hoá rồi gửi ngay request kế tiếp → 0 request lẽ ra bị từ chối lại được phép (SC-004)
+- [X] T102 [US6] **GREEN** Ghi audit từ chối trong `apps/server/src/shared/authorization/authorization.guard.ts` và hoàn thiện `project-target.resolver.ts` (không cache) cho T100, T101
+- [X] T103 [P] [US6] **RED** `apps/web/src/shared/authorization/useCan.test.ts`: kết quả khớp ma trận `packages/core` cho các tổ hợp vai trò × thành viên dự án
+- [X] T104 [US6] **GREEN** `apps/web/src/shared/authorization/useCan.ts`: dùng ma trận từ `packages/core` để **ẩn** thao tác không được phép; server vẫn là nơi quyết định — làm T103 xanh
 
 **Checkpoint**: SC-002 và SC-004 được chứng minh ở mức API.
 
@@ -321,7 +321,7 @@ hiệu lực ngay; từ chối được ghi audit.
 - [ ] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh
 - [ ] T126 Chạy `npm run lint`, `npm run test -- --coverage` (≥ 80%), `npm run build`; thiếu coverage → bổ sung test cho nhánh chưa phủ (Nguyên tắc IV)
 - [ ] T127 Chạy toàn bộ `quickstart.md` Q1–Q18 trên môi trường dev; gotcha phát hiện → append `docs/05-lessons.md`; phần cảm nhận người dùng thật của SC-003 kiểm thủ công
-- [ ] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin)
+- [X] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin). **Đã làm trực tiếp** thay cho ghi chú: 2026-09-15 khi merge PR #6, thêm `quality-gate` vào required status checks của `main` (cùng lúc đặt approvals = 0, bỏ code owner review vì chỉ có một owner) — @hoanghainh1188 chấp thuận
 
 ---
 

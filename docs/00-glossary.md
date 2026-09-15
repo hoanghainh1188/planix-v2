@@ -103,6 +103,7 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Người chịu trách nhiệm giải trình | Accountable | A | `accountable` | Vai trò RACI; áp dụng cập nhật Baseline | FR-RES-04, OI-07 |
 | Người được tham vấn | Consulted | C | `consulted` | Vai trò RACI | FR-RES-04 |
 | Người được thông báo | Informed | I | `informed` | Vai trò RACI | FR-RES-04 |
+| Gán vai trò RACI | RACI Assignment | | `raciAssignment` | Một vai trò RACI của một Project Member (bảng `raci_assignment`); tương tự `membershipRole` nhưng ở cấp dự án; mỗi dự án đúng một bản ghi `accountable` | FR-RES-04, decision `2026-09-14-005-single-accountable-per-project` |
 
 ## WBS — Phạm vi
 

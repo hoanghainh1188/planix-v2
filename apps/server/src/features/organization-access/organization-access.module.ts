@@ -13,12 +13,13 @@ import {
 import { InvitationService } from './invitations/invitation.service.ts';
 import { OrganizationInvitationsController } from './invitations/org-invitations.controller.ts';
 import { MembersModule } from './members/members.module.ts';
+import { ProjectsModule } from './projects/projects.module.ts';
 import { PlatformController } from './platform/platform.controller.ts';
 import { PlatformService } from './platform/platform.service.ts';
 
-/** Feature 005 organization-access: accounts, sessions, invitations, members, platform operator. */
+/** Feature 005 organization-access: accounts, sessions, invitations, members, projects, platform operator. */
 @Module({
-  imports: [MembersModule],
+  imports: [MembersModule, ProjectsModule],
   controllers: [
     AuthController,
     PasswordResetController,

@@ -15,6 +15,7 @@ describe('server configuration from the environment', () => {
       appPoolMax: undefined,
       statementTimeoutMs: undefined,
       idleInTransactionTimeoutMs: undefined,
+      connectionTimeoutMs: undefined,
     });
   });
 
@@ -25,8 +26,14 @@ describe('server configuration from the environment', () => {
         DATABASE_APP_POOL_MAX: '40',
         DATABASE_STATEMENT_TIMEOUT_MS: '10000',
         DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS: '20000',
+        DATABASE_CONNECTION_TIMEOUT_MS: '5000',
       }),
-    ).toMatchObject({ appPoolMax: 40, statementTimeoutMs: 10_000, idleInTransactionTimeoutMs: 20_000 });
+    ).toMatchObject({
+      appPoolMax: 40,
+      statementTimeoutMs: 10_000,
+      idleInTransactionTimeoutMs: 20_000,
+      connectionTimeoutMs: 5_000,
+    });
   });
 
   it('fails fast on an invalid number', () => {

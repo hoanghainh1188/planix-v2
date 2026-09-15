@@ -83,7 +83,8 @@
   "nav": {
     "label": "Main navigation",
     "members": "Members",
-    "invitations": "Invitations"
+    "invitations": "Invitations",
+    "projects": "Projects"
   },
   "roles": {
     "admin": "Admin",
@@ -130,5 +131,31 @@
       "expired": "Expired"
     },
     "empty": "No invitations yet."
+  },
+  "raci": {
+    "responsible": "Responsible",
+    "accountable": "Accountable",
+    "consulted": "Consulted",
+    "informed": "Informed"
+  },
+  "projects": {
+    "title": "Projects",
+    "createTitle": "Create a project",
+    "name": "Project name",
+    "description": "Description",
+    "create": "Create project",
+    "createdAt": "Created",
+    "empty": "No projects yet."
+  },
+  "projectMembers": {
+    "title": "Project members",
+    "accountable": "Accountable: {{email}}",
+    "organizationMember": "Organization member",
+    "choose": "Choose a person…",
+    "add": "Add to project",
+    "email": "Email",
+    "raciRoles": "RACI roles",
+    "remove": "Remove",
+    "removeFor": "Remove {{email}} from the project"
   }
 }

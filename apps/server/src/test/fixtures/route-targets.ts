@@ -46,4 +46,22 @@ export const ROUTE_TARGETS: Readonly<Record<string, RouteTarget>> = {
     kind: 'item',
     params: (victim) => ({ membershipId: victim.memberMembershipId }),
   },
+  'GET /projects': { kind: 'list', leaks: (victim) => [victim.projectMemberId, victim.projectManager.email] },
+  'POST /projects': {
+    kind: 'create',
+    // A project created by the attacker must not reference the victim in any way.
+    body: () => ({ name: 'Isolation probe' }),
+    expectedStatus: 201,
+  },
+  'GET /projects/:projectId': { kind: 'item', params: (victim) => ({ projectId: victim.projectId }) },
+  'GET /projects/:projectId/members': { kind: 'item', params: (victim) => ({ projectId: victim.projectId }) },
+  'POST /projects/:projectId/members': {
+    kind: 'item',
+    params: (victim) => ({ projectId: victim.projectId }),
+    body: { membershipId: '00000000-0000-4000-8000-000000000000' },
+  },
+  'DELETE /projects/:projectId/members/:projectMemberId': {
+    kind: 'item',
+    params: (victim) => ({ projectId: victim.projectId, projectMemberId: victim.projectMemberId }),
+  },
 };

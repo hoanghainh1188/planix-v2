@@ -23,6 +23,7 @@ async function bootstrap(): Promise<void> {
     ...(config.idleInTransactionTimeoutMs === undefined
       ? {}
       : { idleInTransactionTimeoutMs: config.idleInTransactionTimeoutMs }),
+    ...(config.connectionTimeoutMs === undefined ? {} : { connectionTimeoutMs: config.connectionTimeoutMs }),
   });
   const mailSender = new SmtpMailSender({ smtpUrl: config.smtpUrl, from: config.mailFrom });
   const app = await NestFactory.create(AppModule.forRoot({ database, config: config.app, mailSender }), {

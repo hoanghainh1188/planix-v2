@@ -42,7 +42,7 @@ describe('rate limiting (R4)', () => {
     const moduleRef = await Test.createTestingModule({ controllers: [ProbeController] }).compile();
     app = moduleRef.createNestApplication({ logger: false });
     applyRateLimits(app, { windowMs: 60_000, limit: 2 });
-    await app.init();
+    await app.listen(0, '127.0.0.1');
   });
 
   afterAll(() => app.close());

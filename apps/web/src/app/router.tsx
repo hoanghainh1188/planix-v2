@@ -4,11 +4,14 @@ import { AcceptInvitationPage } from '../features/organization-access/accept-inv
 import { InvitationsPage } from '../features/organization-access/invitations/InvitationsPage.tsx';
 import { LoginPage } from '../features/organization-access/login/LoginPage.tsx';
 import { MembersPage } from '../features/organization-access/members/MembersPage.tsx';
+import { ProjectMembersPage } from '../features/organization-access/project-members/ProjectMembersPage.tsx';
+import { ProjectsPage } from '../features/organization-access/projects/ProjectsPage.tsx';
 import { OrganizationSwitcher } from '../features/organization-access/organization-switcher/OrganizationSwitcher.tsx';
 import { ConfirmResetPage } from '../features/organization-access/password-reset/ConfirmResetPage.tsx';
 import { RequestResetPage } from '../features/organization-access/password-reset/RequestResetPage.tsx';
 import { PlatformOrganizationsPage } from '../features/organization-access/platform/PlatformOrganizationsPage.tsx';
-import { useActiveRoles, useSession } from './session-context.tsx';
+import { useCan } from '../shared/authorization/useCan.ts';
+import { useSession } from './session-context.tsx';
 
 function RequireSession() {
   const { session, loading } = useSession();
@@ -22,15 +25,16 @@ function RequireSession() {
 function AppLayout() {
   const { t } = useTranslation();
   const { session } = useSession();
-  const roles = useActiveRoles();
+  const canInvite = useCan('org.member.invite');
   return (
     <div className="app-layout">
       <header>
         <strong>{t('common.appName')}</strong>
         {session?.activeOrganizationId && (
           <nav aria-label={t('nav.label')} className="app-nav">
+            <NavLink to="/projects">{t('nav.projects')}</NavLink>
             <NavLink to="/org/members">{t('nav.members')}</NavLink>
-            {roles.has('admin') && <NavLink to="/org/invitations">{t('nav.invitations')}</NavLink>}
+            {canInvite && <NavLink to="/org/invitations">{t('nav.invitations')}</NavLink>}
           </nav>
         )}
         <OrganizationSwitcher />
@@ -82,6 +86,8 @@ export const router = createBrowserRouter([
               { path: '/', element: <Home /> },
               { path: '/org/members', element: <MembersPage /> },
               { path: '/org/invitations', element: <InvitationsPage /> },
+              { path: '/projects', element: <ProjectsPage /> },
+              { path: '/projects/:projectId/members', element: <ProjectMembersPage /> },
             ],
           },
         ],

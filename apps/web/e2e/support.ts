@@ -98,3 +98,65 @@ export async function seedOrganizationWithAdmin(label: string): Promise<SeededAd
   }
   return { ...seeded, ...ids };
 }
+
+export interface SeededMember {
+  readonly membershipId: string;
+  readonly email: string;
+  readonly password: string;
+}
+
+/** Adds a user with the given system roles to an existing organization (owner role). */
+export async function seedMember(
+  organizationId: string,
+  roles: readonly string[],
+  label = 'member',
+): Promise<SeededMember> {
+  const { default: pg } = await import('pg');
+  const { PasswordHasher } = await import('../../server/src/shared/auth/password-hasher.ts');
+  const email = `${label}.${Date.now()}${Math.floor(Math.random() * 1000)}@e2e.test`;
+  const password = 'harbor-lantern-e2e';
+  const pool = new pg.Pool({ connectionString: state().databaseUrl, max: 1 });
+  try {
+    const user = await pool.query<{ id: string }>(
+      "INSERT INTO app_user (email, password_hash, locale) VALUES ($1, $2, 'en') RETURNING id",
+      [email, await new PasswordHasher().hash(password)],
+    );
+    const membership = await pool.query<{ id: string }>(
+      'INSERT INTO organization_membership (organization_id, user_id) VALUES ($1, $2) RETURNING id',
+      [organizationId, user.rows[0]!.id],
+    );
+    for (const role of roles) {
+      await pool.query('INSERT INTO membership_role (organization_id, membership_id, role) VALUES ($1, $2, $3)', [
+        organizationId,
+        membership.rows[0]!.id,
+        role,
+      ]);
+    }
+    return { membershipId: membership.rows[0]!.id, email, password };
+  } finally {
+    await pool.end();
+  }
+}
+
+/** Creates a project whose creator is its member and Accountable (owner role). */
+export async function seedProject(organizationId: string, creatorMembershipId: string, name: string): Promise<string> {
+  const { default: pg } = await import('pg');
+  const pool = new pg.Pool({ connectionString: state().databaseUrl, max: 1 });
+  try {
+    const project = await pool.query<{ id: string }>(
+      'INSERT INTO project (organization_id, name, created_by_membership_id) VALUES ($1, $2, $3) RETURNING id',
+      [organizationId, name, creatorMembershipId],
+    );
+    const member = await pool.query<{ id: string }>(
+      'INSERT INTO project_member (organization_id, project_id, membership_id) VALUES ($1, $2, $3) RETURNING id',
+      [organizationId, project.rows[0]!.id, creatorMembershipId],
+    );
+    await pool.query(
+      "INSERT INTO raci_assignment (organization_id, project_id, project_member_id, raci_role) VALUES ($1, $2, $3, 'accountable')",
+      [organizationId, project.rows[0]!.id, member.rows[0]!.id],
+    );
+    return project.rows[0]!.id;
+  } finally {
+    await pool.end();
+  }
+}

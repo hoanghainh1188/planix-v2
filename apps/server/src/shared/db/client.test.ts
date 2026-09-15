@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createDatabase,
   DEFAULT_APP_POOL_MAX,
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_IDLE_IN_TRANSACTION_TIMEOUT_MS,
   DEFAULT_STATEMENT_TIMEOUT_MS,
 } from './client.ts';
@@ -51,6 +52,19 @@ describe('createDatabase timeouts (security review: stuck transactions)', () => 
       statement_timeout: 2_000,
       idle_in_transaction_session_timeout: 5_000,
     });
+    await db.close();
+  });
+});
+
+describe('createDatabase connection wait (security review: pool deadlock)', () => {
+  it('bounds how long a request waits for a free connection on every pool', async () => {
+    const db = createDatabase(urls);
+    expect(DEFAULT_CONNECTION_TIMEOUT_MS).toBe(10_000);
+    for (const pool of [db.ownerPool, db.appPool, db.platformPool]) {
+      expect(
+        (pool as unknown as { options: { connectionTimeoutMillis?: number } }).options.connectionTimeoutMillis,
+      ).toBe(10_000);
+    }
     await db.close();
   });
 });
