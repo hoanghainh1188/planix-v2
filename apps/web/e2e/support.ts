@@ -55,6 +55,8 @@ export async function withinBudget<T>(label: string, budgetMs: number, journey: 
 }
 
 export interface SeededAdmin {
+  readonly organizationId: string;
+  readonly membershipId: string;
   readonly organizationName: string;
   readonly email: string;
   readonly password: string;
@@ -62,6 +64,7 @@ export interface SeededAdmin {
 
 /** Seeds an organization with one admin straight into the database (owner role), for journeys after onboarding. */
 export async function seedOrganizationWithAdmin(label: string): Promise<SeededAdmin> {
+  let ids: { organizationId: string; membershipId: string };
   const { default: pg } = await import('pg');
   const { PasswordHasher } = await import('../../server/src/shared/auth/password-hasher.ts');
   const suffix = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
@@ -89,8 +92,9 @@ export async function seedOrganizationWithAdmin(label: string): Promise<SeededAd
       organization.rows[0]!.id,
       membership.rows[0]!.id,
     ]);
+    ids = { organizationId: organization.rows[0]!.id, membershipId: membership.rows[0]!.id };
   } finally {
     await pool.end();
   }
-  return seeded;
+  return { ...seeded, ...ids };
 }
