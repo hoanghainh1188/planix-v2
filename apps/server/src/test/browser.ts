@@ -34,6 +34,10 @@ export class Browser {
     );
   }
 
+  async delete(path: string): Promise<Response> {
+    return this.#absorb(await api(this.app).delete(`/api/v1${path}`).set(this.#headers()));
+  }
+
   /** Obtains the anonymous CSRF cookie, as the web app does on load. */
   async open(): Promise<this> {
     await this.get('/auth/session');
