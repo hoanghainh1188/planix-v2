@@ -38,9 +38,14 @@ export class ProjectsRepository {
     return rows[0]?.id;
   }
 
+  /**
+   * Locks the membership FOR SHARE until the transaction ends: a concurrent deactivation (which locks it FOR UPDATE)
+   * either finishes first — the row is re-checked and no longer active — or waits and then removes the new project
+   * member (code review: add vs deactivate race).
+   */
   async isActiveMembership(tx: Tx, organizationId: string, membershipId: string): Promise<boolean> {
     const { rowCount } = await tx.client.query(
-      "SELECT 1 FROM organization_membership WHERE organization_id = $1 AND id = $2 AND status = 'active'",
+      "SELECT 1 FROM organization_membership WHERE organization_id = $1 AND id = $2 AND status = 'active' FOR SHARE",
       [organizationId, membershipId],
     );
     return rowCount === 1;
