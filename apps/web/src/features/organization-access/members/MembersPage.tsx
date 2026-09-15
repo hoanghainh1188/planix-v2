@@ -5,6 +5,7 @@ import type { SystemRole } from '@planix/core/features/organization-access/roles
 import type { MemberView } from '@planix/core/features/organization-access/schemas/members.ts';
 import { useActiveRoles, useSession } from '../../../app/session-context.tsx';
 import { ErrorMessage } from '../../../shared/ui/ErrorMessage.tsx';
+import { LoadingStatus } from '../../../shared/ui/LoadingStatus.tsx';
 import { RoleCheckboxes, useRoleList } from '../roles/RoleCheckboxes.tsx';
 
 const MEMBERS_KEY = ['org', 'members'];
@@ -45,7 +46,9 @@ export function MembersPage() {
     <section aria-labelledby="members-heading">
       <h1 id="members-heading">{t('members.title')}</h1>
       <ErrorMessage error={members.error ?? saveRoles.error ?? changeStatus.error} />
-      {members.data && (
+      {members.isPending && <LoadingStatus />}
+      {members.data?.items.length === 0 && <p className="hint">{t('members.empty')}</p>}
+      {members.data && members.data.items.length > 0 && (
         <table className="data-table">
           <thead>
             <tr>

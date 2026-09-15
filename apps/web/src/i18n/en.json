@@ -110,7 +110,8 @@
     "deactivate": "Deactivate",
     "deactivateFor": "Deactivate {{email}}",
     "reactivate": "Reactivate",
-    "reactivateFor": "Reactivate {{email}}"
+    "reactivateFor": "Reactivate {{email}}",
+    "empty": "No members yet."
   },
   "invitations": {
     "title": "Invitations",
@@ -127,6 +128,7 @@
       "accepted": "Accepted",
       "revoked": "Revoked",
       "expired": "Expired"
-    }
+    },
+    "empty": "No invitations yet."
   }
 }

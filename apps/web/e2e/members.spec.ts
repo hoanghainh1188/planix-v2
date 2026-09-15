@@ -83,3 +83,27 @@ test.describe.serial('members and system roles (Q4, Q5, Q10)', () => {
     await expect(member.getByRole('alert')).toHaveCount(0);
   });
 });
+
+test.describe('members and invitations page states (code review)', () => {
+  test('shows loading while the list is on its way and an empty message when there is nothing yet', async ({
+    page,
+  }) => {
+    const fresh = await seedOrganizationWithAdmin('Gamma');
+    await signIn(page, fresh.email, fresh.password);
+
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route('**/api/v1/org/members', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto('/org/members');
+    await expect(page.getByRole('status')).toContainText('Loading');
+    release();
+    await expect(page.getByRole('cell', { name: fresh.email, exact: true })).toBeVisible();
+    await expect(page.getByRole('status')).toHaveCount(0);
+
+    await page.goto('/org/invitations');
+    await expect(page.getByText('No invitations yet.')).toBeVisible();
+  });
+});

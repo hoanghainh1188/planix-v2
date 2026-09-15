@@ -110,7 +110,8 @@
     "deactivate": "Vô hiệu hoá",
     "deactivateFor": "Vô hiệu hoá {{email}}",
     "reactivate": "Kích hoạt lại",
-    "reactivateFor": "Kích hoạt lại {{email}}"
+    "reactivateFor": "Kích hoạt lại {{email}}",
+    "empty": "Chưa có thành viên nào."
   },
   "invitations": {
     "title": "Lời mời",
@@ -127,6 +128,7 @@
       "accepted": "Đã chấp nhận",
       "revoked": "Đã thu hồi",
       "expired": "Đã hết hạn"
-    }
+    },
+    "empty": "Chưa có lời mời nào."
   }
 }

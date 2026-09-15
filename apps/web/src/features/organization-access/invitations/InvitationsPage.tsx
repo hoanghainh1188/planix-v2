@@ -6,6 +6,7 @@ import type { InvitationView } from '@planix/core/features/organization-access/s
 import { useSession } from '../../../app/session-context.tsx';
 import { formatDateTime } from '../../../shared/time/format-date-time.ts';
 import { ErrorMessage } from '../../../shared/ui/ErrorMessage.tsx';
+import { LoadingStatus } from '../../../shared/ui/LoadingStatus.tsx';
 import { RoleCheckboxes, useRoleList } from '../roles/RoleCheckboxes.tsx';
 
 const INVITATIONS_KEY = ['org', 'invitations'];
@@ -65,7 +66,9 @@ export function InvitationsPage() {
           {t('invitations.send')}
         </button>
       </form>
-      {invitations.data && (
+      {invitations.isPending && <LoadingStatus />}
+      {invitations.data?.items.length === 0 && <p className="hint">{t('invitations.empty')}</p>}
+      {invitations.data && invitations.data.items.length > 0 && (
         <table className="data-table">
           <thead>
             <tr>
