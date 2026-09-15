@@ -163,11 +163,11 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T069 [US2] **GREEN** `FEAT_SRV/auth/{auth.module.ts,auth.controller.ts,auth.service.ts}`: `POST /auth/login`, `POST /auth/logout`, `GET /auth/session`, `PUT /auth/session/active-organization` theo `contracts/api.md` §Xác thực cho T061, T062
 - [X] T070 [US2] **GREEN** `FEAT_SRV/auth/{password-reset.controller.ts,password-reset.service.ts}` cho T063
 - [X] T071 [US2] CLI `apps/server/src/ops/grant-operator.ts` + script `npm run ops:grant-operator -- --email <email>` (tạo `platform_operator_grant`, `granted_by` = user OS, audit `actor_kind = system`) (R11)
-- [ ] T072 [P] [US2] Web `FEAT_WEB/login/LoginPage.tsx` + khoá i18n `login.*` (vi, en); lỗi hiển thị qua `errors.<CODE>`
-- [ ] T073 [P] [US2] Web `FEAT_WEB/accept-invitation/AcceptInvitationPage.tsx` (tạo mật khẩu hoặc yêu cầu đăng nhập đúng email) + khoá i18n
-- [ ] T074 [P] [US2] Web `FEAT_WEB/password-reset/{RequestResetPage.tsx,ConfirmResetPage.tsx}` + khoá i18n
-- [ ] T075 [P] [US2] Web `FEAT_WEB/organization-switcher/OrganizationSwitcher.tsx` (chọn tổ chức sau đăng nhập, chuyển tổ chức, xoá cache TanStack Query khi chuyển)
-- [ ] T076 [P] [US2] Web `FEAT_WEB/platform/PlatformOrganizationsPage.tsx` (tạo tổ chức, gửi lại lời mời Admin)
+- [X] T072 [P] [US2] Web `FEAT_WEB/login/LoginPage.tsx` + khoá i18n `login.*` (vi, en); lỗi hiển thị qua `errors.<CODE>`
+- [X] T073 [P] [US2] Web `FEAT_WEB/accept-invitation/AcceptInvitationPage.tsx` (tạo mật khẩu hoặc yêu cầu đăng nhập đúng email) + khoá i18n
+- [X] T074 [P] [US2] Web `FEAT_WEB/password-reset/{RequestResetPage.tsx,ConfirmResetPage.tsx}` + khoá i18n
+- [X] T075 [P] [US2] Web `FEAT_WEB/organization-switcher/OrganizationSwitcher.tsx` (chọn tổ chức sau đăng nhập, chuyển tổ chức, xoá cache TanStack Query khi chuyển)
+- [X] T076 [P] [US2] Web `FEAT_WEB/platform/PlatformOrganizationsPage.tsx` (tạo tổ chức, gửi lại lời mời Admin)
 - [ ] T077 [US2] E2E Playwright `apps/web/e2e/onboarding.spec.ts` (Q1 → Q2, Q11) và `apps/web/e2e/password-reset.spec.ts` (Q14) dùng Mailpit; đo thời gian bằng thao tác tự động và fail nếu Operator tạo tổ chức + gửi lời mời > 2 phút, chấp nhận lời mời (kể cả tạo tài khoản) > 2 phút, chuyển tổ chức > 5 giây (SC-003 — sửa sau `/speckit-analyze` G1)
 
 **Checkpoint**: US2 chạy độc lập — có tổ chức, Admin đăng nhập được; Q1, Q2, Q11–Q14 xanh.

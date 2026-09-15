@@ -29,5 +29,55 @@
     "ALREADY_PROJECT_MEMBER": "Người này đã là thành viên của dự án.",
     "NOT_PROJECT_MEMBER": "Người này chưa là thành viên của dự án.",
     "INTERNAL_ERROR": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  },
+  "login": {
+    "title": "Đăng nhập Planix",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "submit": "Đăng nhập",
+    "forgotPassword": "Quên mật khẩu?"
+  },
+  "invitation": {
+    "title": "Tham gia {{organizationName}}",
+    "invitedEmail": "Lời mời gửi tới {{email}}.",
+    "choosePassword": "Đặt mật khẩu cho tài khoản mới",
+    "signInAs": "Tài khoản {{email}} đã tồn tại. Hãy đăng nhập bằng email này để chấp nhận lời mời.",
+    "accept": "Chấp nhận lời mời"
+  },
+  "passwordReset": {
+    "requestTitle": "Quên mật khẩu",
+    "requestSubmit": "Gửi liên kết đặt lại",
+    "requestSent": "Nếu email có tài khoản, chúng tôi đã gửi liên kết đặt lại mật khẩu. Liên kết hết hạn sau 1 giờ.",
+    "backToLogin": "Quay lại đăng nhập",
+    "confirmTitle": "Đặt mật khẩu mới",
+    "newPassword": "Mật khẩu mới",
+    "confirmSubmit": "Lưu mật khẩu mới",
+    "confirmDone": "Đã đổi mật khẩu. Mọi phiên đăng nhập cũ đã bị đăng xuất."
+  },
+  "passwordRules": {
+    "hint": "Tối thiểu 12 ký tự; không dùng mật khẩu phổ biến.",
+    "MIN_LENGTH_12": "Mật khẩu cần tối thiểu 12 ký tự.",
+    "COMMON_PASSWORD": "Mật khẩu này quá phổ biến."
+  },
+  "organization": {
+    "active": "Tổ chức",
+    "placeholder": "Chọn tổ chức…",
+    "chooseTitle": "Chọn tổ chức để làm việc",
+    "none": "Bạn chưa là thành viên của tổ chức nào."
+  },
+  "platform": {
+    "title": "Quản lý tổ chức (Platform Operator)",
+    "createTitle": "Tạo tổ chức mới",
+    "organizationName": "Tên tổ chức",
+    "firstAdminEmail": "Email quản trị viên đầu tiên",
+    "create": "Tạo và gửi lời mời",
+    "status": "Trạng thái",
+    "createdAt": "Ngày tạo",
+    "activeAdmins": "Quản trị viên",
+    "resendInvitation": "Gửi lại lời mời",
+    "statuses": {
+      "active": "Hoạt động",
+      "suspended": "Tạm ngưng"
+    }
   }
 }

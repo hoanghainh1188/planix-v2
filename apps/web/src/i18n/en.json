@@ -29,5 +29,55 @@
     "ALREADY_PROJECT_MEMBER": "This person is already a project member.",
     "NOT_PROJECT_MEMBER": "This person is not a project member.",
     "INTERNAL_ERROR": "Something went wrong. Please try again."
+  },
+  "login": {
+    "title": "Sign in to Planix",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "forgotPassword": "Forgot your password?"
+  },
+  "invitation": {
+    "title": "Join {{organizationName}}",
+    "invitedEmail": "This invitation was sent to {{email}}.",
+    "choosePassword": "Choose a password for your new account",
+    "signInAs": "An account for {{email}} already exists. Sign in with that email to accept.",
+    "accept": "Accept invitation"
+  },
+  "passwordReset": {
+    "requestTitle": "Forgot password",
+    "requestSubmit": "Send reset link",
+    "requestSent": "If this email has an account, we sent a password reset link. It expires in 1 hour.",
+    "backToLogin": "Back to sign in",
+    "confirmTitle": "Choose a new password",
+    "newPassword": "New password",
+    "confirmSubmit": "Save new password",
+    "confirmDone": "Your password was changed and all previous sessions were signed out."
+  },
+  "passwordRules": {
+    "hint": "At least 12 characters; avoid common passwords.",
+    "MIN_LENGTH_12": "The password needs at least 12 characters.",
+    "COMMON_PASSWORD": "This password is too common."
+  },
+  "organization": {
+    "active": "Organization",
+    "placeholder": "Choose an organization…",
+    "chooseTitle": "Choose an organization to work in",
+    "none": "You are not a member of any organization yet."
+  },
+  "platform": {
+    "title": "Organizations (Platform Operator)",
+    "createTitle": "Create an organization",
+    "organizationName": "Organization name",
+    "firstAdminEmail": "First admin email",
+    "create": "Create and send invitation",
+    "status": "Status",
+    "createdAt": "Created",
+    "activeAdmins": "Admins",
+    "resendInvitation": "Resend invitation",
+    "statuses": {
+      "active": "Active",
+      "suspended": "Suspended"
+    }
   }
 }
