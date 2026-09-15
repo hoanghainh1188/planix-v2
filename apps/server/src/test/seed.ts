@@ -39,3 +39,38 @@ export async function seedMembership(
   }
   return membershipId;
 }
+
+export async function seedProject(db: Database, organizationId: string, creatorMembershipId: string): Promise<string> {
+  const { rows } = await db.ownerPool.query<{ id: string }>(
+    "INSERT INTO project (organization_id, name, created_by_membership_id) VALUES ($1, 'Seed project', $2) RETURNING id",
+    [organizationId, creatorMembershipId],
+  );
+  return rows[0]!.id;
+}
+
+export async function seedProjectMember(
+  db: Database,
+  organizationId: string,
+  projectId: string,
+  membershipId: string,
+  raciRoles: readonly string[] = [],
+): Promise<string> {
+  const { rows } = await db.ownerPool.query<{ id: string }>(
+    'INSERT INTO project_member (organization_id, project_id, membership_id) VALUES ($1, $2, $3) RETURNING id',
+    [organizationId, projectId, membershipId],
+  );
+  const projectMemberId = rows[0]!.id;
+  for (const role of raciRoles) {
+    await db.ownerPool.query(
+      'INSERT INTO raci_assignment (organization_id, project_id, project_member_id, raci_role) VALUES ($1, $2, $3, $4)',
+      [organizationId, projectId, projectMemberId, role],
+    );
+  }
+  return projectMemberId;
+}
+
+export async function seedOperator(db: Database): Promise<string> {
+  const userId = await seedUser(db);
+  await db.ownerPool.query("INSERT INTO platform_operator_grant (user_id, granted_by) VALUES ($1, 'test')", [userId]);
+  return userId;
+}
