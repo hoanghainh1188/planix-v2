@@ -46,33 +46,74 @@ function resolve(schema: z.ZodType): { policy: SensitiveFieldPolicy | undefined;
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** Returns a copy of `value` with every sensitive key the caller may not read removed (key deleted, not nulled). */
-export function stripSensitive<T>(schema: z.ZodType, value: T, can: PermissionCheck): T {
-  return strip(schema, value, can) as T;
+/**
+ * Returns a copy of `value` shaped by `schema`: only keys the schema declares are kept (undeclared keys such as extra
+ * columns of a raw row are dropped for every caller), and every sensitive key the caller may not read is removed
+ * (key deleted, not nulled).
+ */
+export function stripSensitive<T>(schema: z.ZodType, value: T, can: PermissionCheck, options: StripOptions = {}): T {
+  return strip(schema, value, can, options.undeclaredKeys ?? 'drop') as T;
 }
 
-function strip(schema: z.ZodType, value: unknown, can: PermissionCheck): unknown {
+export interface StripOptions {
+  /**
+   * `drop` (default, API responses): keys the schema does not declare are removed. `keep`: only for internal copies
+   * whose schema describes part of the value — audit snapshots and log redaction, which remove secrets separately.
+   */
+  readonly undeclaredKeys?: 'drop' | 'keep';
+}
+
+function strip(schema: z.ZodType, value: unknown, can: PermissionCheck, undeclared: 'drop' | 'keep'): unknown {
   const { core } = resolve(schema);
   const def = defOf(core);
   if (def.type === 'array' && def.element && Array.isArray(value)) {
     const element = def.element;
-    return value.map((item) => strip(element, item, can));
+    return value.map((item) => strip(element, item, can, undeclared));
   }
   if (def.type === 'object' && def.shape && isPlainObject(value)) {
     const result: Record<string, unknown> = {};
     for (const [key, fieldValue] of Object.entries(value)) {
       const fieldSchema = def.shape[key];
       if (fieldSchema === undefined) {
-        result[key] = fieldValue;
+        if (undeclared === 'keep') result[key] = fieldValue;
         continue;
       }
       const { policy } = resolve(fieldSchema);
       if (policy !== undefined && !can(policy.read)) continue;
-      result[key] = strip(fieldSchema, fieldValue, can);
+      result[key] = strip(fieldSchema, fieldValue, can, undeclared);
     }
     return result;
   }
   return value;
+}
+
+type ErrorParamValue = string | number | boolean;
+
+const isErrorParamValue = (value: unknown): value is ErrorParamValue =>
+  ['string', 'number', 'boolean'].includes(typeof value);
+
+/**
+ * Error params on a route with a sensitive response schema (security review, option A): the schema does not describe
+ * error params, so only primitives and arrays of strings are kept (never nested objects — that is where a row or
+ * DTO would hide), and a top-level key the schema marks sensitive is kept only when the caller may read it.
+ */
+export function stripSensitiveErrorParams(
+  schema: z.ZodType,
+  params: Readonly<Record<string, unknown>>,
+  can: PermissionCheck,
+): Record<string, ErrorParamValue | readonly string[]> {
+  const def = defOf(resolve(schema).core);
+  const result: Record<string, ErrorParamValue | readonly string[]> = {};
+  for (const [key, paramValue] of Object.entries(params)) {
+    const fieldSchema = def.type === 'object' ? def.shape?.[key] : undefined;
+    const policy = fieldSchema === undefined ? undefined : resolve(fieldSchema).policy;
+    if (policy !== undefined && !can(policy.read)) continue;
+    if (isErrorParamValue(paramValue)) result[key] = paramValue;
+    else if (Array.isArray(paramValue) && paramValue.every((item) => typeof item === 'string')) {
+      result[key] = paramValue;
+    }
+  }
+  return result;
 }
 
 /** Dot-paths of sensitive fields present in `input` that the caller may not write. */

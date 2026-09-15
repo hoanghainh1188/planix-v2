@@ -4,7 +4,7 @@ import { AUDIT_WRITER, type AuditWriter } from '../shared/audit/audit-writer.ts'
 import type { AuthenticatedRequest } from '../shared/auth/session.guard.ts';
 import { RequireAction } from '../shared/authorization/require-action.decorator.ts';
 import { requireRequestTransaction } from '../shared/db/request-transaction.ts';
-import { DomainError } from '../shared/errors/domain-error.ts';
+import { DomainError, type ErrorParams } from '../shared/errors/domain-error.ts';
 import { parseBody } from '../shared/http/parse-body.ts';
 import { RequestSchema, ResponseSchema } from '../shared/sensitive-field/sensitive-field.decorators.ts';
 import { SampleFinancialDto, SampleFinancialList, SampleFinancialUpdate } from './sample-financial.dto.ts';
@@ -54,6 +54,23 @@ class SampleFinancialController {
   @ResponseSchema(SampleFinancialDto)
   failing(@Param('projectId') projectId: string): never {
     throw new DomainError('VALIDATION_FAILED', { ...this.store.get(projectId) });
+  }
+
+  /** Returns a "raw row" with a column the response schema does not declare (security review item 1). */
+  @Get('raw')
+  @RequireAction('project.read')
+  @ResponseSchema(SampleFinancialDto)
+  raw(@Param('projectId') projectId: string) {
+    return { ...this.store.get(projectId), internalCostBasis: '750.0000' };
+  }
+
+  /** An error carrying a whole row in its params next to legitimate primitive params. */
+  @Get('error-with-row')
+  @RequireAction('project.read')
+  @ResponseSchema(SampleFinancialDto)
+  failingWithRow(@Param('projectId') projectId: string): never {
+    const params = { projectIds: [projectId], row: { ...this.store.get(projectId) } };
+    throw new DomainError('ACCOUNTABLE_REQUIRED', params as unknown as ErrorParams);
   }
 
   @Put()

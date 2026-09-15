@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { findSensitiveWrites, sensitive, stripSensitive, type PermissionCheck } from './sensitive-field.ts';
+import {
+  findSensitiveWrites,
+  sensitive,
+  stripSensitive,
+  stripSensitiveErrorParams,
+  type PermissionCheck,
+} from './sensitive-field.ts';
 
 const financial = sensitive('sensitive.financial.read', 'sensitive.financial.write');
 
@@ -73,5 +79,53 @@ describe('sensitive fields (FR-025)', () => {
   it('reports nothing when writes are allowed or absent', () => {
     expect(findSensitiveWrites(Budget, { name: 'x', budgetAtCompletion: '1.0000' }, allow)).toEqual([]);
     expect(findSensitiveWrites(Budget, { name: 'x' }, deny)).toEqual([]);
+  });
+
+  it('keeps only keys declared by the schema, for every caller (security review: raw rows)', () => {
+    const raw = {
+      ...value,
+      internalCostBasis: '750.0000',
+      lines: [{ label: 'A', amount: '10.0000', costCenter: 'CC-1' }],
+      owner: { billingRate: '25.5000', salary: '9000.0000' },
+    };
+    for (const can of [allow, deny]) {
+      const stripped = stripSensitive(Budget, raw, can);
+      expect(stripped).not.toHaveProperty('internalCostBasis');
+      expect(stripped.lines[0]).not.toHaveProperty('costCenter');
+      expect(stripped.owner).not.toHaveProperty('salary');
+    }
+    expect(stripSensitive(Budget, raw, allow)).toEqual({ ...value, lines: [{ label: 'A', amount: '10.0000' }] });
+  });
+});
+
+describe('sensitive values in error params (security review, option A)', () => {
+  const params = {
+    projectIds: ['p1', 'p2'],
+    rule: 'MIN_LENGTH_12',
+    count: 2,
+    confirmed: false,
+    name: 'Website',
+    budgetAtCompletion: '1000.0000',
+    row: { budgetAtCompletion: '1000.0000' },
+    rows: [{ billingRate: '25.5000' }],
+    missing: null,
+    counts: [1, 2],
+  };
+
+  it('keeps primitives and string arrays; drops sensitive keys the caller cannot read, nested values, null and other arrays', () => {
+    expect(stripSensitiveErrorParams(Budget, params, deny)).toEqual({
+      projectIds: ['p1', 'p2'],
+      rule: 'MIN_LENGTH_12',
+      count: 2,
+      confirmed: false,
+      name: 'Website',
+    });
+  });
+
+  it('keeps a readable sensitive primitive but never nested objects or arrays of objects', () => {
+    const allowed = stripSensitiveErrorParams(Budget, params, allow);
+    expect(allowed).toMatchObject({ budgetAtCompletion: '1000.0000', projectIds: ['p1', 'p2'] });
+    expect(allowed).not.toHaveProperty('row');
+    expect(allowed).not.toHaveProperty('rows');
   });
 });

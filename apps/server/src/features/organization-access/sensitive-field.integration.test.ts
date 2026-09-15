@@ -100,4 +100,21 @@ describe('sensitive fields end to end over HTTP (FR-025, FR-026, FR-028, SC-005,
     const raw = JSON.stringify(rows);
     for (const value of ['1000.0000', '2500.5', '9999.0000']) expect(raw).not.toContain(value);
   });
+
+  it('never returns keys the response schema does not declare, whoever asks (security review)', async () => {
+    for (const caller of [finance, member]) {
+      const raw = await caller.browser.get(`${samplePath()}/raw`);
+      expect(raw.status).toBe(200);
+      expect(raw.text).not.toContain('internalCostBasis');
+      expect(raw.text).not.toContain('750.0000');
+    }
+  });
+
+  it('keeps primitive error params but drops nested rows from error bodies, whoever asks (option A)', async () => {
+    for (const caller of [finance, member]) {
+      const error = await caller.browser.get(`${samplePath()}/error-with-row`);
+      expect(error.status).toBe(409);
+      expect(error.body.error).toEqual({ code: 'ACCOUNTABLE_REQUIRED', params: { projectIds: [projectId] } });
+    }
+  });
 });

@@ -41,7 +41,8 @@ function withoutForbiddenKeys(value: unknown): unknown {
 
 function sanitize(value: unknown, schema: z.ZodType | undefined): string | null {
   if (value === undefined) return null;
-  const withoutSensitive = schema === undefined ? value : stripSensitive(schema, value, () => false);
+  const withoutSensitive =
+    schema === undefined ? value : stripSensitive(schema, value, () => false, { undeclaredKeys: 'keep' });
   return JSON.stringify(withoutForbiddenKeys(withoutSensitive));
 }
 
