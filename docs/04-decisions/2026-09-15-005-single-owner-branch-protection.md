@@ -11,7 +11,9 @@
   - **Giữ nguyên:** bắt buộc qua Pull Request (không push thẳng `main`); required status check **`quality-gate`** phải
     xanh; `CODEOWNERS` vẫn giữ để tự gắn reviewer.
   - Thay cho review của người thứ hai: mỗi PR phải có bằng chứng review của pipeline `/design-to-code`
-    (code-reviewer, glossary-steward, security-reviewer, test gate) ghi trong mô tả PR.
+    (code-reviewer, glossary-steward, security-reviewer, test gate) ghi trong mô tả PR. **CI cưỡng chế** (security review
+    Phase 11): bước đầu của job `quality-gate` chạy `.github/scripts/check-review-evidence.py` (có test), fail nếu mô tả
+    thiếu một trong các mục đó hoặc chỉ có checkbox chưa tick; chạy lại khi sửa mô tả PR (`pull_request: edited`).
   - **Phạm vi / hết hiệu lực:** chỉ áp dụng khi dự án có đúng một Code Owner. Khi có Code Owner thứ hai → bật lại
     "Require review from Code Owners" và approvals = 1, rồi đánh dấu decision này là đã thay thế.
   - Constitution không bị sửa ở đây; nếu muốn đưa ngoại lệ này vào chính constitution thì làm **PR riêng** theo quy
