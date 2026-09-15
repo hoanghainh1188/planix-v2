@@ -12,9 +12,16 @@ const CODE_BY_HTTP_STATUS: Readonly<Partial<Record<number, ErrorCode>>> = {
   [HttpStatus.TOO_MANY_REQUESTS]: 'RATE_LIMITED',
 };
 
-/** Body parser errors are plain errors carrying `status` (e.g. 413 `entity.too.large`), not HttpExceptions. */
-const isBodyTooLarge = (exception: unknown): boolean =>
-  typeof exception === 'object' && exception !== null && (exception as { type?: unknown }).type === 'entity.too.large';
+/**
+ * Body parser errors are plain errors carrying `type` and `status` (e.g. 413 `entity.too.large`, 415
+ * `charset.unsupported`), not HttpExceptions. Nest turns only SyntaxError/URIError into 400 by itself.
+ */
+function bodyParserErrorStatus(exception: unknown): number | undefined {
+  if (typeof exception !== 'object' || exception === null) return undefined;
+  const { type, status } = exception as { type?: unknown; status?: unknown };
+  if (typeof type !== 'string' || typeof status !== 'number') return undefined;
+  return status >= 400 && status < 500 ? status : undefined;
+}
 
 /** Global filter: every error leaves the API as a stable code (contracts/api.md), never a message or stack. */
 @Catch()
@@ -39,7 +46,10 @@ export class DomainErrorFilter implements ExceptionFilter {
       const code = CODE_BY_HTTP_STATUS[exception.getStatus()];
       if (code !== undefined) return { status: httpStatusOf(code), code, params: {} };
     }
-    if (isBodyTooLarge(exception)) return { status: 413, code: 'PAYLOAD_TOO_LARGE', params: {} };
+    const bodyStatus = bodyParserErrorStatus(exception);
+    if (bodyStatus === HttpStatus.PAYLOAD_TOO_LARGE) return { status: 413, code: 'PAYLOAD_TOO_LARGE', params: {} };
+    // Other client-side body errors (unsupported charset or encoding…) have no code of their own in the contract.
+    if (bodyStatus !== undefined) return { status: 400, code: 'VALIDATION_FAILED', params: {} };
     return { status: 500, code: 'INTERNAL_ERROR', params: {} };
   }
 }

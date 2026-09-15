@@ -83,3 +83,27 @@ describe('request body limit (T124, decision 2026-09-15-005-payload-too-large)',
     expect(response.body.error.code).not.toBe('PAYLOAD_TOO_LARGE');
   });
 });
+
+describe('other client-side body errors (code review Phase 11)', () => {
+  it('answers 400 VALIDATION_FAILED, not 500, when the body parser refuses the charset', async () => {
+    const response = await api(app)
+      .post('/api/v1/auth/login')
+      .set('Origin', TEST_APP_BASE_URL)
+      .set('Content-Type', 'application/json; charset=latin1')
+      .send(JSON.stringify({ email: 'a@acme.test', password: 'x' }));
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: { code: 'VALIDATION_FAILED', params: {} } });
+  });
+
+  it('answers 400 VALIDATION_FAILED for malformed JSON', async () => {
+    const response = await api(app)
+      .post('/api/v1/auth/login')
+      .set('Origin', TEST_APP_BASE_URL)
+      .set('Content-Type', 'application/json')
+      .send('{"email": ');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: { code: 'VALIDATION_FAILED', params: {} } });
+  });
+});

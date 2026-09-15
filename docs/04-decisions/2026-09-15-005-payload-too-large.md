@@ -11,6 +11,9 @@
     log body.
   - Cập nhật: `contracts/api.md` (danh sách mã lỗi), `packages/core` error codes, `DomainErrorFilter`, bản dịch web
     vi + en.
+- Bổ sung 2026-09-15 (code review Phase 11, chọn b): các lỗi 4xx khác của body parser (VD 415 `charset.unsupported`,
+  `encoding.unsupported`) trả **400 `VALIDATION_FAILED`** thay vì 500 `INTERNAL_ERROR`; không thêm mã lỗi mới. JSON sai
+  cú pháp đã được Nest tự chuyển thành 400.
 - Phương án bị loại: B2 — trả 413 kèm `VALIDATION_FAILED` (không thêm mã, nhưng mã gợi ý sai rằng dữ liệu nhập không
   hợp lệ, trong khi nguyên nhân là kích thước).
 - Người quyết định: @hoanghainh1188 (chọn phương án B1)
