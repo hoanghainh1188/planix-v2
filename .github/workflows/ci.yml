@@ -39,3 +39,14 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker-image:
+    # The demo is deployed from this Dockerfile; a broken image should fail the PR, not the deploy.
+    # Skipped when only the PR description was edited.
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the demo image (decision 2026-09-15-018-demo-deploy)
+        run: docker build -t planix-demo:ci .
