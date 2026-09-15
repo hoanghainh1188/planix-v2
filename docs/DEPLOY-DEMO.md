@@ -83,7 +83,8 @@ tạo tổ chức demo. Tài khoản đã tồn tại thì dùng `--confirm` tha
 
 ## 5. Kiểm sau deploy đầu tiên
 
-- **`trust proxy` (#14):** `render.yaml` đặt `TRUST_PROXY_HOPS=2` (kiểm trên demo 2026-09-16). Mỗi response đăng nhập
+- **`trust proxy` (#14):** `render.yaml` đặt `TRUST_PROXY_HOPS=1` — **chưa đúng hoàn toàn** (kiểm 2026-09-16: khoá
+  bucket là IP proxy nội bộ xoay vòng; `2` còn tệ hơn), đang chờ đọc chuỗi header thật. Mỗi response đăng nhập
   có header `ratelimit-policy: … pk=<mã khoá bucket>` và `ratelimit: … r=<lượt còn lại>`. Gửi vài request **không**
   kèm `X-Forwarded-For`, rồi vài request kèm IP giả khác nhau, và so `pk`:
   ```bash
