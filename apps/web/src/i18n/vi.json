@@ -10,6 +10,7 @@
   "errors": {
     "AUTH_REQUIRED": "Vui lòng đăng nhập để tiếp tục.",
     "AUTH_INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng.",
+    "PAYLOAD_TOO_LARGE": "Dữ liệu gửi lên quá lớn. Vui lòng rút gọn rồi thử lại.",
     "RATE_LIMITED": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
     "CSRF_INVALID": "Phiên làm việc không hợp lệ. Vui lòng tải lại trang.",
     "ACTIVE_ORGANIZATION_REQUIRED": "Vui lòng chọn tổ chức để tiếp tục.",

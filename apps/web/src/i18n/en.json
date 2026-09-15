@@ -10,6 +10,7 @@
   "errors": {
     "AUTH_REQUIRED": "Please sign in to continue.",
     "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "PAYLOAD_TOO_LARGE": "The data sent is too large. Please shorten it and try again.",
     "RATE_LIMITED": "Too many attempts. Please try again in a few minutes.",
     "CSRF_INVALID": "Your session is no longer valid. Please reload the page.",
     "ACTIVE_ORGANIZATION_REQUIRED": "Please choose an organization to continue.",
