@@ -44,15 +44,22 @@ export function SessionProvider({ api = createApiClient(), children }: { api?: A
     retry: false,
   });
   const { i18n } = useTranslation();
-  const savedLocale = query.data?.user.locale;
-  const appliedLocale = useRef<string | undefined>(undefined);
+  const signedInUser = query.data?.user;
+  const savedLocale = signedInUser?.locale;
+  // "user:locale" last applied; reset on sign-out so the next user's saved language always applies.
+  const applied = useRef<string | undefined>(undefined);
   // The language saved on the account applies when it loads or changes (research R9: stored on app_user) — only
   // then, so a language the user just picked is not reverted while its save is still in flight.
   useEffect(() => {
-    if (savedLocale === undefined || appliedLocale.current === savedLocale) return;
-    appliedLocale.current = savedLocale;
+    if (signedInUser === undefined || savedLocale === undefined) {
+      applied.current = undefined;
+      return;
+    }
+    const key = `${signedInUser.id}:${savedLocale}`;
+    if (applied.current === key) return;
+    applied.current = key;
     if (i18n.language !== savedLocale) void i18n.changeLanguage(savedLocale);
-  }, [savedLocale, i18n]);
+  }, [signedInUser, savedLocale, i18n]);
 
   return (
     <SessionContext.Provider
