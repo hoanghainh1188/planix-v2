@@ -21,7 +21,7 @@ export function replaceRaciRoles(
 }
 
 /** One-step replacement of the Accountable by an active project member (decision single-accountable-per-project). */
-export function planAccountableTransfer(
+export function planAccountableChange(
   project: { readonly accountableProjectMemberId: string },
   candidate: { readonly projectMemberId: string; readonly status: 'active' | 'removed' | 'none' },
 ):

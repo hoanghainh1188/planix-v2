@@ -1,9 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Principal } from '@planix/core/features/organization-access/principal.ts';
-import {
-  planAccountableTransfer,
-  replaceRaciRoles,
-} from '@planix/core/features/organization-access/raci-invariants.ts';
+import { planAccountableChange, replaceRaciRoles } from '@planix/core/features/organization-access/raci-invariants.ts';
 import type { RaciRole } from '@planix/core/features/organization-access/roles.ts';
 import type {
   AccountableChange,
@@ -77,7 +74,7 @@ export class RaciService {
     const previous = await this.projects.accountable(tx, projectId);
     if (previous === undefined) throw new Error(`Project ${projectId} has no Accountable`);
     const active = await AccountableLocks.lockActiveCandidate(tx, projectId, projectMemberId);
-    const plan = planAccountableTransfer(
+    const plan = planAccountableChange(
       { accountableProjectMemberId: previous.projectMemberId },
       { projectMemberId, status: active ? 'active' : 'none' },
     );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasExactlyOneAccountable, planAccountableTransfer, replaceRaciRoles } from './raci-invariants.ts';
+import { hasExactlyOneAccountable, planAccountableChange, replaceRaciRoles } from './raci-invariants.ts';
 
 describe('RACI invariants (FR-020, decision single-accountable-per-project)', () => {
   describe('replacing responsible/consulted/informed', () => {
@@ -29,20 +29,20 @@ describe('RACI invariants (FR-020, decision single-accountable-per-project)', ()
   describe('changing the Accountable', () => {
     it('replaces the Accountable in one step', () => {
       expect(
-        planAccountableTransfer({ accountableProjectMemberId: 'pm-1' }, { projectMemberId: 'pm-2', status: 'active' }),
+        planAccountableChange({ accountableProjectMemberId: 'pm-1' }, { projectMemberId: 'pm-2', status: 'active' }),
       ).toEqual({ ok: true, previousProjectMemberId: 'pm-1', currentProjectMemberId: 'pm-2', changed: true });
     });
 
     it('is a no-op when the candidate already is the Accountable', () => {
       expect(
-        planAccountableTransfer({ accountableProjectMemberId: 'pm-1' }, { projectMemberId: 'pm-1', status: 'active' }),
+        planAccountableChange({ accountableProjectMemberId: 'pm-1' }, { projectMemberId: 'pm-1', status: 'active' }),
       ).toMatchObject({ ok: true, changed: false });
     });
 
     it('refuses a candidate who is not an active project member', () => {
       for (const status of ['removed', 'none'] as const) {
         expect(
-          planAccountableTransfer({ accountableProjectMemberId: 'pm-1' }, { projectMemberId: 'pm-2', status }),
+          planAccountableChange({ accountableProjectMemberId: 'pm-1' }, { projectMemberId: 'pm-2', status }),
         ).toEqual({ ok: false, code: 'NOT_PROJECT_MEMBER' });
       }
     });
