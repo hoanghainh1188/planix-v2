@@ -9,10 +9,18 @@ export interface RoleCredentials {
   readonly platformPassword: string;
 }
 
-/** Applies hand-written SQL migrations in filename order as the owner role, once each. */
+/** Session advisory lock key shared by every migrator of this database ("planix migrate"). */
+const MIGRATION_LOCK_KEY = 7_420_311_118_018;
+
+/**
+ * Applies hand-written SQL migrations in filename order as the owner role, once each. Holds a session advisory lock
+ * for the whole run: during a deploy the old and new container may both start and migrate (decision
+ * 2026-09-15-018-demo-deploy); the second waits, then finds nothing left to apply.
+ */
 export async function migrate(ownerPool: pg.Pool, credentials: RoleCredentials): Promise<string[]> {
   const client = await ownerPool.connect();
   const applied: string[] = [];
+  await client.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_KEY]);
   try {
     await client.query(
       'CREATE TABLE IF NOT EXISTS schema_migration (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())',
@@ -37,6 +45,7 @@ export async function migrate(ownerPool: pg.Pool, credentials: RoleCredentials):
     await grantLogin(client, credentials);
     return applied;
   } finally {
+    await client.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_KEY]).catch(() => undefined);
     client.release();
   }
 }

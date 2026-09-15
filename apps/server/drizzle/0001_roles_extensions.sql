@@ -15,8 +15,18 @@ END
 $$;
 
 -- Application roles never bypass row-level security and never own tables.
-ALTER ROLE planix_app NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
-ALTER ROLE planix_platform NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+-- NOSUPERUSER is not set here: only a superuser may change that attribute, and managed PostgreSQL (Neon) owners are
+-- not superusers (decision 2026-09-15-018-demo-deploy). A role created by this migration can never be a superuser;
+-- a pre-existing superuser role with the same name is refused instead.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname IN ('planix_app', 'planix_platform') AND rolsuper) THEN
+    RAISE EXCEPTION 'planix_app and planix_platform must not be superusers';
+  END IF;
+END
+$$;
+ALTER ROLE planix_app NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+ALTER ROLE planix_platform NOBYPASSRLS NOCREATEDB NOCREATEROLE;
 
 GRANT USAGE ON SCHEMA public TO planix_app, planix_platform;
 
