@@ -39,22 +39,6 @@ describe('client IP behind the hosting proxy (decision 2026-09-15-018-demo-deplo
     expect((await loginFrom('198.51.100.20')).status).not.toBe(429);
   });
 
-  it('Render (two hops): rotating internal proxy addresses and spoofed entries still map to the real client', async () => {
-    app = await createTestApp({
-      database: db,
-      mailSender: new RecordingMailSender(),
-      rateLimit: { windowMs: 60_000, limit: LIMIT },
-      trustProxyHops: 2,
-    });
-    // Observed on the demo (2026-09-16): with one hop the key rotated over ~3 internal proxy addresses, whatever the
-    // client sent. Chain here: <spoofed by client>, <real client>, <internal proxy, rotating>.
-    for (let i = 0; i < LIMIT; i++) {
-      expect((await loginFrom(`10.0.0.${i + 1}, 203.0.113.7, 172.16.0.${i % 3}`)).status).not.toBe(429);
-    }
-    expect((await loginFrom('10.9.9.9, 203.0.113.7, 172.16.0.2')).status).toBe(429);
-    expect((await loginFrom('198.51.100.20, 172.16.0.1')).status).not.toBe(429);
-  });
-
   it('without TRUST_PROXY_HOPS, X-Forwarded-For is ignored entirely', async () => {
     app = await createTestApp({
       database: db,

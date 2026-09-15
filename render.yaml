@@ -27,9 +27,10 @@ services:
         sync: false
       - key: MAIL_FROM
         value: 'Planix Demo <no-reply@planix-demo.test>'
-      # Two proxies append to X-Forwarded-For before the app (checked on the demo 2026-09-16, #14): with 1 hop the
-      # rate-limit key was a rotating internal proxy address. Re-check with docs/DEPLOY-DEMO.md §5 after changes.
+      # Checked on the demo 2026-09-16 (#14): 1 hop cannot be fooled by a spoofed X-Forwarded-For but keys on a rotating
+      # internal proxy (~3 buckets shared by all users); 2 hops keyed on more proxies (~6). Kept at 1 until the real
+      # header chain is read (docs/DEPLOY-DEMO.md §5).
       - key: TRUST_PROXY_HOPS
-        value: '2'
+        value: '1'
       - key: DATABASE_APP_POOL_MAX
         value: '10'
