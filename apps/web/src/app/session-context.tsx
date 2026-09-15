@@ -51,15 +51,6 @@ export function SessionProvider({ api = createApiClient(), children }: { api?: A
   );
 }
 
-/** System roles held in the active organization (used only to shape the UI; the API enforces permissions). */
-export function useActiveRoles(): ReadonlySet<string> {
-  const { session } = useSession();
-  const membership = session?.memberships.find(
-    (m) => m.organizationId === session.activeOrganizationId && m.status === 'active',
-  );
-  return new Set(membership?.roles ?? []);
-}
-
 export function useSession(): SessionState {
   const state = useContext(SessionContext);
   if (state === undefined) throw new Error('useSession must be used inside SessionProvider');

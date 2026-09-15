@@ -5,6 +5,7 @@ import { useParams } from 'react-router';
 import type { MemberView } from '@planix/core/features/organization-access/schemas/members.ts';
 import type { ProjectDetail, ProjectMemberView } from '@planix/core/features/organization-access/schemas/projects.ts';
 import { useSession } from '../../../app/session-context.tsx';
+import { useCan } from '../../../shared/authorization/useCan.ts';
 import { ApiError } from '../../../shared/api/client.ts';
 import { ErrorMessage } from '../../../shared/ui/ErrorMessage.tsx';
 import { LoadingStatus } from '../../../shared/ui/LoadingStatus.tsx';
@@ -17,6 +18,8 @@ export function ProjectMembersPage() {
   const queryClient = useQueryClient();
   const [membershipId, setMembershipId] = useState('');
   const membersKey = ['projects', projectId, 'members'];
+  // The page only renders for project members: GET /projects/{id} answered 200 (project.read is project-scoped).
+  const canManage = useCan('project.member.manage', { membership: 'active' });
 
   const project = useQuery({
     queryKey: ['projects', projectId],
@@ -32,7 +35,7 @@ export function ProjectMembersPage() {
   const organizationMembers = useQuery({
     queryKey: ['org', 'members', 'active'],
     queryFn: () => api.get<{ items: MemberView[] }>('/org/members?status=active'),
-    enabled: project.isSuccess,
+    enabled: project.isSuccess && canManage,
     retry: false,
   });
 
@@ -72,23 +75,25 @@ export function ProjectMembersPage() {
       <p className="hint">{t('projectMembers.accountable', { email: project.data.accountable.email })}</p>
       <h2>{t('projectMembers.title')}</h2>
       <ErrorMessage error={members.error ?? remove.error} />
-      <form className="inline-form" onSubmit={submit}>
-        <label className="field">
-          {t('projectMembers.organizationMember')}
-          <select value={membershipId} onChange={(e) => setMembershipId(e.target.value)}>
-            <option value="">{t('projectMembers.choose')}</option>
-            {candidates.map((m) => (
-              <option key={m.membershipId} value={m.membershipId}>
-                {m.email}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button className="button" type="submit" disabled={add.isPending || membershipId === ''}>
-          {t('projectMembers.add')}
-        </button>
-        <ErrorMessage error={add.error} />
-      </form>
+      {canManage && (
+        <form className="inline-form" onSubmit={submit}>
+          <label className="field">
+            {t('projectMembers.organizationMember')}
+            <select value={membershipId} onChange={(e) => setMembershipId(e.target.value)}>
+              <option value="">{t('projectMembers.choose')}</option>
+              {candidates.map((m) => (
+                <option key={m.membershipId} value={m.membershipId}>
+                  {m.email}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="button" type="submit" disabled={add.isPending || membershipId === ''}>
+            {t('projectMembers.add')}
+          </button>
+          <ErrorMessage error={add.error} />
+        </form>
+      )}
       {members.isPending && <LoadingStatus />}
       {members.data && (
         <table className="data-table">
@@ -96,7 +101,7 @@ export function ProjectMembersPage() {
             <tr>
               <th>{t('projectMembers.email')}</th>
               <th>{t('projectMembers.raciRoles')}</th>
-              <th>{t('members.actions')}</th>
+              {canManage && <th>{t('members.actions')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -104,17 +109,19 @@ export function ProjectMembersPage() {
               <tr key={member.projectMemberId}>
                 <td>{member.email}</td>
                 <td>{member.raciRoles.map((role) => t(`raci.${role}`)).join(', ')}</td>
-                <td>
-                  <button
-                    className="button button-secondary"
-                    type="button"
-                    disabled={remove.isPending}
-                    aria-label={t('projectMembers.removeFor', { email: member.email })}
-                    onClick={() => remove.mutate(member.projectMemberId)}
-                  >
-                    {t('projectMembers.remove')}
-                  </button>
-                </td>
+                {canManage && (
+                  <td>
+                    <button
+                      className="button button-secondary"
+                      type="button"
+                      disabled={remove.isPending}
+                      aria-label={t('projectMembers.removeFor', { email: member.email })}
+                      onClick={() => remove.mutate(member.projectMemberId)}
+                    >
+                      {t('projectMembers.remove')}
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

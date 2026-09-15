@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { ProjectView } from '@planix/core/features/organization-access/schemas/projects.ts';
 import { useSession } from '../../../app/session-context.tsx';
+import { useCan } from '../../../shared/authorization/useCan.ts';
 import { formatDateTime } from '../../../shared/time/format-date-time.ts';
 import { ErrorMessage } from '../../../shared/ui/ErrorMessage.tsx';
 import { LoadingStatus } from '../../../shared/ui/LoadingStatus.tsx';
@@ -15,6 +16,7 @@ export function ProjectsPage() {
   const { t, i18n } = useTranslation();
   const { api, session } = useSession();
   const queryClient = useQueryClient();
+  const canCreate = useCan('project.create');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -45,21 +47,23 @@ export function ProjectsPage() {
     <section aria-labelledby="projects-heading">
       <h1 id="projects-heading">{t('projects.title')}</h1>
       <ErrorMessage error={projects.error} />
-      <form className="panel" onSubmit={submit} noValidate>
-        <h2>{t('projects.createTitle')}</h2>
-        <ErrorMessage error={create.error} />
-        <label className="field">
-          {t('projects.name')}
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} required />
-        </label>
-        <label className="field">
-          {t('projects.description')}
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={5000} rows={3} />
-        </label>
-        <button className="button" type="submit" disabled={create.isPending}>
-          {t('projects.create')}
-        </button>
-      </form>
+      {canCreate && (
+        <form className="panel" onSubmit={submit} noValidate>
+          <h2>{t('projects.createTitle')}</h2>
+          <ErrorMessage error={create.error} />
+          <label className="field">
+            {t('projects.name')}
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} required />
+          </label>
+          <label className="field">
+            {t('projects.description')}
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={5000} rows={3} />
+          </label>
+          <button className="button" type="submit" disabled={create.isPending}>
+            {t('projects.create')}
+          </button>
+        </form>
+      )}
       {projects.isPending && <LoadingStatus />}
       {projects.data?.items.length === 0 && <p className="hint">{t('projects.empty')}</p>}
       {projects.data && projects.data.items.length > 0 && (

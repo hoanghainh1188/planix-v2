@@ -252,7 +252,7 @@ hiệu lực ngay; từ chối được ghi audit.
 - [X] T101 [US6] **RED** `FEAT_SRV/permission-change-immediacy.integration.test.ts`: gỡ vai trò / xoá khỏi dự án / vô hiệu hoá rồi gửi ngay request kế tiếp → 0 request lẽ ra bị từ chối lại được phép (SC-004)
 - [X] T102 [US6] **GREEN** Ghi audit từ chối trong `apps/server/src/shared/authorization/authorization.guard.ts` và hoàn thiện `project-target.resolver.ts` (không cache) cho T100, T101
 - [X] T103 [P] [US6] **RED** `apps/web/src/shared/authorization/useCan.test.ts`: kết quả khớp ma trận `packages/core` cho các tổ hợp vai trò × thành viên dự án
-- [ ] T104 [US6] **GREEN** `apps/web/src/shared/authorization/useCan.ts`: dùng ma trận từ `packages/core` để **ẩn** thao tác không được phép; server vẫn là nơi quyết định — làm T103 xanh
+- [X] T104 [US6] **GREEN** `apps/web/src/shared/authorization/useCan.ts`: dùng ma trận từ `packages/core` để **ẩn** thao tác không được phép; server vẫn là nơi quyết định — làm T103 xanh
 
 **Checkpoint**: SC-002 và SC-004 được chứng minh ở mức API.
 
@@ -321,7 +321,7 @@ hiệu lực ngay; từ chối được ghi audit.
 - [ ] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh
 - [ ] T126 Chạy `npm run lint`, `npm run test -- --coverage` (≥ 80%), `npm run build`; thiếu coverage → bổ sung test cho nhánh chưa phủ (Nguyên tắc IV)
 - [ ] T127 Chạy toàn bộ `quickstart.md` Q1–Q18 trên môi trường dev; gotcha phát hiện → append `docs/05-lessons.md`; phần cảm nhận người dùng thật của SC-003 kiểm thủ công
-- [ ] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin)
+- [X] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin)
 
 ---
 
