@@ -51,6 +51,15 @@ trước khi đặt tên biến / field / API / bảng liên quan nghiệp vụ.
 | Lãnh đạo danh mục | Portfolio Lead | | `portfolioLead` | Giá trị của `role`; khác `portfolio` (thực thể) | FR-011, OI-03 |
 | Thành viên (vai trò hệ thống) | Member | | `member` | Giá trị mặc định của `role` | FR-011, OI-03 |
 | Tài chính (vai trò hệ thống) | Finance | | `finance` | Giá trị của `role`; được xem trường tài chính nhạy cảm | FR-011, OI-03 |
+| Khoá đăng nhập tạm thời | Login Lockout | | `loginLockout` | Khoá 15 phút sau 5 lần đăng nhập sai liên tiếp; bộ đếm về 0 khi hết khoá hoặc đăng nhập đúng | FR-006 |
+| Chính sách mật khẩu | Password Policy | | `passwordPolicy` | Tối thiểu 12 ký tự, chặn mật khẩu phổ biến; không bắt buộc ký tự đặc biệt | FR-006 |
+| Quyền Người vận hành nền tảng | Platform Operator Grant | | `platformOperatorGrant` | Gán tư cách Platform Operator cho một user; không gắn `organizationId` | FR-004 |
+| Ma trận quyền | Permission Matrix | | `permissionMatrix` | Bảng Action → vai trò được phép + điều kiện cấp dự án | FR-013, contracts/authorization.md |
+| Hành động (ma trận quyền) | Action | | `action` | Mã hành động được khai báo trong ma trận quyền, VD `org.member.invite`; mọi route phải khai báo | FR-013, contracts/authorization.md |
+| Chủ thể yêu cầu | Principal | | `principal` | Danh tính người gọi trong tổ chức đang hoạt động (vai trò, trạng thái membership) — đầu vào của `decide` | contracts/authorization.md |
+| Đối tượng kiểm tra quyền | Target | | `target` | Đối tượng bị tác động (`organization` hoặc `project`, kèm tư cách thành viên/RACI) | contracts/authorization.md |
+| Quyết định quyền | Decision | | `decision` | Kết quả của `decide`: cho phép, hoặc từ chối kèm lý do (mặc định từ chối) | FR-014, contracts/authorization.md |
+| Lý do từ chối | Deny Reason | | `denyReason` | Mã lý do khi `decide` từ chối, VD `MEMBERSHIP_INACTIVE` | contracts/authorization.md |
 
 ## TASK — Tác nghiệp
 
