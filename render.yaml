@@ -27,8 +27,9 @@ services:
         sync: false
       - key: MAIL_FROM
         value: 'Planix Demo <no-reply@planix-demo.test>'
-      # Render's load balancer appends the client address to X-Forwarded-For; verify after the first deploy (#14).
+      # Two proxies append to X-Forwarded-For before the app (checked on the demo 2026-09-16, #14): with 1 hop the
+      # rate-limit key was a rotating internal proxy address. Re-check with docs/DEPLOY-DEMO.md §5 after changes.
       - key: TRUST_PROXY_HOPS
-        value: '1'
+        value: '2'
       - key: DATABASE_APP_POOL_MAX
         value: '10'
