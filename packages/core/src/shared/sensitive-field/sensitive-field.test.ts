@@ -5,6 +5,7 @@ import {
   sensitive,
   stripSensitive,
   stripSensitiveErrorParams,
+  unsupportedSchemaPaths,
   type PermissionCheck,
 } from './sensitive-field.ts';
 
@@ -127,5 +128,61 @@ describe('sensitive values in error params (security review, option A)', () => {
     expect(allowed).toMatchObject({ budgetAtCompletion: '1000.0000', projectIds: ['p1', 'p2'] });
     expect(allowed).not.toHaveProperty('row');
     expect(allowed).not.toHaveProperty('rows');
+  });
+});
+
+describe('sensitive fields inside unions, records and pipes (security review item 2)', () => {
+  const FinancialLine = z.object({ kind: z.literal('financial'), budgetAtCompletion: financial(z.string()) });
+  const TextLine = z.object({ kind: z.literal('text'), note: z.string() });
+
+  it.each([
+    ['union', z.union([FinancialLine, TextLine])],
+    ['discriminated union', z.discriminatedUnion('kind', [FinancialLine, TextLine])],
+  ])('strips and blocks writes through a %s', (_label, schema) => {
+    const line = { kind: 'financial', budgetAtCompletion: '10.0000' };
+    expect(stripSensitive(schema, line, deny)).toEqual({ kind: 'financial' });
+    expect(stripSensitive(schema, line, allow)).toEqual(line);
+    expect(stripSensitive(schema, { kind: 'text', note: 'n', extra: 'x' }, deny)).toEqual({ kind: 'text', note: 'n' });
+    expect(findSensitiveWrites(schema, line, deny)).toEqual(['budgetAtCompletion']);
+    expect(findSensitiveWrites(schema, { kind: 'text', note: 'n' }, deny)).toEqual([]);
+  });
+
+  it('strips and blocks writes through a record of objects', () => {
+    const Rates = z.object({
+      rates: z.record(z.string(), z.object({ billingRate: financial(z.string()), label: z.string() })),
+    });
+    const input = {
+      rates: { r1: { billingRate: '25.5000', label: 'Dev' }, r2: { billingRate: '30.0000', label: 'QA' } },
+    };
+    expect(stripSensitive(Rates, input, deny)).toEqual({ rates: { r1: { label: 'Dev' }, r2: { label: 'QA' } } });
+    expect(stripSensitive(Rates, input, allow)).toEqual(input);
+    expect(findSensitiveWrites(Rates, input, deny)).toEqual(['rates.r1.billingRate', 'rates.r2.billingRate']);
+  });
+
+  it('strips and blocks writes through pipe and transform', () => {
+    const Piped = z.object({ budgetAtCompletion: financial(z.string()), name: z.string() }).transform((v) => v);
+    const input = { budgetAtCompletion: '1.0000', name: 'x' };
+    expect(stripSensitive(Piped, input, deny)).toEqual({ name: 'x' });
+    expect(findSensitiveWrites(Piped, input, deny)).toEqual(['budgetAtCompletion']);
+    const Wrapped = z.object({ inner: z.string().pipe(z.string()), budgetAtCompletion: financial(z.string()) });
+    expect(stripSensitive(Wrapped, { inner: 'a', budgetAtCompletion: '1' }, deny)).toEqual({ inner: 'a' });
+  });
+
+  it('reports schema nodes the mechanism cannot inspect, by path', () => {
+    const Node: z.ZodType = z.lazy(() => z.object({ budgetAtCompletion: financial(z.string()) }));
+    const Unsupported = z.object({
+      tree: Node,
+      both: z.intersection(z.object({ a: z.string() }), z.object({ b: z.string() })),
+      pair: z.tuple([z.string()]),
+      lines: z.array(z.map(z.string(), z.string())),
+      ok: z.record(z.string(), z.union([z.string(), z.object({ c: z.string() })])),
+    });
+    expect(unsupportedSchemaPaths(Unsupported)).toEqual([
+      'tree (lazy)',
+      'both (intersection)',
+      'pair (tuple)',
+      'lines.[] (map)',
+    ]);
+    expect(unsupportedSchemaPaths(Budget)).toEqual([]);
   });
 });
