@@ -79,5 +79,54 @@
       "active": "Active",
       "suspended": "Suspended"
     }
+  },
+  "nav": {
+    "label": "Main navigation",
+    "members": "Members",
+    "invitations": "Invitations"
+  },
+  "roles": {
+    "admin": "Admin",
+    "portfolioLead": "Portfolio lead",
+    "projectManager": "Project manager",
+    "functionalManager": "Functional manager",
+    "member": "Member",
+    "finance": "Finance"
+  },
+  "members": {
+    "title": "Members",
+    "email": "Email",
+    "status": "Status",
+    "roles": "Roles",
+    "actions": "Actions",
+    "statuses": {
+      "active": "Active",
+      "deactivated": "Deactivated"
+    },
+    "editRoles": "Edit roles",
+    "editRolesFor": "Edit roles for {{email}}",
+    "rolesFor": "Roles for {{email}}",
+    "saveRoles": "Save roles",
+    "deactivate": "Deactivate",
+    "deactivateFor": "Deactivate {{email}}",
+    "reactivate": "Reactivate",
+    "reactivateFor": "Reactivate {{email}}"
+  },
+  "invitations": {
+    "title": "Invitations",
+    "inviteTitle": "Invite a person",
+    "email": "Email",
+    "roles": "Roles",
+    "send": "Send invitation",
+    "status": "Status",
+    "expiresAt": "Expires",
+    "revoke": "Revoke",
+    "revokeFor": "Revoke invitation for {{email}}",
+    "statuses": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "revoked": "Revoked",
+      "expired": "Expired"
+    }
   }
 }

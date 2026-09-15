@@ -79,5 +79,54 @@
       "active": "Hoạt động",
       "suspended": "Tạm ngưng"
     }
+  },
+  "nav": {
+    "label": "Điều hướng chính",
+    "members": "Thành viên",
+    "invitations": "Lời mời"
+  },
+  "roles": {
+    "admin": "Quản trị viên",
+    "portfolioLead": "Lãnh đạo danh mục",
+    "projectManager": "Giám đốc dự án",
+    "functionalManager": "Quản lý chức năng",
+    "member": "Thành viên",
+    "finance": "Tài chính"
+  },
+  "members": {
+    "title": "Thành viên tổ chức",
+    "email": "Email",
+    "status": "Trạng thái",
+    "roles": "Vai trò",
+    "actions": "Thao tác",
+    "statuses": {
+      "active": "Đang hoạt động",
+      "deactivated": "Đã vô hiệu hoá"
+    },
+    "editRoles": "Sửa vai trò",
+    "editRolesFor": "Sửa vai trò của {{email}}",
+    "rolesFor": "Vai trò của {{email}}",
+    "saveRoles": "Lưu vai trò",
+    "deactivate": "Vô hiệu hoá",
+    "deactivateFor": "Vô hiệu hoá {{email}}",
+    "reactivate": "Kích hoạt lại",
+    "reactivateFor": "Kích hoạt lại {{email}}"
+  },
+  "invitations": {
+    "title": "Lời mời",
+    "inviteTitle": "Mời một người",
+    "email": "Email",
+    "roles": "Vai trò",
+    "send": "Gửi lời mời",
+    "status": "Trạng thái",
+    "expiresAt": "Hết hạn",
+    "revoke": "Thu hồi",
+    "revokeFor": "Thu hồi lời mời gửi {{email}}",
+    "statuses": {
+      "pending": "Đang chờ",
+      "accepted": "Đã chấp nhận",
+      "revoked": "Đã thu hồi",
+      "expired": "Đã hết hạn"
+    }
   }
 }

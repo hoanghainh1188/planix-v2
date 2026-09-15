@@ -53,3 +53,44 @@ export async function withinBudget<T>(label: string, budgetMs: number, journey: 
   expect(elapsed, `${label} took ${elapsed} ms (budget ${budgetMs} ms)`).toBeLessThanOrEqual(budgetMs);
   return result;
 }
+
+export interface SeededAdmin {
+  readonly organizationName: string;
+  readonly email: string;
+  readonly password: string;
+}
+
+/** Seeds an organization with one admin straight into the database (owner role), for journeys after onboarding. */
+export async function seedOrganizationWithAdmin(label: string): Promise<SeededAdmin> {
+  const { default: pg } = await import('pg');
+  const { PasswordHasher } = await import('../../server/src/shared/auth/password-hasher.ts');
+  const suffix = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  const seeded = {
+    organizationName: `${label} ${suffix}`,
+    email: `admin.${suffix}@${label.toLowerCase()}-e2e.test`,
+    password: 'harbor-lantern-e2e',
+  };
+  const pool = new pg.Pool({ connectionString: state().databaseUrl, max: 1 });
+  try {
+    const hash = await new PasswordHasher().hash(seeded.password);
+    const user = await pool.query<{ id: string }>(
+      "INSERT INTO app_user (email, password_hash, locale) VALUES ($1, $2, 'en') RETURNING id",
+      [seeded.email, hash],
+    );
+    const organization = await pool.query<{ id: string }>(
+      'INSERT INTO organization (name, created_by_operator_id) VALUES ($1, $2) RETURNING id',
+      [seeded.organizationName, user.rows[0]!.id],
+    );
+    const membership = await pool.query<{ id: string }>(
+      'INSERT INTO organization_membership (organization_id, user_id) VALUES ($1, $2) RETURNING id',
+      [organization.rows[0]!.id, user.rows[0]!.id],
+    );
+    await pool.query("INSERT INTO membership_role (organization_id, membership_id, role) VALUES ($1, $2, 'admin')", [
+      organization.rows[0]!.id,
+      membership.rows[0]!.id,
+    ]);
+  } finally {
+    await pool.end();
+  }
+  return seeded;
+}

@@ -1,12 +1,14 @@
 import { useTranslation } from 'react-i18next';
-import { Navigate, Outlet, createBrowserRouter, useLocation } from 'react-router';
+import { NavLink, Navigate, Outlet, createBrowserRouter, useLocation } from 'react-router';
 import { AcceptInvitationPage } from '../features/organization-access/accept-invitation/AcceptInvitationPage.tsx';
+import { InvitationsPage } from '../features/organization-access/invitations/InvitationsPage.tsx';
 import { LoginPage } from '../features/organization-access/login/LoginPage.tsx';
+import { MembersPage } from '../features/organization-access/members/MembersPage.tsx';
 import { OrganizationSwitcher } from '../features/organization-access/organization-switcher/OrganizationSwitcher.tsx';
 import { ConfirmResetPage } from '../features/organization-access/password-reset/ConfirmResetPage.tsx';
 import { RequestResetPage } from '../features/organization-access/password-reset/RequestResetPage.tsx';
 import { PlatformOrganizationsPage } from '../features/organization-access/platform/PlatformOrganizationsPage.tsx';
-import { useSession } from './session-context.tsx';
+import { useActiveRoles, useSession } from './session-context.tsx';
 
 function RequireSession() {
   const { session, loading } = useSession();
@@ -19,10 +21,18 @@ function RequireSession() {
 
 function AppLayout() {
   const { t } = useTranslation();
+  const { session } = useSession();
+  const roles = useActiveRoles();
   return (
     <div className="app-layout">
       <header>
         <strong>{t('common.appName')}</strong>
+        {session?.activeOrganizationId && (
+          <nav aria-label={t('nav.label')} className="app-nav">
+            <NavLink to="/org/members">{t('nav.members')}</NavLink>
+            {roles.has('admin') && <NavLink to="/org/invitations">{t('nav.invitations')}</NavLink>}
+          </nav>
+        )}
         <OrganizationSwitcher />
       </header>
       <main>
@@ -66,7 +76,14 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: '/platform/organizations', element: <PlatformOrganizationsPage /> },
-          { element: <RequireActiveOrganization />, children: [{ path: '/', element: <Home /> }] },
+          {
+            element: <RequireActiveOrganization />,
+            children: [
+              { path: '/', element: <Home /> },
+              { path: '/org/members', element: <MembersPage /> },
+              { path: '/org/invitations', element: <InvitationsPage /> },
+            ],
+          },
         ],
       },
     ],

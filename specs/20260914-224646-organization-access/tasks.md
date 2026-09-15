@@ -192,9 +192,9 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T082 [US3] **GREEN** `FEAT_CORE/membership-invariants.ts` cho T078
 - [X] T083 [US3] **GREEN** `FEAT_SRV/invitations/org-invitations.controller.ts` + mở rộng `invitation.service.ts` (email theo locale người mời) cho T079
 - [X] T084 [US3] **GREEN** `FEAT_SRV/members/{members.module.ts,members.controller.ts,members.service.ts,members.repository.ts}`: `GET /org/members`, `PUT /org/members/{id}/roles`, `POST .../deactivate`, `POST .../reactivate`; khoá hàng Admin `FOR UPDATE` trong transaction (data-model §membership_role) cho T080, T081
-- [ ] T085 [P] [US3] Web `FEAT_WEB/members/MembersPage.tsx` (danh sách, chọn nhiều vai trò, vô hiệu hoá/kích hoạt lại, hiển thị lỗi theo mã) + khoá i18n
-- [ ] T086 [P] [US3] Web `FEAT_WEB/invitations/InvitationsPage.tsx` (mời, chọn vai trò, thu hồi) + khoá i18n
-- [ ] T087 [US3] E2E `apps/web/e2e/members.spec.ts` (Q4, Q5, Q10)
+- [X] T085 [P] [US3] Web `FEAT_WEB/members/MembersPage.tsx` (danh sách, chọn nhiều vai trò, vô hiệu hoá/kích hoạt lại, hiển thị lỗi theo mã) + khoá i18n
+- [X] T086 [P] [US3] Web `FEAT_WEB/invitations/InvitationsPage.tsx` (mời, chọn vai trò, thu hồi) + khoá i18n
+- [X] T087 [US3] E2E `apps/web/e2e/members.spec.ts` (Q4, Q5, Q10)
 
 **Checkpoint**: US2 + US3 xanh độc lập.
 
