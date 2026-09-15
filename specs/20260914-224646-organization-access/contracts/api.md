@@ -22,13 +22,16 @@ Quy ước chung:
 | PUT | `/auth/session/active-organization` | — | `{ organizationId }` | 200; ghi audit | 404 `RESOURCE_NOT_FOUND` (không là membership active) |
 | POST | `/auth/password-reset/request` | — | `{ email }` | **202 luôn** (email có hay không — FR-008) | 429 |
 | POST | `/auth/password-reset/confirm` | — | `{ token, newPassword }` | 204; huỷ mọi phiên | 400 `PASSWORD_POLICY_VIOLATION { rule }`, 410 `TOKEN_INVALID_OR_EXPIRED` |
-| PATCH | `/me` | — | `{ locale?, timeZone? }` | 200 | 400 `VALIDATION_FAILED` |
+| PATCH | `/me` | — (chỉ cần phiên) | `{ locale?, timeZone? }` | 200 `{ user, memberships[], activeOrganizationId }` (cùng dạng `GET /auth/session`, đã cập nhật) | 400 `VALIDATION_FAILED`, 401 `AUTH_REQUIRED` |
 
 - `memberships[]`: `{ organizationId, organizationName, status, roles[] }` — chỉ tổ chức của chính user.
 - `activeOrganizationId` sau đăng nhập: đúng 1 membership active → tổ chức đó; nhiều → `app_user.last_active_organization_id`
   nếu còn active, không thì `null` (web hiển thị bộ chọn); không có membership active → `null`. Chuyển tổ chức cập
   nhật `last_active_organization_id`.
 - `PASSWORD_POLICY_VIOLATION.rule`: `MIN_LENGTH_12` \| `COMMON_PASSWORD`.
+- `PATCH /me`: `locale` ∈ `vi` \| `en`; `timeZone` là tên IANA dạng `Area/Location` đúng hoa/thường hoặc `UTC` (không
+  nhận `Etc/*`, viết tắt, offset) và được lưu **đúng như gửi**; field bỏ trống giữ nguyên giá trị cũ. Không cần tổ chức
+  đang hoạt động.
 - Đăng nhập khi `locked_until` còn hiệu lực → vẫn 401 `AUTH_INVALID_CREDENTIALS` (không tiết lộ khoá).
 
 ## Lời mời
