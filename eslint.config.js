@@ -53,6 +53,24 @@ export default tseslint.config(
     },
   },
   {
+    // Test-only code (fixtures, sample modules like SampleFinancialModule) must never reach the server runtime.
+    files: ['apps/server/src/**/*.ts'],
+    ignores: ['apps/server/src/test/**', '**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/test/**', './test/*', '../test/*'],
+              message: 'apps/server/src/test is test-only; production server code must not import it.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['apps/web/**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser } },
     plugins: { 'react-hooks': reactHooks },
