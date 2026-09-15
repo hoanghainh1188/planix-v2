@@ -85,9 +85,12 @@ DenyReason = 'MEMBERSHIP_INACTIVE' | 'ACTION_NOT_DECLARED' | 'ROLE_NOT_PERMITTED
 ## 4. Tra cứu Accountable (FR-021)
 
 ```text
-getAccountable(tenant: TenantContext, projectId) -> { projectMemberId, userId }
-isAccountable(tenant: TenantContext, projectId, userId) -> boolean
+getAccountable(tx: Tx, tenant: TenantContext, projectId) -> { projectMemberId, userId }
+isAccountable(tx: Tx, tenant: TenantContext, projectId, userId) -> boolean
 ```
+
+- `tx` là transaction của người gọi (trong request: transaction dùng chung của request) — hàm không mở connection
+  riêng (decision `2026-09-15-005-accountable-query-takes-transaction`, sửa chữ ký cũ `(tenant, projectId)`).
 
 - Luôn có đúng một kết quả cho dự án tồn tại trong tổ chức (decision single Accountable); dự án không tồn tại /
   khác tổ chức → lỗi `RESOURCE_NOT_FOUND`, không trả "chưa có".
