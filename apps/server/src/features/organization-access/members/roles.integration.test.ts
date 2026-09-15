@@ -1,11 +1,18 @@
 import type { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
+import { AuditWriter } from '../../../shared/audit/audit-writer.ts';
+import { systemClock } from '../../../shared/clock/clock.ts';
+import { openTransaction, tenantSettings } from '../../../shared/db/client.ts';
+import { DomainError } from '../../../shared/errors/domain-error.ts';
 import { useTestDatabase } from '../../../test/postgres.ts';
 import { RecordingMailSender } from '../../../test/recording-mail-sender.ts';
 import { seedOrganization } from '../../../test/seed.ts';
 import { signedInMember, type SignedInMember } from '../../../test/signed-in-member.ts';
 import { createTestApp } from '../../../test/test-app.ts';
+import { MembersRepository } from './members.repository.ts';
+import { MembersService } from './members.service.ts';
 
 const db = useTestDatabase();
 let app: INestApplication;
@@ -103,14 +110,54 @@ describe('organization members and system roles (FR-012, FR-014, Q4, Q5)', () =>
   });
 
   it('two admins removing each other at the same time leaves exactly one admin', async () => {
+    for (let round = 0; round < 5; round++) {
+      organizationId = await seedOrganization(db, 'Acme');
+      const first = await signedInMember(app, db, organizationId, ['admin']);
+      const second = await signedInMember(app, db, organizationId, ['admin']);
+      const results = await Promise.all([
+        first.browser.put(`/org/members/${second.membershipId}/roles`, { roles: ['member'] }),
+        second.browser.put(`/org/members/${first.membershipId}/roles`, { roles: ['member'] }),
+      ]);
+      expect(results.filter((r) => r.status === 200)).toHaveLength(1);
+      // The loser is refused either by the admin lock (both authorized before either committed) or, if the winner
+      // committed first, already at authorization because it is no longer an admin.
+      const loser = results.find((r) => r.status !== 200)!;
+      expect([
+        { status: 409, code: 'LAST_ADMIN_REQUIRED' },
+        { status: 403, code: 'FORBIDDEN' },
+      ]).toContainEqual({ status: loser.status, code: loser.body.error.code });
+      expect(await activeAdminCount()).toBe(1);
+    }
+  });
+
+  it('a removal waiting on the admin lock sees the committed removal and refuses (FR-014)', async () => {
     const second = await signedInMember(app, db, organizationId, ['admin']);
-    const results = await Promise.all([
-      admin.browser.put(`/org/members/${second.membershipId}/roles`, { roles: ['member'] }),
-      second.browser.put(`/org/members/${admin.membershipId}/roles`, { roles: ['member'] }),
-    ]);
-    const statuses = results.map((r) => r.status).sort();
-    expect(statuses).toEqual([200, 409]);
-    expect(results.find((r) => r.status === 409)?.body.error.code).toBe('LAST_ADMIN_REQUIRED');
+    const service = new MembersService(systemClock, new AuditWriter(), new MembersRepository());
+    const principal = (userId: string) => ({
+      userId,
+      organizationId,
+      membershipStatus: 'active' as const,
+      roles: new Set(['admin' as const]),
+    });
+    const settings = tenantSettings(tenantFromVerifiedSession(organizationId));
+    const t1 = await openTransaction(db.appPool, settings);
+    const t2 = await openTransaction(db.appPool, settings);
+    try {
+      await service.assignRoles(t1.tx, principal(admin.userId), second.membershipId, ['member']);
+      let waitingSettled = false;
+      const waiting = service
+        .assignRoles(t2.tx, principal(second.userId), admin.membershipId, ['member'])
+        .finally(() => (waitingSettled = true));
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(waitingSettled).toBe(false);
+      await t1.commit();
+      const error: unknown = await waiting.catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(DomainError);
+      expect((error as DomainError).code).toBe('LAST_ADMIN_REQUIRED');
+    } finally {
+      await t1.rollback();
+      await t2.rollback();
+    }
     expect(await activeAdminCount()).toBe(1);
   });
 

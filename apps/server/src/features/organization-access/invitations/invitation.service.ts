@@ -1,18 +1,32 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { checkPasswordPolicy } from '@planix/core/features/organization-access/password-policy/password-policy.ts';
 import type { SessionPayload } from '@planix/core/features/organization-access/schemas/auth.ts';
+import type { Principal } from '@planix/core/features/organization-access/principal.ts';
+import type { SystemRole } from '@planix/core/features/organization-access/roles.ts';
+import type { InvitationStatus, InvitationView } from '@planix/core/features/organization-access/schemas/members.ts';
 import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
-import { DATABASE } from '../../../shared/app-tokens.ts';
+import { normalizeRoles } from '@planix/core/features/organization-access/membership-invariants.ts';
+import { APP_CONFIG, DATABASE, type AppConfig } from '../../../shared/app-tokens.ts';
 import { AUDIT_WRITER, type AuditWriter } from '../../../shared/audit/audit-writer.ts';
 import { PASSWORD_HASHER, type PasswordHasher } from '../../../shared/auth/password-hasher.ts';
+import { generateToken } from '../../../shared/auth/secure-token.ts';
 import { SESSION_STORE, type SessionStore, type StoredSession } from '../../../shared/auth/session-store.ts';
 import { CLOCK, type ClockPort } from '../../../shared/clock/clock.ts';
 import { withAnonymousTransaction, withTenantTransaction, type Database, type Tx } from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
+import { MAIL_SENDER, type MailSender } from '../../../shared/mail/mail-sender.ts';
+import { INVITATION_TTL_MS } from '../platform/platform.service.ts';
 import { buildSessionPayload, loadUser } from '../session-payload.ts';
-import { INVITATION_REPOSITORY, type InvitationByToken, type InvitationRepository } from './invitation.repository.ts';
+import {
+  INVITATION_REPOSITORY,
+  ORGANIZATION_INVITATION_REPOSITORY,
+  type InvitationByToken,
+  type InvitationRepository,
+  type OrganizationInvitationRepository,
+} from './invitation.repository.ts';
 
 const UNIQUE_VIOLATION = '23505';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface InvitationDescription {
   readonly organizationName: string;
@@ -36,7 +50,92 @@ export class InvitationService {
     @Inject(SESSION_STORE) private readonly sessions: SessionStore,
     @Inject(AUDIT_WRITER) private readonly audit: AuditWriter,
     @Inject(INVITATION_REPOSITORY) private readonly invitations: InvitationRepository,
+    @Inject(ORGANIZATION_INVITATION_REPOSITORY)
+    private readonly organizationInvitations: OrganizationInvitationRepository,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
+    @Inject(MAIL_SENDER) private readonly mail: MailSender,
   ) {}
+
+  /**
+   * Admin invites a person by email (FR-009) inside the request's tenant transaction. A pending invitation for the
+   * same email is revoked first; the email is written in the inviter's locale.
+   */
+  async invite(
+    tx: Tx,
+    principal: Principal,
+    email: string,
+    roles: readonly SystemRole[] = ['member'],
+  ): Promise<InvitationView> {
+    const { organizationId } = principal;
+    const status = await this.organizationInvitations.membershipStatusByEmail(tx, organizationId, email);
+    if (status === 'active') throw new DomainError('ALREADY_MEMBER');
+    if (status === 'deactivated') throw new DomainError('MEMBER_DEACTIVATED_USE_REACTIVATE');
+
+    const now = this.clock.now();
+    const token = generateToken();
+    const normalized = normalizeRoles(roles);
+    await this.organizationInvitations.revokePendingForEmail(tx, organizationId, email);
+    const invitation = await this.organizationInvitations.create(tx, {
+      organizationId,
+      email,
+      roles: normalized,
+      token,
+      expiresAt: new Date(now.getTime() + INVITATION_TTL_MS),
+      invitedByUserId: principal.userId,
+      now,
+    });
+    await this.audit.record(tx, {
+      organizationId,
+      actorUserId: principal.userId,
+      actorKind: 'user',
+      action: 'org.member.invite',
+      targetType: 'organizationInvitation',
+      targetId: invitation.id,
+      outcome: 'succeeded',
+      after: { email, roles: normalized },
+    });
+
+    const { rows } = await tx.client.query<{ organization_name: string; locale: 'vi' | 'en' }>(
+      `SELECT o.name AS organization_name, u.locale
+         FROM organization o CROSS JOIN app_user u WHERE o.id = $1 AND u.id = $2`,
+      [organizationId, principal.userId],
+    );
+    await this.mail.send(email, {
+      kind: 'organizationInvitation',
+      locale: rows[0]?.locale ?? 'vi',
+      organizationName: rows[0]?.organization_name ?? '',
+      acceptUrl: `${this.config.appBaseUrl}/invitations/${token}`,
+    });
+    return invitation;
+  }
+
+  listForOrganization(tx: Tx, principal: Principal, status?: InvitationStatus): Promise<InvitationView[]> {
+    return this.organizationInvitations.list(tx, principal.organizationId, this.clock.now(), status);
+  }
+
+  async revoke(tx: Tx, principal: Principal, invitationId: string): Promise<void> {
+    if (!UUID.test(invitationId)) throw new DomainError('RESOURCE_NOT_FOUND');
+    const invitation = await this.organizationInvitations.lockForRevocation(
+      tx,
+      principal.organizationId,
+      invitationId,
+      this.clock.now(),
+    );
+    if (invitation === undefined) throw new DomainError('RESOURCE_NOT_FOUND');
+    if (invitation.status !== 'pending') throw new DomainError('INVITATION_NOT_PENDING');
+    await this.organizationInvitations.markRevoked(tx, invitationId);
+    await this.audit.record(tx, {
+      organizationId: principal.organizationId,
+      actorUserId: principal.userId,
+      actorKind: 'user',
+      action: 'org.invitation.revoke',
+      targetType: 'organizationInvitation',
+      targetId: invitationId,
+      outcome: 'succeeded',
+      before: { status: 'pending' },
+      after: { status: 'revoked' },
+    });
+  }
 
   async describe(token: string): Promise<InvitationDescription> {
     const invitation = await this.#validInvitation(token);

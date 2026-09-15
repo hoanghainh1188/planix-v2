@@ -43,3 +43,10 @@ export async function commitRequestTransaction(req: object): Promise<void> {
 export async function rollbackRequestTransaction(req: object): Promise<void> {
   await (req as TransactionCarrier)[REQUEST_TRANSACTION]?.rollback();
 }
+
+/** The request's tenant transaction inside an organization-scoped handler; its absence is a wiring bug. */
+export function requireRequestTransaction(req: object): Tx {
+  const tx = requestTransaction(req);
+  if (tx === undefined) throw new Error('Organization route handler called without a request transaction');
+  return tx;
+}
