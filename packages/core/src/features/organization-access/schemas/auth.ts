@@ -24,15 +24,25 @@ export type CreateOrganizationRequest = z.infer<typeof CreateOrganizationRequest
 export const AdminInvitationRequest = z.object({ email });
 export type AdminInvitationRequest = z.infer<typeof AdminInvitationRequest>;
 
-/** An IANA time zone name the runtime knows (e.g. `Asia/Ho_Chi_Minh`, `UTC`); offsets like `UTC+7` are refused. */
+/** `UTC` or an IANA `Area/Location[/Sub]` name with its official capitalization. */
+const IANA_NAME = /^(UTC|[A-Z][A-Za-z]*(\/[A-Z][A-Za-z0-9_+-]*)+)$/;
+
+/**
+ * An IANA time zone name the runtime knows, spelled as IANA does: `UTC` or `Area/Location` (e.g.
+ * `Asia/Ho_Chi_Minh`). Refuses offsets (`UTC+7`), abbreviations (`GMT`, `Zulu`), `Etc/*` and wrong capitalization.
+ * The name is stored as sent — never replaced by the runtime's ICU alias (`Asia/Ho_Chi_Minh` → `Asia/Saigon`
+ * depends on the Node/ICU version).
+ */
 export function isIanaTimeZone(value: string): boolean {
-  if (!/^[A-Za-z][A-Za-z0-9_+-]*(\/[A-Za-z0-9_+-]+)*$/.test(value)) return false;
+  if (!IANA_NAME.test(value) || value.startsWith('Etc/')) return false;
+  let resolved: string;
   try {
-    new Intl.DateTimeFormat('en', { timeZone: value });
-    return true;
+    resolved = new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone;
   } catch {
     return false;
   }
+  // Same zone spelled with other capitalization (e.g. ASIA/TOKYO → Asia/Tokyo) is refused; aliases are fine.
+  return !(resolved.toLowerCase() === value.toLowerCase() && resolved !== value);
 }
 
 export const UpdateMeRequest = z.object({
