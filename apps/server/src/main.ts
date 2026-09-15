@@ -32,6 +32,7 @@ async function bootstrap(): Promise<void> {
   });
   configureApp(app, logger, {
     ...(config.trustProxyHops === undefined ? {} : { trustProxyHops: config.trustProxyHops }),
+    ...(config.webDistDir === undefined ? {} : { webDistDir: config.webDistDir }),
   });
   app.enableShutdownHooks();
   await app.listen(config.port);
