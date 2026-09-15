@@ -321,7 +321,7 @@ hiệu lực ngay; từ chối được ghi audit.
 - [ ] T125 **GREEN** Security hardening trong `apps/server/src/main.ts`: `helmet` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`), tắt `x-powered-by`, giới hạn kích thước body — làm T124 xanh
 - [ ] T126 Chạy `npm run lint`, `npm run test -- --coverage` (≥ 80%), `npm run build`; thiếu coverage → bổ sung test cho nhánh chưa phủ (Nguyên tắc IV)
 - [ ] T127 Chạy toàn bộ `quickstart.md` Q1–Q18 trên môi trường dev; gotcha phát hiện → append `docs/05-lessons.md`; phần cảm nhận người dùng thật của SC-003 kiểm thủ công
-- [X] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin)
+- [X] T128 Ghi chú cho steward trong mô tả PR: thêm required status check `quality-gate` (job CI T013) vào branch protection của `main` (thao tác trên GitHub, cần quyền admin). **Đã làm trực tiếp** thay cho ghi chú: 2026-09-15 khi merge PR #6, thêm `quality-gate` vào required status checks của `main` (cùng lúc đặt approvals = 0, bỏ code owner review vì chỉ có một owner) — @hoanghainh1188 chấp thuận
 
 ---
 
