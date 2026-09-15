@@ -4,22 +4,33 @@ import type { TenantContext } from '@planix/core/shared/tenant-context.ts';
 
 /**
  * Database access (research R3). Three pools, one per role:
- * - owner: migrations only
+ * - owner: migrations and operations commands only, never the running server
  * - app: `planix_app`, all tenant requests (RLS enforced)
  * - platform: `planix_platform`, `/platform/*` only (RLS enforced by its own policies)
  * NUMERIC values stay strings: the default pg type parser is never overridden (constitution Principle I).
  */
-export interface DatabaseUrls {
-  readonly owner: string;
+export interface ApplicationDatabaseUrls {
   readonly app: string;
   readonly platform: string;
 }
 
-export interface Database {
-  readonly ownerPool: pg.Pool;
+export interface DatabaseUrls extends ApplicationDatabaseUrls {
+  readonly owner: string;
+}
+
+/**
+ * What the running server may use: roles that never bypass RLS. The owner (on managed PostgreSQL it can bypass RLS)
+ * is never held by the process serving requests (security review, decision 2026-09-15-018-demo-deploy).
+ */
+export interface ApplicationDatabase {
   readonly appPool: pg.Pool;
   readonly platformPool: pg.Pool;
   close(): Promise<void>;
+}
+
+/** Operations commands (migrate, grant-operator) and tests: application pools plus the owner. */
+export interface Database extends ApplicationDatabase {
+  readonly ownerPool: pg.Pool;
 }
 
 /** Application pool size per server instance; each organization request holds at most one connection (SC-006). */
@@ -49,16 +60,15 @@ function ignoreIdleConnectionErrors(pool: pg.Pool): pg.Pool {
   return pool;
 }
 
-export function createDatabase(urls: DatabaseUrls, options: DatabaseOptions = {}): Database {
-  // Application roles only; migrations (owner) may legitimately run long (security review: stuck transactions).
+export function createApplicationDatabase(
+  urls: ApplicationDatabaseUrls,
+  options: DatabaseOptions = {},
+): ApplicationDatabase {
   const timeouts = {
     statement_timeout: options.statementTimeoutMs ?? DEFAULT_STATEMENT_TIMEOUT_MS,
     idle_in_transaction_session_timeout: options.idleInTransactionTimeoutMs ?? DEFAULT_IDLE_IN_TRANSACTION_TIMEOUT_MS,
   };
   const connectionTimeoutMillis = options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS;
-  const ownerPool = ignoreIdleConnectionErrors(
-    new pg.Pool({ connectionString: urls.owner, max: 2, connectionTimeoutMillis }),
-  );
   const appPool = ignoreIdleConnectionErrors(
     new pg.Pool({
       connectionString: urls.app,
@@ -71,11 +81,27 @@ export function createDatabase(urls: DatabaseUrls, options: DatabaseOptions = {}
     new pg.Pool({ connectionString: urls.platform, max: 5, connectionTimeoutMillis, ...timeouts }),
   );
   return {
-    ownerPool,
     appPool,
     platformPool,
     async close() {
-      await Promise.all([ownerPool.end(), appPool.end(), platformPool.end()]);
+      await Promise.all([appPool.end(), platformPool.end()]);
+    },
+  };
+}
+
+export function createDatabase(urls: DatabaseUrls, options: DatabaseOptions = {}): Database {
+  const application = createApplicationDatabase(urls, options);
+  // Timeouts apply to application roles only; migrations (owner) may legitimately run long.
+  const connectionTimeoutMillis = options.connectionTimeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS;
+  const ownerPool = ignoreIdleConnectionErrors(
+    new pg.Pool({ connectionString: urls.owner, max: 2, connectionTimeoutMillis }),
+  );
+  return {
+    ownerPool,
+    appPool: application.appPool,
+    platformPool: application.platformPool,
+    async close() {
+      await Promise.all([ownerPool.end(), application.close()]);
     },
   };
 }
@@ -159,7 +185,7 @@ export const tenantSettings = (tenant: TenantContext) => ({ 'app.organization_id
 
 /** Runs `work` as `planix_app` scoped to the verified active organization. */
 export function withTenantTransaction<T>(
-  db: Database,
+  db: ApplicationDatabase,
   tenant: TenantContext,
   work: (tx: Tx) => Promise<T>,
 ): Promise<T> {
@@ -167,16 +193,20 @@ export function withTenantTransaction<T>(
 }
 
 /** Runs `work` as `planix_app` with read access to the given user's own memberships only (R3 path 1). */
-export function withUserTransaction<T>(db: Database, userId: string, work: (tx: Tx) => Promise<T>): Promise<T> {
+export function withUserTransaction<T>(
+  db: ApplicationDatabase,
+  userId: string,
+  work: (tx: Tx) => Promise<T>,
+): Promise<T> {
   return inTransaction(db.appPool, { 'app.user_id': userId }, work);
 }
 
 /** Runs `work` as `planix_app` without tenant or user scope (e.g. invitation token lookup, R3 path 2). */
-export function withAnonymousTransaction<T>(db: Database, work: (tx: Tx) => Promise<T>): Promise<T> {
+export function withAnonymousTransaction<T>(db: ApplicationDatabase, work: (tx: Tx) => Promise<T>): Promise<T> {
   return inTransaction(db.appPool, {}, work);
 }
 
 /** Runs `work` as `planix_platform` (R3 path 3). */
-export function withPlatformTransaction<T>(db: Database, work: (tx: Tx) => Promise<T>): Promise<T> {
+export function withPlatformTransaction<T>(db: ApplicationDatabase, work: (tx: Tx) => Promise<T>): Promise<T> {
   return inTransaction(db.platformPool, {}, work);
 }

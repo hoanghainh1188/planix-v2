@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadServerConfig } from './config.ts';
+import { loadOpsDatabaseUrls, loadServerConfig } from './config.ts';
 
 const base = {
   APP_BASE_URL: 'https://app.planix.test',
@@ -54,6 +54,24 @@ describe('server configuration from the environment', () => {
   it('reads the optional directory of the built web app', () => {
     expect(loadServerConfig(base).webDistDir).toBeUndefined();
     expect(loadServerConfig({ ...base, WEB_DIST_DIR: '/app/apps/web/dist' }).webDistDir).toBe('/app/apps/web/dist');
+  });
+
+  it('does not need or keep the database owner URL (security review: owner has BYPASSRLS on managed PostgreSQL)', () => {
+    const { DATABASE_URL_OWNER: _owner, ...withoutOwner } = base;
+    const config = loadServerConfig(withoutOwner);
+    expect(config.databaseUrls).toEqual({ app: base.DATABASE_URL_APP, platform: base.DATABASE_URL_PLATFORM });
+    expect(JSON.stringify(loadServerConfig(base))).not.toContain(base.DATABASE_URL_OWNER);
+  });
+
+  it('requires the owner URL only for operations commands', () => {
+    expect(loadOpsDatabaseUrls(base)).toEqual({
+      owner: base.DATABASE_URL_OWNER,
+      app: base.DATABASE_URL_APP,
+      platform: base.DATABASE_URL_PLATFORM,
+    });
+    expect(() => loadOpsDatabaseUrls({ ...base, DATABASE_URL_OWNER: '' })).toThrow(
+      'Missing required environment variable DATABASE_URL_OWNER',
+    );
   });
 
   it('fails fast when a required variable is missing', () => {

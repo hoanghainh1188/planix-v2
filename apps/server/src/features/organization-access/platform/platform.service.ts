@@ -7,7 +7,7 @@ import {
   withAnonymousTransaction,
   withPlatformTransaction,
   type Tx,
-  type Database,
+  type ApplicationDatabase,
 } from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
 import { MAIL_SENDER, type MailSender } from '../../../shared/mail/mail-sender.ts';
@@ -35,7 +35,7 @@ export interface AdminInvitationView {
 @Injectable()
 export class PlatformService {
   constructor(
-    @Inject(DATABASE) private readonly db: Database,
+    @Inject(DATABASE) private readonly db: ApplicationDatabase,
     @Inject(CLOCK) private readonly clock: ClockPort,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Inject(MAIL_SENDER) private readonly mail: MailSender,

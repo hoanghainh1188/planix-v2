@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import type { Principal } from '@planix/core/features/organization-access/principal.ts';
 import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
 import { DATABASE } from '../app-tokens.ts';
-import type { Database, Tx } from '../db/client.ts';
+import type { ApplicationDatabase, Tx } from '../db/client.ts';
 import { openRequestTransaction, rollbackRequestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PRINCIPAL_LOADER, type PrincipalLoader } from './principal.loader.ts';
@@ -23,7 +23,7 @@ export interface AuthenticatedRequest extends Request {
 export class SessionGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
-    @Inject(DATABASE) private readonly db: Database,
+    @Inject(DATABASE) private readonly db: ApplicationDatabase,
     @Inject(SESSION_STORE) private readonly sessions: SessionStore,
     @Inject(PRINCIPAL_LOADER) private readonly principals: PrincipalLoader,
   ) {}

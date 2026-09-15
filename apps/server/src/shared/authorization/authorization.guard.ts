@@ -7,7 +7,7 @@ import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts
 import { DATABASE } from '../app-tokens.ts';
 import { AUDIT_WRITER, type AuditWriter } from '../audit/audit-writer.ts';
 import type { AuthenticatedRequest } from '../auth/session.guard.ts';
-import { withAnonymousTransaction, withTenantTransaction, type Database } from '../db/client.ts';
+import { withAnonymousTransaction, withTenantTransaction, type ApplicationDatabase } from '../db/client.ts';
 import { requestTransaction, rollbackRequestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PLATFORM_ACTION } from './platform-action.decorator.ts';
@@ -26,7 +26,7 @@ export class AuthorizationGuard implements CanActivate {
 
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
-    @Inject(DATABASE) private readonly db: Database,
+    @Inject(DATABASE) private readonly db: ApplicationDatabase,
     @Inject(PROJECT_TARGET_RESOLVER) private readonly projects: ProjectTargetResolver,
     @Inject(AUDIT_WRITER) private readonly audit: AuditWriter,
   ) {}

@@ -1,5 +1,5 @@
 import type { ClockPort } from '../clock/clock.ts';
-import { withAnonymousTransaction, type Database } from '../db/client.ts';
+import { withAnonymousTransaction, type ApplicationDatabase } from '../db/client.ts';
 import { generateToken, hashToken } from './secure-token.ts';
 
 export const SESSION_IDLE_TIMEOUT_MS = 8 * 60 * 60 * 1000;
@@ -16,7 +16,7 @@ export interface StoredSession {
 /** Server-side sessions (research R4): only SHA-256 digests of the session id and CSRF token are stored. */
 export class SessionStore {
   constructor(
-    private readonly db: Database,
+    private readonly db: ApplicationDatabase,
     private readonly clock: ClockPort,
   ) {}
 

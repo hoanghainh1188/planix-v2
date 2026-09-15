@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DATABASE } from '../app-tokens.ts';
 import { CLOCK, type ClockPort } from '../clock/clock.ts';
-import type { Database } from '../db/client.ts';
+import type { ApplicationDatabase } from '../db/client.ts';
 import { CsrfGuard } from './csrf.guard.ts';
 import { PRINCIPAL_LOADER, PrincipalLoader } from './principal.loader.ts';
 import { SESSION_STORE, SessionStore } from './session-store.ts';
@@ -17,7 +17,7 @@ import { TenantTransactionInterceptor } from './tenant-transaction.interceptor.t
     {
       provide: SESSION_STORE,
       inject: [DATABASE, CLOCK],
-      useFactory: (db: Database, clock: ClockPort) => new SessionStore(db, clock),
+      useFactory: (db: ApplicationDatabase, clock: ClockPort) => new SessionStore(db, clock),
     },
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },

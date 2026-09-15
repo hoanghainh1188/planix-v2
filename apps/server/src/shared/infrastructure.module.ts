@@ -5,11 +5,11 @@ import { PASSWORD_HASHER, PasswordHasher } from './auth/password-hasher.ts';
 import type { RateLimitOptions } from './auth/rate-limit.middleware.ts';
 import { DEFAULT_INVITATION_RATE_LIMIT, INVITATION_RATE_LIMITER, UserRateLimiter } from './auth/user-rate-limit.ts';
 import { CLOCK, systemClock, type ClockPort } from './clock/clock.ts';
-import type { Database } from './db/client.ts';
+import type { ApplicationDatabase } from './db/client.ts';
 import { MAIL_SENDER, type MailSender } from './mail/mail-sender.ts';
 
 export interface InfrastructureOptions {
-  readonly database: Database;
+  readonly database: ApplicationDatabase;
   readonly config: AppConfig;
   readonly mailSender: MailSender;
   readonly clock?: ClockPort;

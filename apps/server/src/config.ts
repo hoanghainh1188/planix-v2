@@ -1,9 +1,10 @@
 import type { AppConfig } from './shared/app-tokens.ts';
-import type { DatabaseUrls } from './shared/db/client.ts';
+import type { ApplicationDatabaseUrls, DatabaseUrls } from './shared/db/client.ts';
 
 export interface ServerConfig {
   readonly app: AppConfig;
-  readonly databaseUrls: DatabaseUrls;
+  /** No owner URL: the server never holds credentials that can bypass RLS (see loadOpsDatabaseUrls). */
+  readonly databaseUrls: ApplicationDatabaseUrls;
   readonly smtpUrl: string;
   readonly mailFrom: string;
   readonly port: number;
@@ -36,7 +37,6 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
   return {
     app: { appBaseUrl: required(env, 'APP_BASE_URL') },
     databaseUrls: {
-      owner: required(env, 'DATABASE_URL_OWNER'),
       app: required(env, 'DATABASE_URL_APP'),
       platform: required(env, 'DATABASE_URL_PLATFORM'),
     },
@@ -49,5 +49,14 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     connectionTimeoutMs: optionalInteger(env, 'DATABASE_CONNECTION_TIMEOUT_MS'),
     trustProxyHops: optionalInteger(env, 'TRUST_PROXY_HOPS'),
     webDistDir: env.WEB_DIST_DIR?.trim() || undefined,
+  };
+}
+
+/** Database URLs for operations commands (migrate, grant-operator), which alone need the owner. */
+export function loadOpsDatabaseUrls(env: NodeJS.ProcessEnv = process.env): DatabaseUrls {
+  return {
+    owner: required(env, 'DATABASE_URL_OWNER'),
+    app: required(env, 'DATABASE_URL_APP'),
+    platform: required(env, 'DATABASE_URL_PLATFORM'),
   };
 }

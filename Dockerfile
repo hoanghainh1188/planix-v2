@@ -39,4 +39,6 @@ USER node
 WORKDIR /app/apps/server
 EXPOSE 3000
 # Migrations take an advisory lock, so an overlapping old/new container during a deploy is safe.
-CMD ["sh", "-c", "node --import tsx src/ops/migrate.ts && exec node --import tsx src/main.ts"]
+# Only the migration step sees DATABASE_URL_OWNER (it can bypass RLS on managed PostgreSQL); the server process that
+# answers requests is started without it and does not read it.
+CMD ["sh", "-c", "node --import tsx src/ops/migrate.ts && exec env -u DATABASE_URL_OWNER node --import tsx src/main.ts"]
