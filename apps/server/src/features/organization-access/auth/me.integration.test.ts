@@ -17,11 +17,14 @@ let admin: SignedInMember;
 
 const ISO_UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
 
-/** Every string that looks like a timestamp anywhere in a JSON body. */
-function timestampsIn(value: unknown): string[] {
-  if (typeof value === 'string') return /^\d{4}-\d{2}-\d{2}T/.test(value) ? [value] : [];
+/** Values of every `…At` field (createdAt, expiresAt…) anywhere in a JSON body, whatever their format. */
+function timestampsIn(value: unknown): unknown[] {
   if (Array.isArray(value)) return value.flatMap(timestampsIn);
-  if (typeof value === 'object' && value !== null) return Object.values(value).flatMap(timestampsIn);
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value).flatMap(([key, nested]) =>
+      /At$/.test(key) ? [nested, ...timestampsIn(nested)] : timestampsIn(nested),
+    );
+  }
   return [];
 }
 

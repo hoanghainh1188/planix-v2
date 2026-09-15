@@ -24,6 +24,23 @@ export type CreateOrganizationRequest = z.infer<typeof CreateOrganizationRequest
 export const AdminInvitationRequest = z.object({ email });
 export type AdminInvitationRequest = z.infer<typeof AdminInvitationRequest>;
 
+/** An IANA time zone name the runtime knows (e.g. `Asia/Ho_Chi_Minh`, `UTC`); offsets like `UTC+7` are refused. */
+export function isIanaTimeZone(value: string): boolean {
+  if (!/^[A-Za-z][A-Za-z0-9_+-]*(\/[A-Za-z0-9_+-]+)*$/.test(value)) return false;
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const UpdateMeRequest = z.object({
+  locale: z.enum(['vi', 'en']).optional(),
+  timeZone: z.string().max(100).refine(isIanaTimeZone).optional(),
+});
+export type UpdateMeRequest = z.infer<typeof UpdateMeRequest>;
+
 export interface SessionMembership {
   readonly organizationId: string;
   readonly organizationName: string;

@@ -303,7 +303,7 @@ hiệu lực ngay; từ chối được ghi audit.
 
 - [X] T115 [P] [US8] **RED** `FEAT_SRV/auth/me.integration.test.ts`: `PATCH /me` `locale` chỉ `vi|en`, `timeZone` phải là IANA hợp lệ, sai → 400 `VALIDATION_FAILED`; mọi thời điểm trong response là ISO 8601 kết thúc `Z` (FR-030)
 - [X] T116 [P] [US8] **RED** `FEAT_WEB/settings/SettingsPage.test.tsx`: đổi sang `en` → nhãn đổi ngay; đổi múi giờ → gọi `PATCH /me` và thời gian hiển thị theo múi giờ mới (FR-029, FR-030)
-- [ ] T117 [US8] **GREEN** `PATCH /me` trong `FEAT_SRV/auth/auth.controller.ts` + `FEAT_WEB/settings/SettingsPage.tsx` cho T115, T116
+- [X] T117 [US8] **GREEN** `PATCH /me` trong `FEAT_SRV/auth/auth.controller.ts` + `FEAT_WEB/settings/SettingsPage.tsx` cho T115, T116
 - [ ] T118 [US8] Bật rule `i18next/no-literal-string` cho `apps/web/src/features/**` trong `eslint.config.js` và sửa mọi chuỗi cứng còn sót ở màn hình US2–US6 (FR-029, SC-007)
 - [ ] T119 [US8] E2E `apps/web/e2e/i18n-timezone.spec.ts` (Q16: đổi `en`; tạo lời mời 23:30 `Asia/Ho_Chi_Minh` → DB `16:30Z`, web hiển thị 23:30)
 

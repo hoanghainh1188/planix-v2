@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth/auth.controller.ts';
 import { AuthService } from './auth/auth.service.ts';
+import { MeController } from './auth/me.controller.ts';
 import { PasswordResetController } from './auth/password-reset.controller.ts';
 import { PasswordResetService } from './auth/password-reset.service.ts';
 import { AcceptInvitationController } from './invitations/accept-invitation.controller.ts';
@@ -22,6 +23,7 @@ import { PlatformService } from './platform/platform.service.ts';
   imports: [MembersModule, ProjectsModule],
   controllers: [
     AuthController,
+    MeController,
     PasswordResetController,
     AcceptInvitationController,
     OrganizationInvitationsController,

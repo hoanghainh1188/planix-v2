@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { linkFromEmail, seedOrganizationWithAdmin, signIn, type SeededAdmin } from './support.ts';
+import { chooseEnglish, linkFromEmail, seedOrganizationWithAdmin, signIn, type SeededAdmin } from './support.ts';
 
 const memberPassword = 'granite-harbor-e2e';
 let admin: SeededAdmin;
@@ -59,6 +59,8 @@ test.describe.serial('members and system roles (Q4, Q5, Q10)', () => {
   }) => {
     const member = await (await browser.newContext()).newPage();
     await signIn(member, memberEmail, memberPassword);
+    await chooseEnglish(member);
+    await member.goto('/');
     await expect(member.getByRole('heading', { name: admin.organizationName, exact: true })).toBeVisible();
 
     await signIn(page, admin.email, admin.password);

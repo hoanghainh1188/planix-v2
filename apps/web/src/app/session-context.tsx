@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ApiError, createApiClient, type ApiClient } from '../shared/api/client.ts';
 
 export interface SessionMembership {
@@ -42,6 +43,17 @@ export function SessionProvider({ api = createApiClient(), children }: { api?: A
     },
     retry: false,
   });
+  const { i18n } = useTranslation();
+  const savedLocale = query.data?.user.locale;
+  const appliedLocale = useRef<string | undefined>(undefined);
+  // The language saved on the account applies when it loads or changes (research R9: stored on app_user) — only
+  // then, so a language the user just picked is not reverted while its save is still in flight.
+  useEffect(() => {
+    if (savedLocale === undefined || appliedLocale.current === savedLocale) return;
+    appliedLocale.current = savedLocale;
+    if (i18n.language !== savedLocale) void i18n.changeLanguage(savedLocale);
+  }, [savedLocale, i18n]);
+
   return (
     <SessionContext.Provider
       value={{ api, session: query.data ?? null, loading: query.isPending, refresh: query.refetch }}

@@ -11,10 +11,11 @@ import { SettingsPage } from './SettingsPage.tsx';
 // Q16: 16:30 UTC is 23:30 in Asia/Ho_Chi_Minh and 17:30 in Europe/London.
 const NOW = new Date('2026-09-15T16:30:00.000Z');
 
-function fakeApi(initial: SessionData['user']) {
+function fakeApi(initial: SessionData['user'], options: { saveNeverCompletes?: boolean } = {}) {
   let user = initial;
   const session = (): SessionData => ({ user, memberships: [], activeOrganizationId: null });
   const patch = vi.fn((_path: string, body: Partial<SessionData['user']>) => {
+    if (options.saveNeverCompletes) return new Promise<SessionData>(() => undefined);
     user = { ...user, ...body };
     return Promise.resolve(session());
   });
@@ -50,17 +51,21 @@ afterEach(async () => {
 
 describe('SettingsPage (FR-029, FR-030, T116)', () => {
   it('switches labels to English immediately and saves the choice with PATCH /me', async () => {
-    const { api, patch } = fakeApi({ id: 'u1', email: 'a@acme.test', locale: 'vi', timeZone: 'Asia/Ho_Chi_Minh' });
+    // The save never completes: labels must switch without waiting for the server.
+    const { api, patch } = fakeApi(
+      { id: 'u1', email: 'a@acme.test', locale: 'vi', timeZone: 'Asia/Ho_Chi_Minh' },
+      { saveNeverCompletes: true },
+    );
     renderSettings(api);
     expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeTruthy();
 
-    await act(async () => {
+    act(() => {
       fireEvent.change(screen.getByLabelText('Ngôn ngữ'), { target: { value: 'en' } });
     });
 
-    expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeTruthy();
     expect(screen.getByLabelText('Language')).toBeTruthy();
-    await waitFor(() => expect(patch).toHaveBeenCalledWith('/me', { locale: 'en' }));
+    expect(patch).toHaveBeenCalledWith('/me', { locale: 'en' });
   });
 
   it('shows times in the chosen time zone and saves it with PATCH /me', async () => {
@@ -69,7 +74,7 @@ describe('SettingsPage (FR-029, FR-030, T116)', () => {
     renderSettings(api);
     expect(await screen.findByText(/23:30 09\/15\/2026/)).toBeTruthy();
 
-    await act(async () => {
+    act(() => {
       fireEvent.change(screen.getByLabelText('Time zone'), { target: { value: 'Europe/London' } });
     });
 

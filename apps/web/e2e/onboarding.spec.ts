@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { linkFromEmail, signIn, state, withinBudget } from './support.ts';
+import { chooseEnglish, linkFromEmail, signIn, state, withinBudget } from './support.ts';
 
 const MINUTES = 60_000;
 const adminEmail = `admin.${Date.now()}@acme-e2e.test`;
@@ -45,6 +45,8 @@ test.describe.serial('onboarding (Q1 → Q2, Q11, SC-003)', () => {
     await expect(operatorPage.getByRole('cell', { name: 'Beta E2E', exact: true })).toBeVisible();
 
     await signIn(page, adminEmail, adminPassword);
+    await chooseEnglish(page);
+    await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Acme E2E' })).toBeVisible();
 
     const link = await linkFromEmail(adminEmail, '/invitations/', 1);

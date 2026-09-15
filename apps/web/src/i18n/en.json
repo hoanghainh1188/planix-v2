@@ -84,7 +84,8 @@
     "label": "Main navigation",
     "members": "Members",
     "invitations": "Invitations",
-    "projects": "Projects"
+    "projects": "Projects",
+    "settings": "Settings"
   },
   "roles": {
     "admin": "Admin",
@@ -171,5 +172,15 @@
     "newAccountable": "New Accountable",
     "confirm": "Confirm change",
     "noCandidates": "Add another project member first."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "timeZone": "Time zone",
+    "timeExample": "Times are shown like this: {{time}}",
+    "languages": {
+      "vi": "Tiếng Việt",
+      "en": "English"
+    }
   }
 }

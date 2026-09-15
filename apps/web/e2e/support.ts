@@ -160,3 +160,15 @@ export async function seedProject(organizationId: string, creatorMembershipId: s
     await pool.end();
   }
 }
+
+/**
+ * Accounts created by accepting an invitation start in Vietnamese (app_user.locale default) and the web app applies
+ * the saved language after sign-in (US8). Journeys written in English switch on the Settings page, like a user would.
+ */
+export async function chooseEnglish(page: Page): Promise<void> {
+  await page.goto('/settings');
+  const saved = page.waitForResponse((r) => r.url().endsWith('/api/v1/me') && r.request().method() === 'PATCH');
+  await page.getByRole('combobox', { name: /^(Ngôn ngữ|Language)$/ }).selectOption('en');
+  expect((await saved).ok()).toBe(true);
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+}

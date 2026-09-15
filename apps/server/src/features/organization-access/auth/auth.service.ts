@@ -7,6 +7,7 @@ import {
 import {
   chooseActiveOrganization,
   type SessionPayload,
+  type UpdateMeRequest,
 } from '@planix/core/features/organization-access/schemas/auth.ts';
 import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
 import { DATABASE } from '../../../shared/app-tokens.ts';
@@ -94,6 +95,21 @@ export class AuthService {
     const user = await loadUser(this.db, userId);
     if (user === undefined) throw new DomainError('AUTH_REQUIRED');
     return buildSessionPayload(this.db, user, activeOrganizationId);
+  }
+
+  /** Saves the user's language and/or IANA time zone; timestamps themselves always stay UTC (FR-030). */
+  async updatePreferences(session: StoredSession, input: UpdateMeRequest): Promise<SessionPayload> {
+    if (input.locale !== undefined || input.timeZone !== undefined) {
+      await withAnonymousTransaction(this.db, (tx) =>
+        tx.client.query(
+          `UPDATE app_user
+              SET locale = coalesce($2, locale), time_zone = coalesce($3, time_zone), updated_at = $4
+            WHERE id = $1`,
+          [session.userId, input.locale ?? null, input.timeZone ?? null, this.clock.now()],
+        ),
+      );
+    }
+    return this.session(session.userId, session.activeOrganizationId);
   }
 
   async logout(session: StoredSession): Promise<void> {
