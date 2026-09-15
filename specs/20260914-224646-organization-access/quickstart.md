@@ -27,8 +27,8 @@ npm run ops:grant-operator -- --email operator@planix.local --create
 ```
 
 Cơ sở dữ liệu mới chưa có tài khoản nào: `--create` tạo tài khoản Operator và gửi liên kết đặt mật khẩu (hạn 1 giờ)
-tới Mailpit (`http://localhost:8025`); mở liên kết để đặt mật khẩu rồi đăng nhập. Tài khoản đã có sẵn thì chỉ được cấp
-quyền (decision `2026-09-15-005-first-platform-operator`).
+tới Mailpit (`http://localhost:8025`); mở liên kết để đặt mật khẩu rồi đăng nhập. Tài khoản đã có sẵn thì phải thêm `--confirm` mới được
+cấp quyền (decision `2026-09-15-005-first-platform-operator`).
 
 ```bash
 npm run dev

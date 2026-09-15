@@ -23,7 +23,7 @@ export interface GrantOperatorResult {
 
 /**
  * Operations CLI: grant the Platform Operator role (research R11). No UI exists for this on purpose.
- * Usage: npm run ops:grant-operator -- --email operator@example.com [--create [--locale vi|en]]
+ * Usage: npm run ops:grant-operator -- --email operator@example.com [--create [--locale vi|en]] [--confirm]
  * Runs with the owner role because platform_operator_grant is not writable by application roles.
  * With `create`, a missing account is created with an unusable password and its owner receives a password reset
  * link: a fresh install has no other way to get its first Operator. The link is never printed or logged.
@@ -32,9 +32,9 @@ export async function grantOperator(
   db: Database,
   email: string,
   grantedBy: string,
-  options: { create?: CreateOperatorAccount } = {},
+  options: { create?: CreateOperatorAccount; confirmExistingAccount?: boolean } = {},
 ): Promise<GrantOperatorResult> {
-  const { create } = options;
+  const { create, confirmExistingAccount = false } = options;
   // Hashed before the transaction: argon2 is slow and the secret is thrown away, so nobody can sign in with it.
   const unusablePasswordHash = create === undefined ? undefined : await new PasswordHasher().hash(generateToken());
   const resetToken = generateToken();
@@ -43,9 +43,20 @@ export async function grantOperator(
   let result: GrantOperatorResult;
   try {
     await client.query('BEGIN');
-    const user = await client.query<{ id: string }>('SELECT id FROM app_user WHERE email = $1', [email]);
+    const user = await client.query<{ id: string; created_at: Date; granted: boolean }>(
+      `SELECT u.id, u.created_at, EXISTS (SELECT 1 FROM platform_operator_grant g WHERE g.user_id = u.id) AS granted
+         FROM app_user u WHERE u.email = $1`,
+      [email],
+    );
     let userId = user.rows[0]?.id;
     let accountCreated = false;
+    const existing = user.rows[0];
+    if (existing !== undefined && !existing.granted && !confirmExistingAccount) {
+      // A mistyped --email must not silently make someone else's account an Operator (security review).
+      throw new Error(
+        `${email} matches existing account ${existing.id} (created ${existing.created_at.toISOString()}); rerun with --confirm to grant it platform operator`,
+      );
+    }
     if (userId === undefined) {
       if (create === undefined || unusablePasswordHash === undefined) {
         throw new Error(
@@ -105,10 +116,15 @@ export async function grantOperator(
 
 async function main(): Promise<void> {
   const { values } = parseArgs({
-    options: { email: { type: 'string' }, create: { type: 'boolean' }, locale: { type: 'string' } },
+    options: {
+      email: { type: 'string' },
+      create: { type: 'boolean' },
+      confirm: { type: 'boolean' },
+      locale: { type: 'string' },
+    },
   });
   if (values.email === undefined) {
-    throw new Error('Usage: npm run ops:grant-operator -- --email <email> [--create [--locale vi|en]]');
+    throw new Error('Usage: npm run ops:grant-operator -- --email <email> [--create [--locale vi|en]] [--confirm]');
   }
   if (values.locale !== undefined && values.locale !== 'vi' && values.locale !== 'en') {
     throw new Error('--locale must be vi or en');
@@ -121,6 +137,7 @@ async function main(): Promise<void> {
   const mailSender = values.create ? new SmtpMailSender({ smtpUrl: config.smtpUrl, from: config.mailFrom }) : undefined;
   try {
     const result = await grantOperator(db, values.email, userInfo().username, {
+      confirmExistingAccount: values.confirm === true,
       ...(mailSender === undefined
         ? {}
         : {

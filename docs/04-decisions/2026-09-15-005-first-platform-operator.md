@@ -15,7 +15,10 @@
   - Không nhận mật khẩu qua tham số dòng lệnh; CLI **không in** liên kết/token ra stdout hay log.
   - Tạo tài khoản, cấp quyền và token nằm trong **một transaction**; email gửi **sau khi commit**. Audit
     `platform.operator.grant` (`actor_kind = system`) ghi thêm `accountCreated: true` — không có token hay hash.
-  - Email đã có tài khoản: `--create` chỉ cấp quyền như trước, không tạo gì, không gửi email.
+  - Email đã có tài khoản (có hoặc không `--create`): **phải thêm `--confirm`** mới cấp quyền; thiếu `--confirm` thì CLI
+    dừng, in id + thời điểm tạo của tài khoản khớp email và không ghi gì (security review Phase 11 — chống gõ nhầm email
+    cấp Operator cho tài khoản của người khác). Đã là Operator thì chỉ báo "đã là Operator", không cần `--confirm`.
+    Cấp quyền cho tài khoản có sẵn không tạo gì, không gửi email.
   - Gửi email thất bại **sau khi commit** (VD SMTP lỗi): tài khoản và quyền Operator vẫn giữ; CLI báo lỗi kèm hướng dẫn
     dùng "Quên mật khẩu" ở trang đăng nhập để lấy liên kết mới (không lặp lại thông báo lỗi gốc của mail vì có thể chứa
     liên kết). Chạy lại lệnh chỉ báo "đã là Operator" (bổ sung sau code review Phase 11).

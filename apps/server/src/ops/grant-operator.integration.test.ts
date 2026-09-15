@@ -26,7 +26,7 @@ describe('ops:grant-operator (R11)', () => {
   it('grants the platform operator role to an existing account and audits it as system', async () => {
     const address = email();
     const userId = await seedUser(db, address);
-    await expect(grantOperator(db, address.toUpperCase(), 'alice')).resolves.toEqual({
+    await expect(grantOperator(db, address.toUpperCase(), 'alice', { confirmExistingAccount: true })).resolves.toEqual({
       userId,
       alreadyGranted: false,
       accountCreated: false,
@@ -47,6 +47,20 @@ describe('ops:grant-operator (R11)', () => {
       [userId],
     );
     expect(audit.rows).toEqual([{ actor_kind: 'system' }]);
+  });
+
+  it('does not grant an existing account without --confirm: shows which account matched and writes nothing (security review)', async () => {
+    const address = email();
+    const userId = await seedUser(db, address);
+    const refusal = grantOperator(db, address, 'alice');
+    await expect(refusal).rejects.toThrow(new RegExp(`${userId}.*created .*Z.*--confirm`));
+    const { rowCount } = await db.ownerPool.query('SELECT 1 FROM platform_operator_grant WHERE user_id = $1', [userId]);
+    expect(rowCount).toBe(0);
+    const audit = await db.ownerPool.query(
+      "SELECT 1 FROM audit_entry WHERE action = 'platform.operator.grant' AND target_id = $1",
+      [userId],
+    );
+    expect(audit.rowCount).toBe(0);
   });
 
   it('refuses unknown accounts without --create, pointing to it, and writes nothing', async () => {
@@ -113,10 +127,11 @@ describe('ops:grant-operator --create: the first Platform Operator (decision 202
     expect(organization.status).toBe(201);
   });
 
-  it('only grants when the account already exists: no new account, no email', async () => {
+  it('only grants an existing account with --confirm: no new account, no email', async () => {
     const address = email();
     const userId = await seedUser(db, address);
-    await expect(grantOperator(db, address, 'alice', { create })).resolves.toEqual({
+    await expect(grantOperator(db, address, 'alice', { create })).rejects.toThrow(/--confirm/);
+    await expect(grantOperator(db, address, 'alice', { create, confirmExistingAccount: true })).resolves.toEqual({
       userId,
       alreadyGranted: false,
       accountCreated: false,
