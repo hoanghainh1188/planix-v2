@@ -8,6 +8,16 @@ export interface ServerConfig {
   readonly mailFrom: string;
   readonly port: number;
   readonly appPoolMax: number | undefined;
+  readonly statementTimeoutMs: number | undefined;
+  readonly idleInTransactionTimeoutMs: number | undefined;
+}
+
+function optionalInteger(env: NodeJS.ProcessEnv, name: string): number | undefined {
+  const value = env[name];
+  if (value === undefined || value.trim() === '') return undefined;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(`${name} must be a positive integer`);
+  return parsed;
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
@@ -28,6 +38,8 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     smtpUrl: required(env, 'SMTP_URL'),
     mailFrom: env.MAIL_FROM ?? 'Planix <no-reply@planix.local>',
     port: Number.parseInt(env.PORT ?? '3000', 10),
-    appPoolMax: env.DATABASE_APP_POOL_MAX === undefined ? undefined : Number.parseInt(env.DATABASE_APP_POOL_MAX, 10),
+    appPoolMax: optionalInteger(env, 'DATABASE_APP_POOL_MAX'),
+    statementTimeoutMs: optionalInteger(env, 'DATABASE_STATEMENT_TIMEOUT_MS'),
+    idleInTransactionTimeoutMs: optionalInteger(env, 'DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS'),
   };
 }

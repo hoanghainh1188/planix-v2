@@ -17,10 +17,13 @@ async function bootstrap(): Promise<void> {
   assertUtcTimeZone(process.env.TZ);
   const config = loadServerConfig();
   const logger = new AppLogger();
-  const database = createDatabase(
-    config.databaseUrls,
-    config.appPoolMax === undefined ? {} : { appPoolMax: config.appPoolMax },
-  );
+  const database = createDatabase(config.databaseUrls, {
+    ...(config.appPoolMax === undefined ? {} : { appPoolMax: config.appPoolMax }),
+    ...(config.statementTimeoutMs === undefined ? {} : { statementTimeoutMs: config.statementTimeoutMs }),
+    ...(config.idleInTransactionTimeoutMs === undefined
+      ? {}
+      : { idleInTransactionTimeoutMs: config.idleInTransactionTimeoutMs }),
+  });
   const mailSender = new SmtpMailSender({ smtpUrl: config.smtpUrl, from: config.mailFrom });
   const app = await NestFactory.create(AppModule.forRoot({ database, config: config.app, mailSender }), {
     logger,

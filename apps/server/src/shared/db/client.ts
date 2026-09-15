@@ -25,14 +25,39 @@ export interface Database {
 /** Application pool size per server instance; each organization request holds at most one connection (SC-006). */
 export const DEFAULT_APP_POOL_MAX = 20;
 
+/** A single statement (including waiting for a row lock) longer than this is cancelled by PostgreSQL. */
+export const DEFAULT_STATEMENT_TIMEOUT_MS = 15_000;
+/** A transaction left open without running a statement longer than this is terminated by PostgreSQL. */
+export const DEFAULT_IDLE_IN_TRANSACTION_TIMEOUT_MS = 30_000;
+
 export interface DatabaseOptions {
   readonly appPoolMax?: number;
+  readonly statementTimeoutMs?: number;
+  readonly idleInTransactionTimeoutMs?: number;
+}
+
+/**
+ * A pooled connection can fail while idle (e.g. terminated by the server); pg then emits `error` on the pool, and an
+ * unhandled `error` event would crash the process. The pool already discards the broken connection.
+ */
+function ignoreIdleConnectionErrors(pool: pg.Pool): pg.Pool {
+  pool.on('error', () => undefined);
+  return pool;
 }
 
 export function createDatabase(urls: DatabaseUrls, options: DatabaseOptions = {}): Database {
-  const ownerPool = new pg.Pool({ connectionString: urls.owner, max: 2 });
-  const appPool = new pg.Pool({ connectionString: urls.app, max: options.appPoolMax ?? DEFAULT_APP_POOL_MAX });
-  const platformPool = new pg.Pool({ connectionString: urls.platform, max: 5 });
+  // Application roles only; migrations (owner) may legitimately run long (security review: stuck transactions).
+  const timeouts = {
+    statement_timeout: options.statementTimeoutMs ?? DEFAULT_STATEMENT_TIMEOUT_MS,
+    idle_in_transaction_session_timeout: options.idleInTransactionTimeoutMs ?? DEFAULT_IDLE_IN_TRANSACTION_TIMEOUT_MS,
+  };
+  const ownerPool = ignoreIdleConnectionErrors(new pg.Pool({ connectionString: urls.owner, max: 2 }));
+  const appPool = ignoreIdleConnectionErrors(
+    new pg.Pool({ connectionString: urls.app, max: options.appPoolMax ?? DEFAULT_APP_POOL_MAX, ...timeouts }),
+  );
+  const platformPool = ignoreIdleConnectionErrors(
+    new pg.Pool({ connectionString: urls.platform, max: 5, ...timeouts }),
+  );
   return {
     ownerPool,
     appPool,
@@ -59,6 +84,10 @@ export async function openTransaction(
   settings: Readonly<Record<string, string>>,
 ): Promise<OpenTransaction> {
   const client = await pool.connect();
+  // While checked out, a server-side termination (idle-in-transaction timeout) is emitted on the client; the next
+  // query rejects instead, so the event itself only needs a listener to avoid crashing the process.
+  const onClientError = () => undefined;
+  client.on('error', onClientError);
   try {
     await client.query('BEGIN');
     for (const [name, value] of Object.entries(settings)) {
@@ -66,6 +95,7 @@ export async function openTransaction(
       await client.query('SELECT set_config($1, $2, true)', [name, value]);
     }
   } catch (error) {
+    client.off('error', onClientError);
     client.release(error as Error);
     throw error;
   }
@@ -76,8 +106,13 @@ export async function openTransaction(
     try {
       await client.query(statement);
       if (statement === 'COMMIT') state = 'committed';
-    } finally {
+      client.off('error', onClientError);
       client.release();
+    } catch (error) {
+      client.off('error', onClientError);
+      // A connection that failed mid-transaction must not go back to the pool.
+      client.release(error as Error);
+      throw error;
     }
   };
   return {
@@ -101,7 +136,8 @@ async function inTransaction<T>(
     await transaction.commit();
     return result;
   } catch (error) {
-    await transaction.rollback();
+    // Keep the original error even when the connection is already gone (e.g. terminated by a timeout).
+    await transaction.rollback().catch(() => undefined);
     throw error;
   }
 }
