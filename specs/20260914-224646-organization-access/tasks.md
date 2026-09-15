@@ -116,7 +116,7 @@ RED tương ứng chưa tồn tại và chưa fail.
 - [X] T044 **GREEN** `apps/server/src/shared/authorization/{require-action.decorator.ts,platform-action.decorator.ts,authorization.guard.ts,route-action-coverage.ts,project-target.resolver.ts}`
 - [X] T045 [P] **RED** `apps/server/src/shared/sensitive-field/sensitive-field.interceptor.test.ts` với `apps/server/src/test/sample-financial.dto.ts` (`SampleFinancialDto.budgetAtCompletion` đánh dấu `sensitive`, **chỉ tồn tại trong test**): có quyền → có khoá; không quyền → không có khoá ở response chi tiết, danh sách, body lỗi; request ghi field nhạy cảm khi thiếu quyền → 403 `FORBIDDEN`, không ghi (FR-025, FR-026)
 - [X] T046 **GREEN** `apps/server/src/shared/sensitive-field/{sensitive-field.interceptor.ts,sensitive-write.check.ts,sensitive-field.decorators.ts,sensitive-field.module.ts}` đăng ký global (kiểm tra ghi nằm trong interceptor vì pipe không truy cập được principal)
-- [ ] T047 [P] `apps/server/src/shared/mail/{mail-sender.ts,smtp-mail-sender.ts,templates/{vi,en}/*.ts}`: cổng `MailSender`, adapter SMTP (Mailpit ở dev/test); template lời mời, đặt lại mật khẩu theo locale (R10)
+- [X] T047 [P] `apps/server/src/shared/mail/{mail-sender.ts,smtp-mail-sender.ts,templates/{vi,en}/*.ts}`: cổng `MailSender`, adapter SMTP (Mailpit ở dev/test); template lời mời, đặt lại mật khẩu theo locale (R10)
 - [X] T048 [P] **RED** `apps/server/src/shared/auth/{secure-token.test.ts,password-hasher.test.ts}`: token 256-bit ngẫu nhiên, lưu SHA-256, so sánh constant-time; argon2id; `verifyOrDummy()` băm giả khi không có user để thời gian phản hồi tương đương (FR-008, R4)
 - [X] T049 **GREEN** `apps/server/src/shared/auth/{secure-token.ts,password-hasher.ts}` — làm T048 xanh
 
