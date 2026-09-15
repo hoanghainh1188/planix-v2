@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import {
   CreateInvitationRequest,
   InvitationStatusFilter,
   type InvitationView,
 } from '@planix/core/features/organization-access/schemas/members.ts';
 import type { AuthenticatedRequest } from '../../../shared/auth/session.guard.ts';
+import { InvitationRateLimitGuard } from '../../../shared/auth/user-rate-limit.ts';
 import { RequireAction } from '../../../shared/authorization/require-action.decorator.ts';
 import { onRequestCommit, requireRequestTransaction } from '../../../shared/db/request-transaction.ts';
 import { parseBody } from '../../../shared/http/parse-body.ts';
@@ -17,6 +18,7 @@ export class OrganizationInvitationsController {
 
   @Post()
   @RequireAction('org.member.invite')
+  @UseGuards(InvitationRateLimitGuard)
   async invite(@Req() req: AuthenticatedRequest, @Body() body: unknown): Promise<{ invitation: InvitationView }> {
     const { email, roles } = parseBody(CreateInvitationRequest, body);
     const invitation = await this.invitations.invite(
