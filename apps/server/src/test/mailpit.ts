@@ -33,6 +33,17 @@ export class TestMailpit {
     return body.messages;
   }
 
+  /** Waits until at least `count` messages to `address` arrived (for emails sent after the response). */
+  async waitForMessagesTo(address: string, count: number, timeoutMs = 10_000): Promise<MailpitMessage[]> {
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const messages = await this.messagesTo(address);
+      if (messages.length >= count) return messages;
+      if (Date.now() > deadline) throw new Error(`Expected ${count} message(s) to ${address}, got ${messages.length}`);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
   async text(id: string): Promise<string> {
     const response = await fetch(`${this.apiBase}/message/${id}`);
     const body = (await response.json()) as { Text: string };

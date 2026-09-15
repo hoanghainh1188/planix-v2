@@ -1,13 +1,14 @@
 import type { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { MailSender } from '../../../shared/mail/mail-sender.ts';
 import { SmtpMailSender } from '../../../shared/mail/smtp-mail-sender.ts';
 import { Browser } from '../../../test/browser.ts';
 import { FakeClock, HOUR, MINUTE } from '../../../test/fake-clock.ts';
 import { TestMailpit } from '../../../test/mailpit.ts';
 import { useTestDatabase } from '../../../test/postgres.ts';
 import { seedUserWithPassword } from '../../../test/seed.ts';
-import { createTestApp } from '../../../test/test-app.ts';
+import { createTestApp, TEST_APP_BASE_URL } from '../../../test/test-app.ts';
 
 const db = useTestDatabase();
 const clock = new FakeClock(new Date().toISOString());
@@ -30,8 +31,10 @@ afterAll(async () => {
   await mailpit.stop();
 });
 
-async function resetTokens(email: string): Promise<string[]> {
-  const messages = [...(await mailpit.messagesTo(email))].sort((a, b) => b.Created.localeCompare(a.Created));
+async function resetTokens(email: string, count = 1): Promise<string[]> {
+  const messages = [...(await mailpit.waitForMessagesTo(email, count))].sort((a, b) =>
+    b.Created.localeCompare(a.Created),
+  );
   const texts = await Promise.all(messages.map((m) => mailpit.text(m.ID)));
   // Newest first.
   return texts.map((t) => /\/password-reset\/([A-Za-z0-9_-]{43})/.exec(t)?.[1] ?? '');
@@ -43,13 +46,67 @@ describe('password reset (FR-031, FR-008, SC-009, Q14)', () => {
     await seedUserWithPassword(db, email, OLD);
     const unknown = newEmail();
     const browser = await new Browser(app).open();
-    const a = await browser.post('/auth/password-reset/request', { email });
     const b = await browser.post('/auth/password-reset/request', { email: unknown });
+    const a = await browser.post('/auth/password-reset/request', { email });
     expect(a.status).toBe(202);
     expect(b.status).toBe(202);
     expect(a.body).toEqual(b.body);
-    expect(await mailpit.messagesTo(email)).toHaveLength(1);
+    expect(await mailpit.waitForMessagesTo(email, 1)).toHaveLength(1);
     expect(await mailpit.messagesTo(unknown)).toHaveLength(0);
+  });
+
+  it('answers before the reset email is sent, so response time does not reveal the account (FR-008)', async () => {
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => (release = resolve));
+    const sent: string[] = [];
+    const gatedMail: MailSender = {
+      send: async (to) => {
+        await released;
+        sent.push(to);
+      },
+    };
+    const gatedApp = await createTestApp({ database: db, mailSender: gatedMail, clock });
+    const email = newEmail();
+    await seedUserWithPassword(db, email, OLD);
+    try {
+      const browser = await new Browser(gatedApp).open();
+      const outcome = await Promise.race([
+        browser.post('/auth/password-reset/request', { email }),
+        new Promise<'still waiting'>((resolve) => setTimeout(() => resolve('still waiting'), 3000)),
+      ]);
+      expect(outcome === 'still waiting' ? outcome : outcome.status).toBe(202);
+      expect(sent).toEqual([]);
+    } finally {
+      release();
+      await gatedApp.close();
+    }
+    // Shutdown waits for background reset work, so the email still goes out.
+    expect(sent).toEqual([email]);
+  });
+
+  it('logs a failed reset email without the link', async () => {
+    const lines: string[] = [];
+    const failingMail: MailSender = {
+      send: (_to, message) =>
+        Promise.reject(new Error(`SMTP rejected ${message.kind === 'passwordReset' ? message.resetUrl : ''}`)),
+    };
+    const failingApp = await createTestApp({
+      database: db,
+      mailSender: failingMail,
+      clock,
+      logSink: (line) => lines.push(line),
+    });
+    const email = newEmail();
+    await seedUserWithPassword(db, email, OLD);
+    try {
+      const browser = await new Browser(failingApp).open();
+      expect((await browser.post('/auth/password-reset/request', { email })).status).toBe(202);
+    } finally {
+      await failingApp.close();
+    }
+    expect(lines.some((l) => l.includes('password reset request failed'))).toBe(true);
+    expect(lines.join('\n')).not.toContain(`${TEST_APP_BASE_URL}/password-reset/`);
+    expect(lines.join('\n')).not.toContain('SMTP rejected');
   });
 
   it('resets the password once, revokes all sessions and enforces the password policy', async () => {
@@ -91,8 +148,9 @@ describe('password reset (FR-031, FR-008, SC-009, Q14)', () => {
     await seedUserWithPassword(db, email, OLD);
     const browser = await new Browser(app).open();
     await browser.post('/auth/password-reset/request', { email });
+    await resetTokens(email, 1);
     await browser.post('/auth/password-reset/request', { email });
-    const [newest, older] = await resetTokens(email);
+    const [newest, older] = await resetTokens(email, 2);
     expect((await browser.post('/auth/password-reset/confirm', { token: older, newPassword: NEW })).status).toBe(410);
     expect((await browser.post('/auth/password-reset/confirm', { token: newest, newPassword: NEW })).status).toBe(204);
   });

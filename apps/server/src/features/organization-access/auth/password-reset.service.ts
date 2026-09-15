@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger, type BeforeApplicationShutdown } from '@nestjs/common';
 import { checkPasswordPolicy } from '@planix/core/features/organization-access/password-policy/password-policy.ts';
 import { APP_CONFIG, DATABASE, type AppConfig } from '../../../shared/app-tokens.ts';
 import { AUDIT_WRITER, type AuditWriter } from '../../../shared/audit/audit-writer.ts';
@@ -14,7 +14,7 @@ export const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 
 /** Password reset by one-time email link (FR-031, decision password-reset). */
 @Injectable()
-export class PasswordResetService {
+export class PasswordResetService implements BeforeApplicationShutdown {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(CLOCK) private readonly clock: ClockPort,
@@ -25,13 +25,35 @@ export class PasswordResetService {
     @Inject(AUDIT_WRITER) private readonly audit: AuditWriter,
   ) {}
 
-  /** Same outcome whether or not the email exists (FR-008). */
-  async request(email: string): Promise<void> {
+  readonly #logger = new Logger('PasswordResetService');
+  readonly #pending = new Set<Promise<void>>();
+
+  /**
+   * Same response and response time whether or not the email exists (FR-008): the lookup, token write and email
+   * all run after the caller has been answered.
+   */
+  request(email: string): void {
     const now = this.clock.now();
+    const job: Promise<void> = this.#issueResetLink(email, now)
+      .catch((error: unknown) => {
+        // Never log the error message: it may carry the reset link.
+        this.#logger.error(`password reset request failed (${error instanceof Error ? error.name : 'unknown'})`);
+      })
+      .finally(() => this.#pending.delete(job));
+    this.#pending.add(job);
+  }
+
+  /** Lets in-flight reset requests finish (and send their email) before the application stops. */
+  async beforeApplicationShutdown(): Promise<void> {
+    await Promise.all(this.#pending);
+  }
+
+  async #issueResetLink(email: string, now: Date): Promise<void> {
     const token = generateToken();
     const user = await withAnonymousTransaction(this.db, async (tx) => {
+      // Row lock: concurrent requests for one account supersede each other in order.
       const { rows } = await tx.client.query<{ id: string; email: string; locale: 'vi' | 'en' }>(
-        'SELECT id, email, locale FROM app_user WHERE email = $1',
+        'SELECT id, email, locale FROM app_user WHERE email = $1 FOR UPDATE',
         [email],
       );
       const found = rows[0];

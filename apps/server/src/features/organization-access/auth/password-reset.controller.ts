@@ -11,8 +11,8 @@ export class PasswordResetController {
   @Post('request')
   @HttpCode(202)
   @PublicWithOriginCheck()
-  async request(@Body() body: unknown): Promise<void> {
-    await this.resets.request(parseBody(PasswordResetRequest, body).email);
+  request(@Body() body: unknown): void {
+    this.resets.request(parseBody(PasswordResetRequest, body).email);
   }
 
   @Post('confirm')
