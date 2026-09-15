@@ -4,18 +4,19 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import i18next from 'i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionProvider, type SessionData } from '../../../app/session-context.tsx';
-import type { ApiClient } from '../../../shared/api/client.ts';
+import { ApiError, type ApiClient } from '../../../shared/api/client.ts';
 import { initI18n } from '../../../i18n/index.ts';
 import { SettingsPage } from './SettingsPage.tsx';
 
 // Q16: 16:30 UTC is 23:30 in Asia/Ho_Chi_Minh and 17:30 in Europe/London.
 const NOW = new Date('2026-09-15T16:30:00.000Z');
 
-function fakeApi(initial: SessionData['user'], options: { saveNeverCompletes?: boolean } = {}) {
+function fakeApi(initial: SessionData['user'], options: { saveNeverCompletes?: boolean; saveFails?: boolean } = {}) {
   let user = initial;
   const session = (): SessionData => ({ user, memberships: [], activeOrganizationId: null });
   const patch = vi.fn((_path: string, body: Partial<SessionData['user']>) => {
     if (options.saveNeverCompletes) return new Promise<SessionData>(() => undefined);
+    if (options.saveFails) return Promise.reject(new ApiError(500, 'INTERNAL_ERROR'));
     user = { ...user, ...body };
     return Promise.resolve(session());
   });
@@ -86,5 +87,27 @@ describe('SettingsPage (FR-029, FR-030, T116)', () => {
     const { api } = fakeApi({ id: 'u1', email: 'a@acme.test', locale: 'en', timeZone: 'UTC' });
     renderSettings(api);
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeTruthy();
+  });
+
+  it('goes back to the saved language and time zone and shows the error when saving fails (code review)', async () => {
+    const { api } = fakeApi(
+      { id: 'u1', email: 'a@acme.test', locale: 'vi', timeZone: 'Asia/Ho_Chi_Minh' },
+      { saveFails: true },
+    );
+    renderSettings(api);
+    expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeTruthy();
+
+    act(() => {
+      fireEvent.change(screen.getByLabelText('Ngôn ngữ'), { target: { value: 'en' } });
+    });
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    await waitFor(() => expect(i18next.language).toBe('vi'));
+    expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeTruthy();
+
+    act(() => {
+      fireEvent.change(screen.getByLabelText('Múi giờ'), { target: { value: 'Europe/London' } });
+    });
+    await waitFor(() => expect(screen.getByLabelText<HTMLSelectElement>('Múi giờ').value).toBe('Asia/Ho_Chi_Minh'));
+    expect(screen.getByText(/23:30 15\/09\/2026/)).toBeTruthy();
   });
 });

@@ -44,8 +44,9 @@ export function SettingsPage({ now }: SettingsPageProps) {
           onChange={(event) => {
             const next = event.target.value as Locale;
             // Labels change at once; the choice is saved on the account for the next sessions.
+            // If saving fails, go back to the previous language so the page matches what is stored.
             void i18n.changeLanguage(next);
-            save.mutate({ locale: next });
+            save.mutate({ locale: next }, { onError: () => void i18n.changeLanguage(locale) });
           }}
         >
           {LOCALES.map((value) => (
@@ -61,7 +62,7 @@ export function SettingsPage({ now }: SettingsPageProps) {
           value={timeZone}
           onChange={(event) => {
             setPendingTimeZone(event.target.value);
-            save.mutate({ timeZone: event.target.value });
+            save.mutate({ timeZone: event.target.value }, { onError: () => setPendingTimeZone(undefined) });
           }}
         >
           {zones.map((zone) => (
