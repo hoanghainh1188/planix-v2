@@ -1,11 +1,13 @@
-import { Inject, Injectable, type CanActivate, type ExecutionContext } from '@nestjs/common';
+import { Inject, Injectable, Logger, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { decide } from '@planix/core/features/organization-access/decide.ts';
 import { PERMISSION_MATRIX } from '@planix/core/features/organization-access/permission-matrix.ts';
-import type { DenyReason, Target } from '@planix/core/features/organization-access/principal.ts';
+import type { DenyReason, Principal, Target } from '@planix/core/features/organization-access/principal.ts';
+import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
 import { DATABASE } from '../app-tokens.ts';
+import { AUDIT_WRITER, type AuditWriter } from '../audit/audit-writer.ts';
 import type { AuthenticatedRequest } from '../auth/session.guard.ts';
-import { withAnonymousTransaction, type Database } from '../db/client.ts';
+import { withAnonymousTransaction, withTenantTransaction, type Database } from '../db/client.ts';
 import { requestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PLATFORM_ACTION } from './platform-action.decorator.ts';
@@ -20,10 +22,13 @@ export function toHttpError(reason: DenyReason): DomainError {
 /** Enforces the declared action of every route with core decide() (FR-022–FR-024). Runs after SessionGuard. */
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
+  readonly #logger = new Logger('AuthorizationGuard');
+
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(DATABASE) private readonly db: Database,
     @Inject(PROJECT_TARGET_RESOLVER) private readonly projects: ProjectTargetResolver,
+    @Inject(AUDIT_WRITER) private readonly audit: AuditWriter,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -51,8 +56,35 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     const decision = decide(principal, required.action, target);
-    if (!decision.allowed) throw toHttpError(decision.reason);
+    if (!decision.allowed) {
+      if (target.kind === 'project')
+        await this.#auditDenial(principal, required.action, target.projectId, decision.reason);
+      throw toHttpError(decision.reason);
+    }
     return true;
+  }
+
+  /**
+   * FR-027: a refusal on project data is audited. The request's transaction is rolled back on denial, so the entry is
+   * written in its own tenant transaction. A failing audit write never turns the refusal into an allow or a 500.
+   */
+  async #auditDenial(principal: Principal, action: string, projectId: string, reason: DenyReason): Promise<void> {
+    try {
+      await withTenantTransaction(this.db, tenantFromVerifiedSession(principal.organizationId), (tx) =>
+        this.audit.record(tx, {
+          organizationId: principal.organizationId,
+          actorUserId: principal.userId,
+          actorKind: 'user',
+          action,
+          targetType: 'project',
+          targetId: projectId,
+          outcome: 'denied',
+          after: { reason },
+        }),
+      );
+    } catch (error) {
+      this.#logger.error(`denied-access audit failed (${error instanceof Error ? error.name : 'unknown'})`);
+    }
   }
 
   async #checkPlatformOperator(req: AuthenticatedRequest): Promise<boolean> {

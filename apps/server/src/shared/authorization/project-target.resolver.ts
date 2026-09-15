@@ -7,7 +7,8 @@ export const PROJECT_TARGET_RESOLVER = Symbol('ProjectTargetResolver');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Loads the caller's relation to a project inside the tenant transaction (no cache — SC-004).
+ * Loads the caller's relation to a project inside the tenant transaction on every request — never cached, so a
+ * removed role, project membership or deactivation applies to the very next request (SC-004).
  * Returns undefined when the project does not exist in the active organization (FR-003).
  */
 export class ProjectTargetResolver {
@@ -17,7 +18,8 @@ export class ProjectTargetResolver {
       `SELECT pm.id AS project_member_id,
               coalesce(array_agg(r.raci_role) FILTER (WHERE r.raci_role IS NOT NULL), '{}') AS raci_roles
          FROM project p
-         LEFT JOIN organization_membership m ON m.user_id = $2 AND m.status = 'active'
+         LEFT JOIN organization_membership m
+                ON m.user_id = $2 AND m.status = 'active' AND m.organization_id = p.organization_id
          LEFT JOIN project_member pm ON pm.project_id = p.id AND pm.membership_id = m.id AND pm.status = 'active'
          LEFT JOIN raci_assignment r ON r.project_member_id = pm.id
         WHERE p.id = $1
