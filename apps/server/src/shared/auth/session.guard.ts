@@ -1,10 +1,11 @@
 import { Inject, Injectable, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import type { Principal } from '@planix/core/features/organization-access/principal.ts';
 import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
 import { DATABASE } from '../app-tokens.ts';
-import { withTenantTransaction, type Database, type Tx } from '../db/client.ts';
+import type { Database, Tx } from '../db/client.ts';
+import { openRequestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PRINCIPAL_LOADER, type PrincipalLoader } from './principal.loader.ts';
 import { ORGANIZATION_SCOPED, PUBLIC_ROUTE } from './route-scope.decorators.ts';
@@ -46,9 +47,9 @@ export class SessionGuard implements CanActivate {
     const organizationId = session.activeOrganizationId;
     if (organizationId === null) throw new DomainError('ACTIVE_ORGANIZATION_REQUIRED');
 
-    const principal = await withTenantTransaction(this.db, tenantFromVerifiedSession(organizationId), (tx) =>
-      this.principals.load(tx, session.userId, organizationId),
-    );
+    const res = context.switchToHttp().getResponse<Response>();
+    const tx = await openRequestTransaction(req, res, this.db, tenantFromVerifiedSession(organizationId));
+    const principal = await this.principals.load(tx, session.userId, organizationId);
     if (principal === undefined || principal.membershipStatus !== 'active') {
       await this.sessions.setActiveOrganization(session.idHash, null);
       throw new DomainError('MEMBERSHIP_INACTIVE');

@@ -3,10 +3,10 @@ import { Reflector } from '@nestjs/core';
 import { decide } from '@planix/core/features/organization-access/decide.ts';
 import { PERMISSION_MATRIX } from '@planix/core/features/organization-access/permission-matrix.ts';
 import type { DenyReason, Target } from '@planix/core/features/organization-access/principal.ts';
-import { tenantFromVerifiedSession } from '@planix/core/shared/tenant-context.ts';
 import { DATABASE } from '../app-tokens.ts';
 import type { AuthenticatedRequest } from '../auth/session.guard.ts';
-import { withAnonymousTransaction, withTenantTransaction, type Database } from '../db/client.ts';
+import { withAnonymousTransaction, type Database } from '../db/client.ts';
+import { requestTransaction } from '../db/request-transaction.ts';
 import { DomainError } from '../errors/domain-error.ts';
 import { PLATFORM_ACTION } from './platform-action.decorator.ts';
 import { PROJECT_TARGET_RESOLVER, type ProjectTargetResolver } from './project-target.resolver.ts';
@@ -43,9 +43,9 @@ export class AuthorizationGuard implements CanActivate {
     if (PERMISSION_MATRIX[required.action].scope === 'project') {
       const param: unknown = req.params[required.projectParam];
       const projectId = typeof param === 'string' ? param : '';
-      const resolved = await withTenantTransaction(this.db, tenantFromVerifiedSession(principal.organizationId), (tx) =>
-        this.projects.resolve(tx, principal, projectId),
-      );
+      const tx = requestTransaction(req);
+      if (tx === undefined) throw new DomainError('AUTH_REQUIRED');
+      const resolved = await this.projects.resolve(tx, principal, projectId);
       if (resolved === undefined) throw new DomainError('RESOURCE_NOT_FOUND');
       target = resolved;
     }

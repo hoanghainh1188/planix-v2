@@ -7,6 +7,7 @@ export interface ServerConfig {
   readonly smtpUrl: string;
   readonly mailFrom: string;
   readonly port: number;
+  readonly appPoolMax: number | undefined;
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {
@@ -27,5 +28,6 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     smtpUrl: required(env, 'SMTP_URL'),
     mailFrom: env.MAIL_FROM ?? 'Planix <no-reply@planix.local>',
     port: Number.parseInt(env.PORT ?? '3000', 10),
+    appPoolMax: env.DATABASE_APP_POOL_MAX === undefined ? undefined : Number.parseInt(env.DATABASE_APP_POOL_MAX, 10),
   };
 }

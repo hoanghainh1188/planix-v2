@@ -121,6 +121,42 @@ beforeAll(async () => {
 
 afterAll(() => app.close());
 
+describe('database connections per request (code review finding 2, SC-006)', () => {
+  function countCheckouts() {
+    const original = db.appPool.connect.bind(db.appPool);
+    let count = 0;
+    db.appPool.connect = ((...args: unknown[]) => {
+      count++;
+      return (original as (...a: unknown[]) => unknown)(...args);
+    }) as typeof db.appPool.connect;
+    return { count: () => count, restore: () => (db.appPool.connect = original) };
+  }
+
+  it('uses one session lookup and a single tenant transaction for a project request', async () => {
+    const user = await member(orgA, ['member']);
+    await seedProjectMember(db, orgA, projectA, user.membershipId);
+    const cookie = await login(user.userId, orgA);
+    const probe = countCheckouts();
+    try {
+      expect((await api(app).get(`/api/v1/probe/projects/${projectA}`).set('Cookie', cookie)).status).toBe(200);
+      expect(probe.count()).toBe(2);
+    } finally {
+      probe.restore();
+    }
+  });
+
+  it('releases the request transaction when authorization denies the request', async () => {
+    const outsider = await member(orgA, ['member']);
+    const cookie = await login(outsider.userId, orgA);
+    for (let i = 0; i < 15; i++) {
+      expect((await api(app).get(`/api/v1/probe/projects/${projectA}`).set('Cookie', cookie)).status).toBe(403);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(db.appPool.totalCount - db.appPool.idleCount).toBe(0);
+    expect(db.appPool.waitingCount).toBe(0);
+  });
+});
+
 describe('route action coverage (FR-024)', () => {
   it('refuses to start when a route declares no action and is not public', async () => {
     await expect(buildApp([ProbeController, UndeclaredController])).rejects.toThrow(/GET \/bad/);

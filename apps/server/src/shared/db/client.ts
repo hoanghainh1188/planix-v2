@@ -22,9 +22,16 @@ export interface Database {
   close(): Promise<void>;
 }
 
-export function createDatabase(urls: DatabaseUrls): Database {
+/** Application pool size per server instance; each organization request holds at most one connection (SC-006). */
+export const DEFAULT_APP_POOL_MAX = 20;
+
+export interface DatabaseOptions {
+  readonly appPoolMax?: number;
+}
+
+export function createDatabase(urls: DatabaseUrls, options: DatabaseOptions = {}): Database {
   const ownerPool = new pg.Pool({ connectionString: urls.owner, max: 2 });
-  const appPool = new pg.Pool({ connectionString: urls.app });
+  const appPool = new pg.Pool({ connectionString: urls.app, max: options.appPoolMax ?? DEFAULT_APP_POOL_MAX });
   const platformPool = new pg.Pool({ connectionString: urls.platform, max: 5 });
   return {
     ownerPool,
@@ -38,11 +45,17 @@ export function createDatabase(urls: DatabaseUrls): Database {
 
 export type Tx = NodePgDatabase & { readonly client: pg.PoolClient };
 
-async function inTransaction<T>(
+export interface OpenTransaction {
+  readonly tx: Tx;
+  commit(): Promise<void>;
+  rollback(): Promise<void>;
+}
+
+/** Begins a transaction with the given SET LOCAL settings; the caller must commit or roll back exactly once. */
+export async function openTransaction(
   pool: pg.Pool,
   settings: Readonly<Record<string, string>>,
-  work: (tx: Tx) => Promise<T>,
-): Promise<T> {
+): Promise<OpenTransaction> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -50,17 +63,45 @@ async function inTransaction<T>(
       // set_config(..., true) is the parameterizable equivalent of SET LOCAL.
       await client.query('SELECT set_config($1, $2, true)', [name, value]);
     }
-    const tx = Object.assign(drizzle(client), { client }) as Tx;
-    const result = await work(tx);
-    await client.query('COMMIT');
+  } catch (error) {
+    client.release(error as Error);
+    throw error;
+  }
+  let finished = false;
+  const finish = async (statement: 'COMMIT' | 'ROLLBACK') => {
+    if (finished) return;
+    finished = true;
+    try {
+      await client.query(statement);
+    } finally {
+      client.release();
+    }
+  };
+  return {
+    tx: Object.assign(drizzle(client), { client }),
+    commit: () => finish('COMMIT'),
+    rollback: () => finish('ROLLBACK'),
+  };
+}
+
+async function inTransaction<T>(
+  pool: pg.Pool,
+  settings: Readonly<Record<string, string>>,
+  work: (tx: Tx) => Promise<T>,
+): Promise<T> {
+  const transaction = await openTransaction(pool, settings);
+  try {
+    const result = await work(transaction.tx);
+    await transaction.commit();
     return result;
   } catch (error) {
-    await client.query('ROLLBACK');
+    await transaction.rollback();
     throw error;
-  } finally {
-    client.release();
   }
 }
+
+/** Settings for a tenant-scoped transaction (research R3). */
+export const tenantSettings = (tenant: TenantContext) => ({ 'app.organization_id': tenant.organizationId });
 
 /** Runs `work` as `planix_app` scoped to the verified active organization. */
 export function withTenantTransaction<T>(
@@ -68,7 +109,7 @@ export function withTenantTransaction<T>(
   tenant: TenantContext,
   work: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  return inTransaction(db.appPool, { 'app.organization_id': tenant.organizationId }, work);
+  return inTransaction(db.appPool, tenantSettings(tenant), work);
 }
 
 /** Runs `work` as `planix_app` with read access to the given user's own memberships only (R3 path 1). */
