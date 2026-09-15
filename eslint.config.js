@@ -68,6 +68,17 @@ export default tseslint.config(
           ],
         },
       ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: String.raw`ImportExpression[source.type='Literal'][source.value=/(^|\/)test\//]`,
+          message: 'apps/server/src/test is test-only; production server code must not import it (dynamic import).',
+        },
+        {
+          selector: "ImportExpression:not([source.type='Literal'])",
+          message: 'Dynamic import() paths must be string literals so import boundaries can be checked.',
+        },
+      ],
     },
   },
   {
