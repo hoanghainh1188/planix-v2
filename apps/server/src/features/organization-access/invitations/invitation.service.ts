@@ -14,6 +14,7 @@ import { SESSION_STORE, type SessionStore, type StoredSession } from '../../../s
 import { CLOCK, type ClockPort } from '../../../shared/clock/clock.ts';
 import { withAnonymousTransaction, withTenantTransaction, type Database, type Tx } from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
+import { BackgroundJobs } from '../../../shared/background/background-jobs.ts';
 import { MAIL_SENDER, type MailSender } from '../../../shared/mail/mail-sender.ts';
 import { INVITATION_TTL_MS } from '../platform/platform.service.ts';
 import { buildSessionPayload, loadUser } from '../session-payload.ts';
@@ -44,7 +45,8 @@ export interface AcceptedInvitation {
 @Injectable()
 export class InvitationService implements BeforeApplicationShutdown {
   readonly #logger = new Logger('InvitationService');
-  readonly #pendingEmails = new Set<Promise<void>>();
+  // Never log the error message: it may carry the invitation link.
+  readonly #emails = new BackgroundJobs((message) => this.#logger.error(message));
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
@@ -115,20 +117,13 @@ export class InvitationService implements BeforeApplicationShutdown {
     return invitation;
   }
 
-  /** Lets invitation emails already scheduled after commit go out before the application stops. */
-  async beforeApplicationShutdown(): Promise<void> {
-    await Promise.all(this.#pendingEmails);
+  /** Lets invitation emails already scheduled after commit go out before the application stops (bounded wait). */
+  beforeApplicationShutdown(): Promise<void> {
+    return this.#emails.drain();
   }
 
   #sendInBackground(email: string, message: Parameters<MailSender['send']>[1]): void {
-    const job: Promise<void> = this.mail
-      .send(email, message)
-      .catch((error: unknown) => {
-        // Never log the error message: it may carry the invitation link.
-        this.#logger.error(`invitation email failed (${error instanceof Error ? error.name : 'unknown'})`);
-      })
-      .finally(() => this.#pendingEmails.delete(job));
-    this.#pendingEmails.add(job);
+    this.#emails.run('invitation email', () => this.mail.send(email, message));
   }
 
   listForOrganization(tx: Tx, principal: Principal, status?: InvitationStatus): Promise<InvitationView[]> {

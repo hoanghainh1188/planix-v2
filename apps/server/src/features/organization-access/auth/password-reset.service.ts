@@ -8,6 +8,7 @@ import { SESSION_STORE, type SessionStore } from '../../../shared/auth/session-s
 import { CLOCK, type ClockPort } from '../../../shared/clock/clock.ts';
 import { withAnonymousTransaction, type Database } from '../../../shared/db/client.ts';
 import { DomainError } from '../../../shared/errors/domain-error.ts';
+import { BackgroundJobs } from '../../../shared/background/background-jobs.ts';
 import { MAIL_SENDER, type MailSender } from '../../../shared/mail/mail-sender.ts';
 
 export const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
@@ -26,7 +27,8 @@ export class PasswordResetService implements BeforeApplicationShutdown {
   ) {}
 
   readonly #logger = new Logger('PasswordResetService');
-  readonly #pending = new Set<Promise<void>>();
+  // Never log the error message: it may carry the reset link.
+  readonly #jobs = new BackgroundJobs((message) => this.#logger.error(message));
 
   /**
    * Same response and response time whether or not the email exists (FR-008): the lookup, token write and email
@@ -34,18 +36,12 @@ export class PasswordResetService implements BeforeApplicationShutdown {
    */
   request(email: string): void {
     const now = this.clock.now();
-    const job: Promise<void> = this.#issueResetLink(email, now)
-      .catch((error: unknown) => {
-        // Never log the error message: it may carry the reset link.
-        this.#logger.error(`password reset request failed (${error instanceof Error ? error.name : 'unknown'})`);
-      })
-      .finally(() => this.#pending.delete(job));
-    this.#pending.add(job);
+    this.#jobs.run('password reset request', () => this.#issueResetLink(email, now));
   }
 
-  /** Lets in-flight reset requests finish (and send their email) before the application stops. */
-  async beforeApplicationShutdown(): Promise<void> {
-    await Promise.all(this.#pending);
+  /** Lets in-flight reset requests finish (and send their email) before the application stops (bounded wait). */
+  beforeApplicationShutdown(): Promise<void> {
+    return this.#jobs.drain();
   }
 
   async #issueResetLink(email: string, now: Date): Promise<void> {
