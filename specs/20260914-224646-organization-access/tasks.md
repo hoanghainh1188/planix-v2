@@ -206,10 +206,10 @@ RED tương ứng chưa tồn tại và chưa fail.
 
 **Independent Test**: Q3 và bộ test cô lập tự liệt kê route.
 
-- [ ] T088 [US1] Fixture `apps/server/src/test/fixtures/two-organizations.ts` (Acme, Beta; mỗi tổ chức: Admin, PM, member, lời mời pending, dự án + thành viên dự án + Accountable chèn trực tiếp) và bảng ánh xạ `apps/server/src/test/fixtures/route-targets.ts` (route → id đối tượng của Beta)
+- [X] T088 [US1] Fixture `apps/server/src/test/fixtures/two-organizations.ts` (Acme, Beta; mỗi tổ chức: Admin, PM, member, lời mời pending, dự án + thành viên dự án + Accountable chèn trực tiếp) và bảng ánh xạ `apps/server/src/test/fixtures/route-targets.ts` (route → id đối tượng của Beta)
 - [X] T089 [US1] **RED** `FEAT_SRV/isolation.integration.test.ts`: **tự liệt kê** mọi route có `@RequireAction` từ NestJS `DiscoveryService`; với principal Acme nhắm id Beta → 404 `RESOURCE_NOT_FOUND`, body **giống hệt** khi dùng UUID ngẫu nhiên; endpoint danh sách không chứa dòng Beta; số dòng bảng của Beta không đổi; route mới chưa có trong `route-targets.ts` → test **fail** (FR-001–003, SC-001, Q3)
 - [X] T090 [US1] **RED** `FEAT_SRV/db/rls-policies.integration.test.ts`: với **mọi** bảng có cột `organization_id` (đọc từ `information_schema`), `planix_app` trong context Acme không `SELECT`/`INSERT`/`UPDATE` được dòng Beta; bảng có `organization_id` mà chưa bật RLS → fail; policy SELECT theo `app_current_user_id()` (R3 lối 1) và policy INSERT NULL của `audit_entry` (R3 lối 4) là ngoại lệ liệt kê tường minh trong test (FR-002, R3)
-- [ ] T091 [US1] **GREEN** Sửa policy RLS còn thiếu mà T090 phát hiện (migration mới `apps/server/drizzle/0007_rls_fixes.sql` chỉ khi có thiếu sót — không tạo lại policy đã có từ T031) và sửa repository thiếu điều kiện tổ chức để T089, T090 xanh
+- [X] T091 [US1] **GREEN** Sửa policy RLS còn thiếu mà T090 phát hiện (migration mới `apps/server/drizzle/0007_rls_fixes.sql` chỉ khi có thiếu sót — không tạo lại policy đã có từ T031) và sửa repository thiếu điều kiện tổ chức để T089, T090 xanh
 - [ ] T092 [US1] E2E `apps/web/e2e/isolation.spec.ts`: URL trực tiếp tới đối tượng tổ chức khác → trang "không tìm thấy", danh sách không lộ dữ liệu (Q3)
 
 **Checkpoint**: mọi route hiện có đã chứng minh cô lập; route thêm ở phase sau bắt buộc thêm ánh xạ.

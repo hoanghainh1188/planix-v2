@@ -20,4 +20,30 @@ export type RouteTarget =
       readonly expectedStatus: number;
     };
 
-export const ROUTE_TARGETS: Readonly<Record<string, RouteTarget>> = {};
+export const ROUTE_TARGETS: Readonly<Record<string, RouteTarget>> = {
+  'GET /org/invitations': { kind: 'list', leaks: (victim) => [victim.invitationEmail] },
+  'POST /org/invitations': {
+    kind: 'create',
+    // The victim's member is not a member here: the invitation is created, revealing nothing about the victim.
+    body: (victim) => ({ email: victim.memberEmail }),
+    expectedStatus: 201,
+  },
+  'DELETE /org/invitations/:invitationId': {
+    kind: 'item',
+    params: (victim) => ({ invitationId: victim.invitationId }),
+  },
+  'GET /org/members': { kind: 'list', leaks: (victim) => [victim.memberEmail, victim.admin.email] },
+  'PUT /org/members/:membershipId/roles': {
+    kind: 'item',
+    params: (victim) => ({ membershipId: victim.memberMembershipId }),
+    body: { roles: ['admin'] },
+  },
+  'POST /org/members/:membershipId/deactivate': {
+    kind: 'item',
+    params: (victim) => ({ membershipId: victim.memberMembershipId }),
+  },
+  'POST /org/members/:membershipId/reactivate': {
+    kind: 'item',
+    params: (victim) => ({ membershipId: victim.memberMembershipId }),
+  },
+};
