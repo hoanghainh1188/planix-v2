@@ -122,13 +122,13 @@ RED tương ứng chưa tồn tại và chưa fail.
 
 ### Web nền tảng
 
-- [ ] T050 [P] **RED** `apps/web/src/i18n/i18n-completeness.test.ts`: tập khoá `vi.json` = `en.json`; mọi mã trong `packages/core/src/shared/errors/error-codes.ts` có `errors.<CODE>` ở cả hai (FR-029, Q16)
-- [ ] T051 **GREEN** `apps/web/src/i18n/{index.ts,vi.json,en.json}` (i18next + react-i18next, ngôn ngữ từ `user.locale`) với bản dịch mọi mã lỗi
-- [ ] T052 [P] **RED** `apps/web/src/shared/time/format-date-time.test.ts`: `"2026-09-14T16:30:00Z"` + `Asia/Ho_Chi_Minh` → 23:30 ngày 14/09/2026; không phụ thuộc TZ máy chạy test (FR-030, Q16)
-- [ ] T053 **GREEN** `apps/web/src/shared/time/format-date-time.ts` (`Intl.DateTimeFormat`) — làm T052 xanh
-- [ ] T054 [P] **RED** `apps/web/src/shared/api/client.test.ts`: gửi `credentials: 'include'` + `X-CSRF-Token`; lỗi server → `ApiError { code, params }`
-- [ ] T055 **GREEN** `apps/web/src/shared/api/client.ts` — làm T054 xanh
-- [ ] T056 `apps/web/src/app/{App.tsx,router.tsx,session-context.tsx}`: nạp `GET /auth/session`, route bảo vệ, layout có chỗ cho bộ chọn tổ chức
+- [X] T050 [P] **RED** `apps/web/src/i18n/i18n-completeness.test.ts`: tập khoá `vi.json` = `en.json`; mọi mã trong `packages/core/src/shared/errors/error-codes.ts` có `errors.<CODE>` ở cả hai (FR-029, Q16)
+- [X] T051 **GREEN** `apps/web/src/i18n/{index.ts,vi.json,en.json}` (i18next + react-i18next, ngôn ngữ từ `user.locale`) với bản dịch mọi mã lỗi
+- [X] T052 [P] **RED** `apps/web/src/shared/time/format-date-time.test.ts`: `"2026-09-14T16:30:00Z"` + `Asia/Ho_Chi_Minh` → 23:30 ngày 14/09/2026; không phụ thuộc TZ máy chạy test (FR-030, Q16)
+- [X] T053 **GREEN** `apps/web/src/shared/time/format-date-time.ts` (`Intl.DateTimeFormat`) — làm T052 xanh
+- [X] T054 [P] **RED** `apps/web/src/shared/api/client.test.ts`: gửi `credentials: 'include'` + `X-CSRF-Token`; lỗi server → `ApiError { code, params }`
+- [X] T055 **GREEN** `apps/web/src/shared/api/client.ts` — làm T054 xanh
+- [X] T056 `apps/web/src/app/{App.tsx,router.tsx,session-context.tsx}`: nạp `GET /auth/session`, route bảo vệ, layout có chỗ cho bộ chọn tổ chức
 
 **Checkpoint**: core + nền server + web shell xanh, coverage ≥ 80% cho phần đã có — sẵn sàng làm user story.
 

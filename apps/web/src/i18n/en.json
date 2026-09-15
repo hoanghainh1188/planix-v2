@@ -1,0 +1,33 @@
+{
+  "common": {
+    "appName": "Planix",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "retry": "Try again",
+    "notFound": "The page or data you requested was not found."
+  },
+  "errors": {
+    "AUTH_REQUIRED": "Please sign in to continue.",
+    "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "RATE_LIMITED": "Too many attempts. Please try again in a few minutes.",
+    "CSRF_INVALID": "Your session is no longer valid. Please reload the page.",
+    "ACTIVE_ORGANIZATION_REQUIRED": "Please choose an organization to continue.",
+    "MEMBERSHIP_INACTIVE": "Your membership in this organization has been deactivated.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "RESOURCE_NOT_FOUND": "The data you requested was not found.",
+    "VALIDATION_FAILED": "Some of the information entered is invalid.",
+    "PASSWORD_POLICY_VIOLATION": "The password does not meet the requirements.",
+    "TOKEN_INVALID_OR_EXPIRED": "This link is invalid or has expired.",
+    "INVITATION_EMAIL_MISMATCH": "This invitation was sent to a different email address.",
+    "INVITATION_NOT_PENDING": "This invitation is no longer pending.",
+    "ALREADY_MEMBER": "This person is already a member of the organization.",
+    "MEMBER_DEACTIVATED_USE_REACTIVATE": "This person was deactivated. Reactivate them instead of inviting again.",
+    "MEMBERSHIP_NOT_DEACTIVATED": "This member is not deactivated.",
+    "LAST_ADMIN_REQUIRED": "The organization must always keep at least one admin.",
+    "ACCOUNTABLE_REQUIRED": "A project must always have one Accountable person. Transfer this role first.",
+    "ALREADY_PROJECT_MEMBER": "This person is already a project member.",
+    "NOT_PROJECT_MEMBER": "This person is not a project member.",
+    "INTERNAL_ERROR": "Something went wrong. Please try again."
+  }
+}

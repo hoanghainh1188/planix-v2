@@ -1,0 +1,33 @@
+{
+  "common": {
+    "appName": "Planix",
+    "loading": "Đang tải…",
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "retry": "Thử lại",
+    "notFound": "Không tìm thấy trang hoặc dữ liệu bạn yêu cầu."
+  },
+  "errors": {
+    "AUTH_REQUIRED": "Vui lòng đăng nhập để tiếp tục.",
+    "AUTH_INVALID_CREDENTIALS": "Email hoặc mật khẩu không đúng.",
+    "RATE_LIMITED": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
+    "CSRF_INVALID": "Phiên làm việc không hợp lệ. Vui lòng tải lại trang.",
+    "ACTIVE_ORGANIZATION_REQUIRED": "Vui lòng chọn tổ chức để tiếp tục.",
+    "MEMBERSHIP_INACTIVE": "Tư cách thành viên của bạn trong tổ chức này đã bị vô hiệu hoá.",
+    "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này.",
+    "RESOURCE_NOT_FOUND": "Không tìm thấy dữ liệu bạn yêu cầu.",
+    "VALIDATION_FAILED": "Dữ liệu nhập chưa hợp lệ.",
+    "PASSWORD_POLICY_VIOLATION": "Mật khẩu chưa đạt yêu cầu.",
+    "TOKEN_INVALID_OR_EXPIRED": "Liên kết không hợp lệ hoặc đã hết hạn.",
+    "INVITATION_EMAIL_MISMATCH": "Lời mời này dành cho một địa chỉ email khác.",
+    "INVITATION_NOT_PENDING": "Lời mời không còn ở trạng thái chờ.",
+    "ALREADY_MEMBER": "Người này đã là thành viên của tổ chức.",
+    "MEMBER_DEACTIVATED_USE_REACTIVATE": "Người này đã bị vô hiệu hoá. Hãy kích hoạt lại thay vì mời mới.",
+    "MEMBERSHIP_NOT_DEACTIVATED": "Thành viên này chưa bị vô hiệu hoá.",
+    "LAST_ADMIN_REQUIRED": "Tổ chức phải luôn còn ít nhất một quản trị viên.",
+    "ACCOUNTABLE_REQUIRED": "Dự án phải luôn có một người Accountable. Hãy chuyển vai trò này trước.",
+    "ALREADY_PROJECT_MEMBER": "Người này đã là thành viên của dự án.",
+    "NOT_PROJECT_MEMBER": "Người này chưa là thành viên của dự án.",
+    "INTERNAL_ERROR": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  }
+}
