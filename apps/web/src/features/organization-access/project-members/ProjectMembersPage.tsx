@@ -9,8 +9,10 @@ import { useCan } from '../../../shared/authorization/useCan.ts';
 import { ApiError } from '../../../shared/api/client.ts';
 import { ErrorMessage } from '../../../shared/ui/ErrorMessage.tsx';
 import { LoadingStatus } from '../../../shared/ui/LoadingStatus.tsx';
+import { ChangeAccountableDialog } from './ChangeAccountableDialog.tsx';
+import { RaciEditor } from './RaciEditor.tsx';
 
-/** One project: its Accountable and members; adding and removing organization members (US4, FR-019, FR-020). */
+/** One project: its Accountable, members and RACI roles (US4, US5, FR-019, FR-020). */
 export function ProjectMembersPage() {
   const { projectId = '' } = useParams();
   const { t } = useTranslation();
@@ -20,6 +22,9 @@ export function ProjectMembersPage() {
   const membersKey = ['projects', projectId, 'members'];
   // The page only renders for project members: GET /projects/{id} answered 200 (project.read is project-scoped).
   const canManage = useCan('project.member.manage', { membership: 'active' });
+  const canManageRaci = useCan('project.raci.manage', { membership: 'active' });
+  const [editingRaciFor, setEditingRaciFor] = useState<string | null>(null);
+  const [changingAccountable, setChangingAccountable] = useState(false);
 
   const project = useQuery({
     queryKey: ['projects', projectId],
@@ -72,7 +77,26 @@ export function ProjectMembersPage() {
     <section aria-labelledby="project-heading">
       <h1 id="project-heading">{project.data.project.name}</h1>
       {project.data.project.description && <p>{project.data.project.description}</p>}
-      <p className="hint">{t('projectMembers.accountable', { email: project.data.accountable.email })}</p>
+      <p className="hint">
+        {t('projectMembers.accountable', { email: project.data.accountable.email })}{' '}
+        {canManageRaci && !changingAccountable && (
+          <button className="button button-secondary" type="button" onClick={() => setChangingAccountable(true)}>
+            {t('changeAccountable.title')}
+          </button>
+        )}
+      </p>
+      {canManageRaci && changingAccountable && members.data && (
+        <ChangeAccountableDialog
+          projectId={projectId}
+          members={members.data.items}
+          currentProjectMemberId={project.data.accountable.projectMemberId}
+          onCancel={() => setChangingAccountable(false)}
+          onDone={async () => {
+            setChangingAccountable(false);
+            await refresh();
+          }}
+        />
+      )}
       <h2>{t('projectMembers.title')}</h2>
       <ErrorMessage error={members.error ?? remove.error} />
       {canManage && (
@@ -101,25 +125,51 @@ export function ProjectMembersPage() {
             <tr>
               <th>{t('projectMembers.email')}</th>
               <th>{t('projectMembers.raciRoles')}</th>
-              {canManage && <th>{t('members.actions')}</th>}
+              {(canManage || canManageRaci) && <th>{t('members.actions')}</th>}
             </tr>
           </thead>
           <tbody>
             {members.data.items.map((member) => (
               <tr key={member.projectMemberId}>
                 <td>{member.email}</td>
-                <td>{member.raciRoles.map((role) => t(`raci.${role}`)).join(', ')}</td>
-                {canManage && (
-                  <td>
-                    <button
-                      className="button button-secondary"
-                      type="button"
-                      disabled={remove.isPending}
-                      aria-label={t('projectMembers.removeFor', { email: member.email })}
-                      onClick={() => remove.mutate(member.projectMemberId)}
-                    >
-                      {t('projectMembers.remove')}
-                    </button>
+                <td>
+                  {editingRaciFor === member.projectMemberId ? (
+                    <RaciEditor
+                      projectId={projectId}
+                      member={member}
+                      onCancel={() => setEditingRaciFor(null)}
+                      onDone={async () => {
+                        setEditingRaciFor(null);
+                        await refresh();
+                      }}
+                    />
+                  ) : (
+                    member.raciRoles.map((role) => t(`raci.${role}`)).join(', ')
+                  )}
+                </td>
+                {(canManage || canManageRaci) && (
+                  <td className="row-actions">
+                    {canManageRaci && editingRaciFor !== member.projectMemberId && (
+                      <button
+                        className="button button-secondary"
+                        type="button"
+                        aria-label={t('raciEditor.editFor', { email: member.email })}
+                        onClick={() => setEditingRaciFor(member.projectMemberId)}
+                      >
+                        {t('raciEditor.edit')}
+                      </button>
+                    )}
+                    {canManage && (
+                      <button
+                        className="button button-secondary"
+                        type="button"
+                        disabled={remove.isPending}
+                        aria-label={t('projectMembers.removeFor', { email: member.email })}
+                        onClick={() => remove.mutate(member.projectMemberId)}
+                      >
+                        {t('projectMembers.remove')}
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>

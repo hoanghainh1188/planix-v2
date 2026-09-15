@@ -226,3 +226,9 @@ body {
   border-radius: var(--radius-control);
   resize: vertical;
 }
+
+.dialog {
+  position: relative;
+  margin: var(--space-4) 0;
+  width: min(32rem, 100%);
+}
