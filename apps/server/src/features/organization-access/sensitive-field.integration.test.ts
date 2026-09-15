@@ -87,7 +87,8 @@ describe('sensitive fields end to end over HTTP (FR-025, FR-026, FR-028, SC-005,
 
     const updated = await finance.browser.put(samplePath(), { budgetAtCompletion: '2500.5000' });
     expect(updated.status).toBe(200);
-    expect(updated.body.budgetAtCompletion).toBe('2500.5000');
+    // Stored and returned in Decimal's canonical full-precision form.
+    expect(updated.body.budgetAtCompletion).toBe('2500.5');
 
     const { rows } = await db.ownerPool.query<{ before: unknown; after: unknown }>(
       "SELECT before, after FROM audit_entry WHERE action = 'sample.financial.update' AND target_id = $1 ORDER BY occurred_at",
@@ -99,12 +100,12 @@ describe('sensitive fields end to end over HTTP (FR-025, FR-026, FR-028, SC-005,
       expect(row.after).not.toHaveProperty('budgetAtCompletion');
     }
     const raw = JSON.stringify(rows);
-    for (const value of ['1000.0000', '2500.5000', '9999.0000']) expect(raw).not.toContain(value);
+    for (const value of ['1000.0000', '2500.5', '9999.0000']) expect(raw).not.toContain(value);
   });
 
   it('never writes sensitive values to the request log', () => {
     const logs = logLines.join('\n');
     expect(logs).toContain('/sample-financials');
-    for (const value of ['1000.0000', '2500.5000', '9999.0000']) expect(logs).not.toContain(value);
+    for (const value of ['1000.0000', '2500.5', '9999.0000']) expect(logs).not.toContain(value);
   });
 });

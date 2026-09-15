@@ -289,7 +289,7 @@ hiệu lực ngay; từ chối được ghi audit.
 **Independent Test**: Q15.
 
 - [X] T113 [US7] **RED** `FEAT_SRV/sensitive-field.integration.test.ts` với module chỉ dành cho test `apps/server/src/test/sample-financial.module.ts` (route `@RequireAction('project.read')` trả `SampleFinancialDto`): principal `finance` + thành viên dự án → có khoá `budgetAtCompletion` (giá trị **chuỗi** thập phân); principal `member` → **không có khoá** ở chi tiết, danh sách, body lỗi và `audit_entry.before/after`; ghi field khi thiếu `sensitive.financial.write` → 403, dữ liệu không đổi (FR-025, FR-026, FR-028, SC-005, Q15)
-- [ ] T114 [US7] **GREEN** Mở rộng `apps/server/src/shared/sensitive-field/sensitive-field.interceptor.ts` cho body lỗi và nối `audit-writer.ts` qua `stripSensitive` để T113 xanh; module test không được import vào `app.module.ts` production
+- [X] T114 [US7] **GREEN** Mở rộng `apps/server/src/shared/sensitive-field/sensitive-field.interceptor.ts` cho body lỗi và nối `audit-writer.ts` qua `stripSensitive` để T113 xanh; module test không được import vào `app.module.ts` production
 
 **Checkpoint**: cơ chế field nhạy cảm sẵn sàng cho RES (`billingRate`) và EVM (`budgetAtCompletion`).
 
