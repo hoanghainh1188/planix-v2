@@ -86,6 +86,10 @@ describe('changing the Accountable while the candidate is being deactivated or r
       let settled = false;
       const changing = raci
         .changeAccountable(change.tx, principal(pmUserId, 'projectManager'), projectId, candidateProjectMemberId)
+        .then(
+          () => undefined,
+          (e: unknown) => e,
+        )
         .finally(() => (settled = true));
       await expect
         .poll(
@@ -94,7 +98,7 @@ describe('changing the Accountable while the candidate is being deactivated or r
         )
         .toBe('Lock');
       await deactivation.commit();
-      const error: unknown = await changing.catch((e: unknown) => e);
+      const error: unknown = await changing;
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('NOT_PROJECT_MEMBER');
     } finally {
@@ -118,6 +122,10 @@ describe('changing the Accountable while the candidate is being deactivated or r
       let settled = false;
       const deactivating = members
         .deactivate(deactivation.tx, principal(adminUserId, 'admin'), candidateMembershipId)
+        .then(
+          () => undefined,
+          (e: unknown) => e,
+        )
         .finally(() => (settled = true));
       await expect
         .poll(
@@ -126,7 +134,7 @@ describe('changing the Accountable while the candidate is being deactivated or r
         )
         .toBe('Lock');
       await change.commit();
-      const error: unknown = await deactivating.catch((e: unknown) => e);
+      const error: unknown = await deactivating;
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('ACCOUNTABLE_REQUIRED');
     } finally {
@@ -150,6 +158,10 @@ describe('changing the Accountable while the candidate is being deactivated or r
       let settled = false;
       const removing = projectMembers
         .remove(removal.tx, principal(pmUserId, 'projectManager'), projectId, candidateProjectMemberId)
+        .then(
+          () => undefined,
+          (e: unknown) => e,
+        )
         .finally(() => (settled = true));
       await expect
         .poll(
@@ -158,7 +170,7 @@ describe('changing the Accountable while the candidate is being deactivated or r
         )
         .toBe('Lock');
       await change.commit();
-      const error: unknown = await removing.catch((e: unknown) => e);
+      const error: unknown = await removing;
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('ACCOUNTABLE_REQUIRED');
     } finally {
@@ -184,6 +196,10 @@ describe('changing the Accountable while the candidate is being deactivated or r
       let settled = false;
       const changing = raci
         .changeAccountable(change.tx, principal(pmUserId, 'projectManager'), projectId, candidateProjectMemberId)
+        .then(
+          () => undefined,
+          (e: unknown) => e,
+        )
         .finally(() => (settled = true));
       await expect
         .poll(
@@ -192,7 +208,7 @@ describe('changing the Accountable while the candidate is being deactivated or r
         )
         .toBe('Lock');
       await removal.commit();
-      const error: unknown = await changing.catch((e: unknown) => e);
+      const error: unknown = await changing;
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('NOT_PROJECT_MEMBER');
     } finally {

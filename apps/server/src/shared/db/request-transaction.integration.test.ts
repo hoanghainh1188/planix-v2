@@ -17,12 +17,13 @@ let organizationId: string;
 beforeAll(async () => {
   organizationId = await seedOrganization(db);
   await db.ownerPool.query(`
-    CREATE TABLE IF NOT EXISTS after_commit_probe (organization_id uuid NOT NULL, label text NOT NULL);
-    GRANT SELECT, INSERT ON after_commit_probe TO planix_app;
+    -- Probe table in test_probes (created by global setup), never in public.
+    CREATE TABLE IF NOT EXISTS test_probes.after_commit_probe (organization_id uuid NOT NULL, label text NOT NULL);
+    GRANT SELECT, INSERT ON test_probes.after_commit_probe TO planix_app;
   `);
 });
 
-afterAll(() => db.ownerPool.query('DROP TABLE IF EXISTS after_commit_probe'));
+afterAll(() => db.ownerPool.query('DROP TABLE IF EXISTS test_probes.after_commit_probe'));
 
 async function openFor(label: string) {
   const req = {};
@@ -32,7 +33,7 @@ async function openFor(label: string) {
     db,
     tenantFromVerifiedSession(organizationId),
   );
-  await tx.client.query('INSERT INTO after_commit_probe (organization_id, label) VALUES ($1, $2)', [
+  await tx.client.query('INSERT INTO test_probes.after_commit_probe (organization_id, label) VALUES ($1, $2)', [
     organizationId,
     label,
   ]);
@@ -40,7 +41,9 @@ async function openFor(label: string) {
 }
 
 const committedLabels = async () =>
-  (await db.ownerPool.query<{ label: string }>('SELECT label FROM after_commit_probe')).rows.map((r) => r.label);
+  (await db.ownerPool.query<{ label: string }>('SELECT label FROM test_probes.after_commit_probe')).rows.map(
+    (r) => r.label,
+  );
 
 describe('work scheduled after the request transaction commits (code review: invitation email)', () => {
   it('runs callbacks only after COMMIT, when the data is visible to other connections', async () => {
@@ -74,7 +77,7 @@ describe('work scheduled after the request transaction commits (code review: inv
       db,
       tenantFromVerifiedSession(organizationId),
     );
-    await tx.client.query('INSERT INTO after_commit_probe (organization_id, label) VALUES ($1, $2)', [
+    await tx.client.query('INSERT INTO test_probes.after_commit_probe (organization_id, label) VALUES ($1, $2)', [
       organizationId,
       'client-disconnected',
     ]);

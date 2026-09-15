@@ -82,6 +82,10 @@ describe('adding a project member while the membership is being deactivated (cod
       let settled = false;
       const adding = projectMembers
         .add(addition.tx, principal(pmUserId, 'projectManager'), projectId, targetMembershipId)
+        .then(
+          () => undefined,
+          (e: unknown) => e,
+        )
         .finally(() => (settled = true));
       await expect
         .poll(
@@ -90,7 +94,7 @@ describe('adding a project member while the membership is being deactivated (cod
         )
         .toBe('Lock');
       await deactivation.commit();
-      const error: unknown = await adding.catch((e: unknown) => e);
+      const error: unknown = await adding;
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('RESOURCE_NOT_FOUND');
     } finally {
