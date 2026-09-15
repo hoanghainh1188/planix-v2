@@ -41,7 +41,7 @@ export class SensitiveFieldInterceptor implements NestInterceptor {
       mergeMap((can) => {
         if (requestSchema !== undefined) assertNoSensitiveWrites(requestSchema, req.body, can);
         return next.handle().pipe(
-          map((body) => (responseSchema === undefined ? body : stripSensitive(responseSchema, body, can))),
+          map((body: unknown) => (responseSchema === undefined ? body : stripSensitive(responseSchema, body, can))),
           catchError((error: unknown) =>
             throwError(() =>
               error instanceof DomainError && responseSchema !== undefined
