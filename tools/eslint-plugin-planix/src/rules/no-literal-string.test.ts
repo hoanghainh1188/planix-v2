@@ -24,6 +24,10 @@ ruleTester.run('no-literal-string (FR-029, SC-007)', noLiteralString, {
     tsx('const A = () => <td>{member.email}</td>;'),
     tsx('const A = () => <p>{`${a} ${b}`}</p>;'),
     tsx('const A = () => <>\n  {children}\n</>;'),
+    tsx("const A = () => <p>{saved ? t('settings.saved') : t('settings.unsaved')}</p>;"),
+    tsx("const A = () => <p>{role === 'admin' && t('members.admin')}</p>;"),
+    tsx("const A = () => <p className={open ? 'panel open' : 'panel'}>{name ?? t('members.unknown')}</p>;"),
+    tsx('const A = () => <div role="progressbar" aria-valuetext={t(\'progress.half\')} />;'),
   ],
   invalid: [
     { ...tsx('const A = () => <h1>Settings</h1>;'), errors: [{ messageId: 'jsxText' }] },
@@ -36,5 +40,29 @@ ruleTester.run('no-literal-string (FR-029, SC-007)', noLiteralString, {
     },
     { ...tsx('const A = () => <input placeholder="Email" />;'), errors: [{ messageId: 'jsxAttribute' }] },
     { ...tsx('const A = () => <img alt="Logo" />;'), errors: [{ messageId: 'jsxAttribute' }] },
+    // Code review: literals inside conditional and logical expressions, and aria-valuetext.
+    {
+      ...tsx("const A = () => <p>{saved ? 'Saved' : t('settings.unsaved')}</p>;"),
+      errors: [{ messageId: 'jsxText' }],
+    },
+    {
+      ...tsx("const A = () => <p>{saved ? t('settings.saved') : `Not saved`}</p>;"),
+      errors: [{ messageId: 'jsxText' }],
+    },
+    { ...tsx("const A = () => <p>{loading && 'Loading'}</p>;"), errors: [{ messageId: 'jsxText' }] },
+    { ...tsx("const A = () => <p>{name || 'Unknown'}</p>;"), errors: [{ messageId: 'jsxText' }] },
+    { ...tsx("const A = () => <p>{name ?? 'Unknown'}</p>;"), errors: [{ messageId: 'jsxText' }] },
+    {
+      ...tsx("const A = () => <p>{a ? (b ? 'One' : 'Two') : t('x')}</p>;"),
+      errors: [{ messageId: 'jsxText' }, { messageId: 'jsxText' }],
+    },
+    {
+      ...tsx("const A = () => <button aria-label={open ? 'Close' : 'Open'} />;"),
+      errors: [{ messageId: 'jsxAttribute' }, { messageId: 'jsxAttribute' }],
+    },
+    {
+      ...tsx('const A = () => <div role="progressbar" aria-valuetext="Half done" />;'),
+      errors: [{ messageId: 'jsxAttribute' }],
+    },
   ],
 });

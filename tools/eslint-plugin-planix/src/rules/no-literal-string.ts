@@ -11,6 +11,7 @@ const DISPLAY_ATTRIBUTES = new Set([
   'aria-label',
   'aria-description',
   'aria-placeholder',
+  'aria-valuetext',
   'title',
   'placeholder',
   'alt',
@@ -19,6 +20,21 @@ const DISPLAY_ATTRIBUTES = new Set([
 
 /** Text that contains at least one letter in any script; symbols, digits and whitespace alone are fine. */
 const hasLetter = (text: string): boolean => /\p{L}/u.test(text);
+
+/**
+ * Nodes whose value can end up on screen: the expression itself, both branches of `? :`, the right side of `&&` and
+ * both sides of `||` / `??`. The test of a condition (`role === 'admin'`) is not displayed and is not visited.
+ */
+function displayedValues(node: TSESTree.Node): TSESTree.Node[] {
+  if (node.type === AST_NODE_TYPES.ConditionalExpression) {
+    return [...displayedValues(node.consequent), ...displayedValues(node.alternate)];
+  }
+  if (node.type === AST_NODE_TYPES.LogicalExpression) {
+    const right = displayedValues(node.right);
+    return node.operator === '&&' ? right : [...displayedValues(node.left), ...right];
+  }
+  return [node];
+}
 
 function literalText(node: TSESTree.Node): string | undefined {
   if (node.type === AST_NODE_TYPES.Literal && typeof node.value === 'string') return node.value;
@@ -56,16 +72,20 @@ export const noLiteralString = createRule<[], MessageIds>({
       JSXExpressionContainer(node) {
         if (node.parent.type === AST_NODE_TYPES.JSXAttribute) return;
         if (node.expression.type === AST_NODE_TYPES.JSXEmptyExpression) return;
-        const text = literalText(node.expression);
-        if (text !== undefined && hasLetter(text)) report(node, 'jsxText', text);
+        for (const value of displayedValues(node.expression)) {
+          const text = literalText(value);
+          if (text !== undefined && hasLetter(text)) report(value, 'jsxText', text);
+        }
       },
       JSXAttribute(node) {
         const name = node.name.type === AST_NODE_TYPES.JSXIdentifier ? node.name.name : node.name.name.name;
         if (!DISPLAY_ATTRIBUTES.has(name) || node.value === null) return;
         const valueNode =
           node.value.type === AST_NODE_TYPES.JSXExpressionContainer ? node.value.expression : node.value;
-        const text = literalText(valueNode);
-        if (text !== undefined && hasLetter(text)) report(node, 'jsxAttribute', text, name);
+        for (const value of displayedValues(valueNode)) {
+          const text = literalText(value);
+          if (text !== undefined && hasLetter(text)) report(value, 'jsxAttribute', text, name);
+        }
       },
     };
   },
