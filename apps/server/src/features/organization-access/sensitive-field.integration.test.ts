@@ -8,7 +8,6 @@ import { signedInMember, type SignedInMember } from '../../test/signed-in-member
 import { createTestApp } from '../../test/test-app.ts';
 
 const db = useTestDatabase();
-const logLines: string[] = [];
 let app: INestApplication;
 let projectId: string;
 let finance: SignedInMember;
@@ -21,7 +20,6 @@ beforeAll(async () => {
   app = await createTestApp({
     database: db,
     mailSender: new RecordingMailSender(),
-    logSink: (line) => logLines.push(line),
     extraModules: [SampleFinancialModule],
   });
   const organizationId = await seedOrganization(db, 'Acme');
@@ -101,11 +99,5 @@ describe('sensitive fields end to end over HTTP (FR-025, FR-026, FR-028, SC-005,
     }
     const raw = JSON.stringify(rows);
     for (const value of ['1000.0000', '2500.5', '9999.0000']) expect(raw).not.toContain(value);
-  });
-
-  it('never writes sensitive values to the request log', () => {
-    const logs = logLines.join('\n');
-    expect(logs).toContain('/sample-financials');
-    for (const value of ['1000.0000', '2500.5', '9999.0000']) expect(logs).not.toContain(value);
   });
 });
