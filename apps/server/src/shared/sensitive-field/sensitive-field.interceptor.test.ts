@@ -7,7 +7,8 @@ import { api } from '../../test/http.ts';
 import { useTestDatabase } from '../../test/postgres.ts';
 import { SampleFinancialDto, SampleFinancialList, SampleFinancialUpdate } from '../../test/sample-financial.dto.ts';
 import { seedMembership, seedOrganization, seedProject, seedProjectMember, seedUser } from '../../test/seed.ts';
-import { APP_CONFIG, DATABASE } from '../app-tokens.ts';
+import { InfrastructureModule } from '../infrastructure.module.ts';
+import { RecordingMailSender } from '../../test/recording-mail-sender.ts';
 import { AuthCoreModule } from '../auth/auth-core.module.ts';
 import { CSRF_COOKIE, SESSION_COOKIE } from '../auth/session-cookie.ts';
 import { SessionStore } from '../auth/session-store.ts';
@@ -58,6 +59,7 @@ class SampleController {
 @Module({ controllers: [SampleController] })
 class SampleModule {}
 
+const APP_BASE_URL = 'https://app.planix.test';
 const db = useTestDatabase();
 const sessions = new SessionStore(db, systemClock);
 let app: INestApplication;
@@ -74,13 +76,18 @@ async function projectMember(roles: string[]) {
 
 beforeAll(async () => {
   const moduleRef = await Test.createTestingModule({
-    imports: [AuthCoreModule, AuthorizationModule, SensitiveFieldModule, SampleModule],
-  })
-    .overrideProvider(DATABASE)
-    .useValue(db)
-    .overrideProvider(APP_CONFIG)
-    .useValue({ appBaseUrl: 'https://app.planix.test' })
-    .compile();
+    imports: [
+      InfrastructureModule.forRoot({
+        database: db,
+        config: { appBaseUrl: APP_BASE_URL },
+        mailSender: new RecordingMailSender(),
+      }),
+      AuthCoreModule,
+      AuthorizationModule,
+      SensitiveFieldModule,
+      SampleModule,
+    ],
+  }).compile();
   const logger = new AppLogger(() => {});
   app = configureApp(moduleRef.createNestApplication({ logger }), logger);
   await app.init();

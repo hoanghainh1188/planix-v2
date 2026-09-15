@@ -1,8 +1,11 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.ts';
+import { loadServerConfig } from './config.ts';
 import { configureApp } from './configure-app.ts';
+import { createDatabase } from './shared/db/client.ts';
 import { AppLogger } from './shared/logging/app-logger.ts';
+import { SmtpMailSender } from './shared/mail/smtp-mail-sender.ts';
 
 export function assertUtcTimeZone(tz: string | undefined): void {
   if (tz !== 'UTC') {
@@ -12,10 +15,17 @@ export function assertUtcTimeZone(tz: string | undefined): void {
 
 async function bootstrap(): Promise<void> {
   assertUtcTimeZone(process.env.TZ);
+  const config = loadServerConfig();
   const logger = new AppLogger();
-  const app = await NestFactory.create(AppModule, { logger, bufferLogs: true });
+  const database = createDatabase(config.databaseUrls);
+  const mailSender = new SmtpMailSender({ smtpUrl: config.smtpUrl, from: config.mailFrom });
+  const app = await NestFactory.create(AppModule.forRoot({ database, config: config.app, mailSender }), {
+    logger,
+    bufferLogs: true,
+  });
   configureApp(app, logger);
-  await app.listen(3000);
+  app.enableShutdownHooks();
+  await app.listen(config.port);
 }
 
 await bootstrap();

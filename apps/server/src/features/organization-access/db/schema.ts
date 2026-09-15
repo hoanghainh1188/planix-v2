@@ -118,3 +118,36 @@ export const authSession = pgTable('auth_session', {
   createdAt: timestamptz('created_at').notNull().defaultNow(),
   lastSeenAt: timestamptz('last_seen_at').notNull().defaultNow(),
 });
+
+export const organizationInvitation = pgTable('organization_invitation', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  organizationId: uuid('organization_id').notNull(),
+  email: citext('email').notNull(),
+  roles: text('roles')
+    .array()
+    .notNull()
+    .default(sql`'{member}'`),
+  tokenHash: bytea('token_hash').notNull().unique(),
+  status: text('status', { enum: ['pending', 'accepted', 'revoked', 'expired'] })
+    .notNull()
+    .default('pending'),
+  expiresAt: timestamptz('expires_at').notNull(),
+  invitedByUserId: uuid('invited_by_user_id').notNull(),
+  invitedByKind: text('invited_by_kind', { enum: ['organizationAdmin', 'platformOperator'] }).notNull(),
+  createdAt: timestamptz('created_at').notNull().defaultNow(),
+  acceptedAt: timestamptz('accepted_at'),
+});
+
+export const passwordResetToken = pgTable('password_reset_token', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: uuid('user_id').notNull(),
+  tokenHash: bytea('token_hash').notNull().unique(),
+  expiresAt: timestamptz('expires_at').notNull(),
+  usedAt: timestamptz('used_at'),
+  supersededAt: timestamptz('superseded_at'),
+  createdAt: timestamptz('created_at').notNull().defaultNow(),
+});

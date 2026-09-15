@@ -4,6 +4,7 @@ export interface MailpitMessage {
   readonly ID: string;
   readonly To: ReadonlyArray<{ Address: string }>;
   readonly Subject: string;
+  readonly Created: string;
 }
 
 /** Mailpit container for invitation / password reset emails in integration tests (research R10). */

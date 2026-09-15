@@ -45,6 +45,8 @@ function sanitize(value: unknown, schema: z.ZodType | undefined): string | null 
   return JSON.stringify(withoutForbiddenKeys(withoutSensitive));
 }
 
+export const AUDIT_WRITER = Symbol('AuditWriter');
+
 /** Append-only audit writer; always writes inside the caller's transaction (research R8). */
 export class AuditWriter {
   async record(tx: Tx, entry: AuditRecord): Promise<void> {

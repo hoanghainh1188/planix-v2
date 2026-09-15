@@ -14,7 +14,8 @@ import {
   seedProjectMember,
   seedUser,
 } from '../../test/seed.ts';
-import { APP_CONFIG, DATABASE } from '../app-tokens.ts';
+import { InfrastructureModule } from '../infrastructure.module.ts';
+import { RecordingMailSender } from '../../test/recording-mail-sender.ts';
 import { AuthCoreModule } from '../auth/auth-core.module.ts';
 import { Public } from '../auth/route-scope.decorators.ts';
 import { SESSION_COOKIE } from '../auth/session-cookie.ts';
@@ -67,6 +68,7 @@ class UndeclaredController {
   }
 }
 
+const APP_BASE_URL = 'https://app.planix.test';
 const db = useTestDatabase();
 const sessions = new SessionStore(db, systemClock);
 const logger = new AppLogger(() => {});
@@ -74,12 +76,18 @@ const logger = new AppLogger(() => {});
 async function buildApp(controllers: Array<new () => unknown>): Promise<INestApplication> {
   @Module({ controllers })
   class ProbeModule {}
-  const moduleRef = await Test.createTestingModule({ imports: [AuthCoreModule, AuthorizationModule, ProbeModule] })
-    .overrideProvider(DATABASE)
-    .useValue(db)
-    .overrideProvider(APP_CONFIG)
-    .useValue({ appBaseUrl: 'https://app.planix.test' })
-    .compile();
+  const moduleRef = await Test.createTestingModule({
+    imports: [
+      InfrastructureModule.forRoot({
+        database: db,
+        config: { appBaseUrl: APP_BASE_URL },
+        mailSender: new RecordingMailSender(),
+      }),
+      AuthCoreModule,
+      AuthorizationModule,
+      ProbeModule,
+    ],
+  }).compile();
   const app = configureApp(moduleRef.createNestApplication({ logger }), logger);
   await app.init();
   return app;

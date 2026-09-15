@@ -8,8 +8,8 @@ import { FakeClock, HOUR, MINUTE } from '../../test/fake-clock.ts';
 import { api } from '../../test/http.ts';
 import { useTestDatabase } from '../../test/postgres.ts';
 import { seedMembership, seedOrganization, seedUser } from '../../test/seed.ts';
-import { APP_CONFIG, DATABASE } from '../app-tokens.ts';
-import { CLOCK } from '../clock/clock.ts';
+import { InfrastructureModule } from '../infrastructure.module.ts';
+import { RecordingMailSender } from '../../test/recording-mail-sender.ts';
 import type { Tx } from '../db/client.ts';
 import { AppLogger } from '../logging/app-logger.ts';
 import { AuthCoreModule } from './auth-core.module.ts';
@@ -73,16 +73,17 @@ let membershipId: string;
 
 beforeAll(async () => {
   const moduleRef = await Test.createTestingModule({
-    imports: [AuthCoreModule],
+    imports: [
+      InfrastructureModule.forRoot({
+        database: db,
+        config: { appBaseUrl: APP_BASE_URL },
+        mailSender: new RecordingMailSender(),
+        clock,
+      }),
+      AuthCoreModule,
+    ],
     controllers: [ProbeController, AuthProbeController],
-  })
-    .overrideProvider(DATABASE)
-    .useValue(db)
-    .overrideProvider(CLOCK)
-    .useValue(clock)
-    .overrideProvider(APP_CONFIG)
-    .useValue({ appBaseUrl: APP_BASE_URL })
-    .compile();
+  }).compile();
   const logger = new AppLogger(() => {});
   app = configureApp(moduleRef.createNestApplication({ logger }), logger);
   await app.init();

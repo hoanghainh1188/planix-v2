@@ -74,3 +74,48 @@ export async function seedOperator(db: Database): Promise<string> {
   await db.ownerPool.query("INSERT INTO platform_operator_grant (user_id, granted_by) VALUES ($1, 'test')", [userId]);
   return userId;
 }
+
+export async function seedUserWithPassword(
+  db: Database,
+  email: string,
+  password: string,
+  options: { locale?: 'vi' | 'en' } = {},
+): Promise<string> {
+  const { PasswordHasher } = await import('../shared/auth/password-hasher.ts');
+  const hash = await new PasswordHasher().hash(password);
+  const { rows } = await db.ownerPool.query<{ id: string }>(
+    'INSERT INTO app_user (email, password_hash, locale) VALUES ($1, $2, $3) RETURNING id',
+    [email, hash, options.locale ?? 'vi'],
+  );
+  return rows[0]!.id;
+}
+
+export async function seedInvitation(
+  db: Database,
+  input: {
+    organizationId: string;
+    email: string;
+    roles?: readonly string[];
+    invitedByUserId: string;
+    expiresAt: Date;
+    status?: 'pending' | 'revoked' | 'accepted';
+  },
+): Promise<string> {
+  const { generateToken, hashToken } = await import('../shared/auth/secure-token.ts');
+  const token = generateToken();
+  await db.ownerPool.query(
+    `INSERT INTO organization_invitation
+       (organization_id, email, roles, token_hash, status, expires_at, invited_by_user_id, invited_by_kind, accepted_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'organizationAdmin', CASE WHEN $5 = 'accepted' THEN now() END)`,
+    [
+      input.organizationId,
+      input.email,
+      input.roles ?? ['member'],
+      hashToken(token),
+      input.status ?? 'pending',
+      input.expiresAt,
+      input.invitedByUserId,
+    ],
+  );
+  return token;
+}
