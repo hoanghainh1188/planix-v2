@@ -142,14 +142,27 @@ describe('organization members and system roles (FR-012, FR-014, Q4, Q5)', () =>
     const settings = tenantSettings(tenantFromVerifiedSession(organizationId));
     const t1 = await openTransaction(db.appPool, settings);
     const t2 = await openTransaction(db.appPool, settings);
+    const { rows: backend } = await t2.tx.client.query<{ pid: number }>('SELECT pg_backend_pid() AS pid');
     try {
       await service.assignRoles(t1.tx, principal(admin.userId), second.membershipId, ['member']);
       let waitingSettled = false;
       const waiting = service
         .assignRoles(t2.tx, principal(second.userId), admin.membershipId, ['member'])
         .finally(() => (waitingSettled = true));
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      expect(waitingSettled).toBe(false);
+      // Proof of blocking, not a timer: the second transaction's backend is waiting on a row lock held by the first.
+      await expect
+        .poll(
+          async () => {
+            if (waitingSettled) return 'finished without waiting';
+            const { rows } = await db.ownerPool.query<{ wait_event_type: string | null }>(
+              'SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1',
+              [backend[0]!.pid],
+            );
+            return rows[0]?.wait_event_type ?? null;
+          },
+          { timeout: 10_000, interval: 50 },
+        )
+        .toBe('Lock');
       await t1.commit();
       const error: unknown = await waiting.catch((e: unknown) => e);
       expect(error).toBeInstanceOf(DomainError);
